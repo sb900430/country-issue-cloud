@@ -563,7 +563,7 @@ python -m app.batch.pipeline_entry --countries US,JP
 - 실행: 2026년 8월 8일부터 9월 26일까지 매주 토요일 10:00(JST)
 - 범위: 마지막 리뷰 이후의 커밋과 diff, 관련 테스트·빌드·정적 검사
 - 평가: 보안, 정확성, 성능, 유지보수성, 테스트 충분성, 문서·아키텍처 준수
-- 결과: `reviews/YYYY-MM-DD-weekly-review.md`
+- 결과: 로컬 전용 `reviews/YYYY-MM-DD-weekly-review.md`
 
 심각도 처리 정책:
 
@@ -574,7 +574,7 @@ python -m app.batch.pipeline_entry --countries US,JP
 | Medium | 코드를 자동 수정하지 않고 파일·라인·영향·권장 조치를 리뷰 이력에 남긴다. |
 | Low | 코드를 자동 수정하지 않고 개선 후보로 리뷰 이력에 남긴다. |
 
-Critical/High 수정과 리뷰 문서는 관련 검증이 통과할 때만 하나의 명확한 커밋으로 만들고 `origin/main`에 push한다. Critical/High가 없으면 리뷰 문서만 커밋·push한다. 외부 계약, 자격증명, 사용자 결정이 필요한 항목은 임의로 우회하지 않는다.
+`reviews/`는 `.gitignore`에 포함하고 모든 리뷰 MD를 로컬에만 저장한다. Critical/High 수정은 관련 검증이 통과할 때 수정 코드만 명확한 커밋으로 만들고 `origin/main`에 push한다. 해결된 항목은 로컬 리뷰에 `RESOLVED`와 수정 커밋 SHA를 표시한다. Critical/High가 없으면 커밋·push 없이 로컬 리뷰만 남긴다. 외부 계약, 자격증명, 사용자 결정이 필요한 항목은 임의로 우회하지 않는다.
 
 ---
 
@@ -632,6 +632,7 @@ google-services.json
 local.properties
 data/
 reports/
+reviews/
 *.log
 ```
 
