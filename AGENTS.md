@@ -31,7 +31,9 @@
 - Squash temporary WIP commits into the milestone commit before publication.
 - Push the milestone branch and open a Draft PR targeting `main`.
 - Move the PR to ready only after `scripts/verify-all.ps1`, CI, and review pass.
-- Merge through the PR. Do not push milestone or review-fix commits directly to `main`.
+- Merge through the PR using **Rebase and merge** so the validated multilingual milestone commit subject is preserved and no automatic merge commit is added.
+- Do not use **Create a merge commit**. Use **Squash and merge** only as an exception when WIP commits could not be squashed locally, and manually set the squash commit subject to the required multilingual format.
+- Do not push milestone or review-fix commits directly to `main`.
 - After merge, switch to the updated `main` and run `scripts/verify-all.ps1` plus the available local smoke tests again against the merged code.
 - A milestone is complete only after the post-merge checks on `main` pass.
 - If a post-merge check fails, create `codex/post-merge-fix-<milestone>` from the failing `main`, fix it, and use another PR. Do not repair `main` directly.
