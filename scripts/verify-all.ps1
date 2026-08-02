@@ -23,6 +23,10 @@ try {
         & (Join-Path $PSScriptRoot "check-spec-sync.ps1")
     }
 
+    Invoke-VerificationStep "Secret scan" {
+        & (Join-Path $PSScriptRoot "check-secrets.ps1")
+    }
+
     if (Test-Path -LiteralPath "backend/pyproject.toml") {
         if (-not (Get-Command uv -ErrorAction SilentlyContinue)) {
             throw "The backend exists, but uv is unavailable."

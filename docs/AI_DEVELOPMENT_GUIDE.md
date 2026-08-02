@@ -78,6 +78,7 @@
 - 기존 테스트, lint, type check, build가 통과한다.
 - 외부 API와 LLM은 기본 테스트에서 mock/fixture를 사용한다.
 - 로그, 오류, fixture, 문서에 비밀정보가 없다.
+- `scripts/check-secrets.ps1`이 통과하고 금지된 credential 파일이 Git 추적 대상이 아니다.
 - 실행·설정·계약 변경은 관련 문서에 반영했다.
 - 명세 변경 시 한국어판과 일본어판을 같은 작업에서 수정했다.
 - 메서드 단위 설명 주석과 TODO/FIXME 설명은 일본어다.
@@ -119,6 +120,7 @@ Compose 스크린샷 기준은 기본 타일형, 클라우드형, 로딩, 부분
 
 ```powershell
 .\scripts\check-spec-sync.ps1
+.\scripts\check-secrets.ps1
 .\scripts\verify-all.ps1
 ```
 

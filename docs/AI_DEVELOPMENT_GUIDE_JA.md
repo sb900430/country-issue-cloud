@@ -76,6 +76,7 @@
 - 既存test、lint、type check、buildが成功。
 - 外部API/LLMは標準testでmock/fixtureを利用。
 - log、error、fixture、文書に秘密情報なし。
+- `scripts/check-secrets.ps1`が成功し、禁止されたcredentialファイルがGit追跡対象ではない。
 - 実行・設定・契約変更を関連文書へ反映。
 - 仕様変更時は韓国語版と日本語版を同時更新。
 - method単位コメントとTODO/FIXME説明は日本語。
@@ -108,6 +109,7 @@ Compose screenshot基準には、タイル、クラウド、loading、部分成�
 
 ```powershell
 .\scripts\check-spec-sync.ps1
+.\scripts\check-secrets.ps1
 .\scripts\verify-all.ps1
 ```
 

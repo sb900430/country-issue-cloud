@@ -716,16 +716,59 @@ Git 제외 항목:
 
 ```text
 .env
+.env.* (`.env.example` 제외)
+secrets/
+credentials/
 *.jks
 *.keystore
+*.p12
+*.pfx
+*.pem
 key.properties
+keystore.properties
 google-services.json
+*service-account*.json
+firebase-adminsdk*.json
 local.properties
 data/
 reports/
 reviews/
+logs/
 *.log
+*.db
+*.sqlite*
+.vscode/settings.json
+.vscode/launch.json
 ```
+
+### 파일별 Secret 관리
+
+| 파일·영역 | 예상 민감정보 | 개발 환경 저장 위치 | 운영 환경 저장 위치 | Git 정책 |
+|---|---|---|---|---|
+| `backend/.env` | 뉴스 API 키, NAVER Client ID/Secret, LLM 키, DB URL, JWT/Admin Secret | 로컬 비추적 파일 | 호스팅 Secret 또는 `/etc/country-issue-cloud/backend.env` | 커밋 금지 |
+| `backend/.env.example` | 환경변수 이름과 비민감 예시 | 저장소 | 저장소 | 실제 값 없이 커밋 허용 |
+| `backend/app/config.py` | 환경변수 Schema와 검증 규칙 | 저장소 | 배포 코드 | 값 하드코딩 금지, 변수명만 허용 |
+| `android/local.properties` | SDK 경로와 로컬 설정 | 개발자 PC | 해당 없음 | 커밋 금지 |
+| `key.properties`, `keystore.properties`, `*.jks`, `*.keystore` | 앱 서명키와 비밀번호 | Git 외부 암호화 보관 | Play App Signing/CI Secret | 커밋 금지 |
+| Android `BuildConfig`, `strings.xml`, Kotlin 소스 | 백엔드 URL, 실수로 입력한 provider key | 공개 가능한 URL만 포함 | AAB/APK에 포함 | 외부 API/LLM key와 Client Secret 금지 |
+| `google-services.json`, 서비스 계정 JSON | Firebase client 설정 또는 관리자 credential | 필요 시 별도 전달 | 호스팅 Secret | 기본 커밋 금지, 서비스 계정은 절대 금지 |
+| `.github/workflows/*.yml` | 배포·서명·호스팅 credential | `${{ secrets.NAME }}` 참조 | GitHub Environment Secrets | 평문 값 금지 |
+| `deploy/`, Docker, systemd 설정 | DB 비밀번호, API key, SSH key | 변수 참조만 저장 | 서버 환경변수·Secret 저장소 | 평문 값 금지 |
+| `tests/fixtures/`, `sample-data/` | 실제 응답의 token, header, 작성자 개인정보 | 비식별 mock/fixture | 해당 없음 | 가공 데이터만 허용 |
+| `logs/`, `data/`, `*.db`, 일일보고서·리뷰 | 인증 header, IP, 기기정보, 원문 응답 | 로컬 전용·마스킹 | 접근 제한 저장소 | raw 민감정보 커밋 금지 |
+| `.vscode/launch.json`, IDE 실행 설정 | 실행 환경변수와 token | 개발자 PC | 해당 없음 | 민감값 포함 파일 커밋 금지 |
+
+Android 바이너리는 역분석 가능하다고 가정한다. `API_BASE_URL`과 공개용 OAuth Client ID만 앱에 포함할 수 있으며 뉴스 API 키, LLM 키, NAVER Client Secret, DB credential, 관리자 token, JWT 서명키와 서명 비밀번호는 백엔드 또는 배포 Secret에만 둔다. Client ID도 제공자 정책상 비밀로 분류되면 서버 전용으로 처리한다.
+
+### 커밋 차단 기준
+
+- `scripts/check-secrets.ps1`은 Git 추적 파일명과 고신뢰 secret 패턴을 검사하며 `scripts/verify-all.ps1`의 필수 단계로 실행한다.
+- `.env.example`에는 변수명, 빈 값, 명백한 placeholder만 허용한다. 실제와 유사한 예시 키를 사용하지 않는다.
+- 비밀 파일, private key, provider token 또는 credential이 발견되면 검증과 커밋을 실패 처리한다.
+- 로그, fixture, 문서, 스크린샷에는 `Authorization`, cookie, 개인식별정보, 전체 외부 응답을 넣지 않는다.
+- PR CI에서도 동일 검사와 GitHub secret scanning/push protection을 사용한다. 로컬 검사는 서버 측 보호를 대체하지 않는다.
+- 의심 값은 허용 목록으로 우회하지 않고 저장 위치를 Secret 저장소로 변경한다. 예외가 필요하면 사용자 승인과 ADR을 요구한다.
+- 유출된 key는 Git에서 문자열을 삭제하는 것만으로 해결된 것으로 보지 않는다. 즉시 폐기·재발급하고 영향 범위 확인 후 필요하면 저장소 이력을 정리한다.
 
 README에는 앱/웹 링크, 스크린샷, 아키텍처, 기술 선택, 실행법, API 예시, 테스트, 출처·LLM·운영 정책을 포함한다. MIT License, secret scanning, 의존성 업데이트, Issue/PR 템플릿을 사용한다.
 
