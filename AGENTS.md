@@ -43,8 +43,21 @@
 
 - Read `docs/AI_DEVELOPMENT_GUIDE.md` or `docs/AI_DEVELOPMENT_GUIDE_JA.md` before implementation work.
 - Read and update both `docs/DEVELOPMENT_STATUS.md` and `docs/DEVELOPMENT_STATUS_JA.md` when a milestone starts or completes.
+- At the end of every day with development activity, create or update `docs/daily/YYYY-MM-DD.md` from `docs/daily/TEMPLATE.md`.
+- Write each daily report as one Git-tracked Markdown file containing equivalent Korean and Japanese sections.
+- Include the day's goal, completed work, important files, verification results, decisions, risks, and next task. Never include secrets or raw sensitive logs.
+- Keep daily reports on the active milestone branch and include them in that milestone's final commit and PR; do not create separate daily commits.
 - Use Retrofit for Android HTTP and uv for Python dependency management unless an approved ADR changes the decision.
 - Run `scripts/verify-all.ps1` before a milestone commit.
 - A milestone is complete only when its implementation, tests, documentation, and verification pass together.
 - Real news APIs and LLMs must not be called from the default test suite; use mocks and fixtures.
 - Do not automatically approve visual regression baseline changes.
+
+## Weekly review
+
+- Follow `docs/review/WEEKLY_REVIEW_GUIDE.md` and use `docs/review/WEEKLY_REVIEW_TEMPLATE.md`.
+- Limit the review phase to 60 minutes. Retry only transient command failures once.
+- Require changed-code line coverage of 80%; apply module thresholds defined in the guide.
+- Allow at most two safe fix attempts per Critical/High finding and a separate 90-minute fix window.
+- Store review reports only under ignored `reviews/`; do not commit them.
+- Advance `reviews/.last-reviewed-sha` only after a complete review.
