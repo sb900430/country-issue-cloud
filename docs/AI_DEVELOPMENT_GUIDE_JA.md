@@ -45,14 +45,15 @@
 ## 3. 作業手順
 
 1. `AGENTS.md`、両仕様書、`docs/DEVELOPMENT_STATUS.md`を読む。
-2. `git status`で利用者変更を確認し保護する。
-3. 要件と影響ファイルを確認する。
-4. testまたは検証基準を先に決める。
-5. 最小の完結単位で実装する。
-6. 関連test後に`scripts/verify-all.ps1`を実行する。
-7. 仕様へ影響する場合は韓国語・日本語版を同時更新する。
-8. 開発状態文書を更新する。
-9. 目標範囲を検証後、目標単位commitを作成する。
+2. `main`を最新化し、対象目標の`codex/milestone-*` branchを作る。
+3. `git status`で利用者変更を確認し保護する。
+4. 要件、影響ファイル、検証基準を確認する。
+5. 最小の完結単位で実装し、関連testを実行する。
+6. 仕様へ影響する場合は韓国語・日本語版を同時更新する。
+7. `scripts/verify-all.ps1`を実行し、開発状態文書を更新する。
+8. WIPをsquashして目標commit一つに整理する。
+9. 目標branchをpushし、`main`対象のDraft PRを作成する。
+10. CIとreview通過後にReadyへ変更し、PRからmergeする。
 
 ## 4. 共通Definition of Done
 
@@ -86,7 +87,7 @@ Compose screenshot基準には、タイル、クラウド、loading、部分成�
 
 ## 8. Commitと復旧
 
-全commit subjectは`YYYY/MM/DD <type>: <English> | <한국어> | <日本語>`形式を使う。日付は実際のcommit日、typeは英語とし、3つのsummaryは同じ意味を簡潔に翻訳する。例は`2026/08/03 feat: scaffold local environment | 로컬 환경 구성 | ローカル環境を構成`である。目標別branchのWIPにも同形式を適用し、完了時にsquashして目標commit一つへ整理する。Critical/Highの事後修正だけ別`fix:`を許可するがsubject形式は同じである。完了後、状態文書へSHAと検証結果を記録する。
+全commit subjectは`YYYY/MM/DD <type>: <English> | <한국어> | <日本語>`形式を使う。日付は実際のcommit日、typeは英語とし、3つのsummaryは同じ意味を簡潔に翻訳する。例は`2026/08/03 feat: scaffold local environment | 로컬 환경 구성 | ローカル環境を構成`である。目標別branchのWIPにも同形式を適用し、完了時にsquashして目標commit一つへ整理する。Critical/Highの事後修正は別`codex/review-fix-*` branchと`fix:` commitで処理する。目標とreview修正はすべてDraft PRを通して`main`へmergeし、直接pushしない。完了後、状態文書へPR番号、SHA、検証結果を記録する。
 
 ## 9. 標準command
 

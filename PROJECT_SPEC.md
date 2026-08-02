@@ -639,7 +639,7 @@ python -m app.batch.pipeline_entry --countries US,JP
 | Medium | 코드를 자동 수정하지 않고 파일·라인·영향·권장 조치를 리뷰 이력에 남긴다. |
 | Low | 코드를 자동 수정하지 않고 개선 후보로 리뷰 이력에 남긴다. |
 
-`reviews/`는 `.gitignore`에 포함하고 모든 리뷰 MD를 로컬에만 저장한다. Critical/High 수정은 관련 검증이 통과할 때 수정 코드만 명확한 커밋으로 만들고 `origin/main`에 push한다. 해결된 항목은 로컬 리뷰에 `RESOLVED`와 수정 커밋 SHA를 표시한다. Critical/High가 없으면 커밋·push 없이 로컬 리뷰만 남긴다. 외부 계약, 자격증명, 사용자 결정이 필요한 항목은 임의로 우회하지 않는다.
+`reviews/`는 `.gitignore`에 포함하고 모든 리뷰 MD를 로컬에만 저장한다. Critical/High 수정은 `codex/review-fix-YYYY-MM-DD` 브랜치에서 관련 검증을 통과시킨 뒤 명확한 수정 커밋과 Draft PR로 `main`에 반영한다. 해결된 항목은 로컬 리뷰에 `RESOLVED`, 수정 커밋 SHA와 PR 번호를 표시한다. Critical/High가 없으면 브랜치·커밋·PR 없이 로컬 리뷰만 남긴다. 외부 계약, 자격증명, 사용자 결정이 필요한 항목은 임의로 우회하지 않는다.
 
 ---
 
@@ -723,6 +723,9 @@ v* 태그 → release AAB → GitHub Release → Play 내부 테스트 트랙
 - 공통 완료 조건에는 기능·오류 경로, 관련 테스트, lint/type/build, 비밀정보 검사, 문서 동기화와 일본어 주석 규칙을 포함한다.
 - 목표 커밋 전에 `scripts/verify-all.ps1`을 실행한다. 이 스크립트는 명세 동기화와 생성된 각 프로젝트의 검사를 한 진입점에서 수행한다.
 - 목표 브랜치의 임시 WIP 커밋은 허용하되 완료 시 squash하여 목표 단위 커밋 하나로 정리한다.
+- 각 목표는 지정된 `codex/milestone-*` 브랜치에서 시작하고 `main` 대상 Draft PR로 게시한다.
+- 통합 검증과 CI, 리뷰 통과 후 Ready로 전환해 PR로 병합하며 목표 변경을 `main`에 직접 push하지 않는다.
+- 병합 후 목표 브랜치를 삭제하고 최신 `main`에서 다음 목표 브랜치를 만든다.
 - AI가 API 계약, 핵심 아키텍처, 기술 스택, 비용·공개 범위를 바꾸려면 ADR과 사용자 확인이 필요하다.
 - UI 스크린샷 기준 변경은 자동 승인하지 않고 사람이 의도된 변경인지 확인한다.
 
@@ -803,6 +806,17 @@ v* 태그 → release AAB → GitHub Release → Play 내부 테스트 트랙
 
 ### 목표 단위 커밋 정책
 
+| 목표 | 작업 브랜치 |
+|---|---|
+| 1. 환경과 프로젝트 골격 | `codex/milestone-01-scaffold` |
+| 2. 데이터 계약과 로컬 API | `codex/milestone-02-local-api` |
+| 3. 국가별 수집과 정제 | `codex/milestone-03-news-collection` |
+| 4. LLM과 TOP 5 | `codex/milestone-04-issue-ranking` |
+| 5. 전체 배치와 웹 데모 | `codex/milestone-05-pipeline-web` |
+| 6. Android API 연결 | `codex/milestone-06-android-api` |
+| 7. Android UI와 오프라인 | `codex/milestone-07-android-ui` |
+| 8. MVP 안정화 | `codex/milestone-08-local-mvp` |
+
 | 목표 | 커밋 메시지 |
 |---|---|
 | 1. 환경과 프로젝트 골격 | `YYYY/MM/DD feat: scaffold local environment`<br>`로컬 환경 구성`<br>`ローカル環境を構成` |
@@ -814,7 +828,7 @@ v* 태그 → release AAB → GitHub Release → Play 내부 테스트 트랙
 | 7. Android UI와 오프라인 | `YYYY/MM/DD feat: implement Android UI and offline cache`<br>`안드로이드 UI 및 오프라인 캐시 구현`<br>`Android UIとオフラインキャッシュを実装` |
 | 8. MVP 안정화 | `YYYY/MM/DD release: complete local MVP`<br>`로컬 MVP 완성`<br>`ローカルMVPを完成` |
 
-모든 커밋 제목은 `YYYY/MM/DD <type>: <English> | <한국어> | <日本語>` 형식을 사용한다. 날짜는 실제 커밋 날짜, type은 영어로 작성하고 세 요약은 같은 의미를 간결하게 번역한다. 위 표의 세 줄은 실제 제목에서 ` | `로 연결한다. 각 목표의 구현과 관련 테스트가 모두 통과한 뒤 한 번 커밋한다. 작업 중 임시 커밋이 필요하면 목표 완료 전에 squash한다. 각 목표 커밋은 독립적으로 빌드·테스트 가능해야 한다. 토요일 리뷰 전에 미커밋 상태인 Critical/High 수정은 해당 목표 커밋에 포함한다. 이미 push된 목표에서 발견된 Critical/High는 예외적으로 같은 형식의 `fix` 커밋을 허용하고 로컬 리뷰에 해결 커밋 SHA를 남긴다.
+모든 커밋 제목은 `YYYY/MM/DD <type>: <English> | <한국어> | <日本語>` 형식을 사용한다. 날짜는 실제 커밋 날짜, type은 영어로 작성하고 세 요약은 같은 의미를 간결하게 번역한다. 위 표의 세 줄은 실제 제목에서 ` | `로 연결한다. 각 목표의 구현과 관련 테스트가 모두 통과한 뒤 한 번 커밋한다. 작업 중 임시 커밋이 필요하면 목표 완료 전에 squash한다. 각 목표 커밋은 독립적으로 빌드·테스트 가능해야 한다. 목표 브랜치를 push한 뒤 `main` 대상 Draft PR을 만들고 CI·리뷰 통과 후 병합한다. 토요일 리뷰 전에 미커밋 상태인 Critical/High 수정은 해당 목표 커밋에 포함한다. 이미 push된 목표에서 발견된 Critical/High는 별도 수정 브랜치와 같은 형식의 `fix` 커밋·PR로 처리한다.
 
 ### 호스팅 계약 후 1주차 — 운영 배포
 

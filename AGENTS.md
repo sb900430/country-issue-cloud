@@ -23,6 +23,17 @@
 - Use `YYYY/MM/DD <type>: <English> | <한국어> | <日本語>`.
 - Keep all three summaries concise and semantically equivalent. Example: `2026/08/03 feat: scaffold local environment | 로컬 환경 구성 | ローカル環境を構成`.
 
+## Branch and pull request workflow
+
+- Do not develop milestone changes directly on `main`.
+- At the start of each milestone, update `main` and create the milestone branch defined in both specification files.
+- Develop, test, and document the complete milestone on that branch.
+- Squash temporary WIP commits into the milestone commit before publication.
+- Push the milestone branch and open a Draft PR targeting `main`.
+- Move the PR to ready only after `scripts/verify-all.ps1`, CI, and review pass.
+- Merge through the PR. Do not push milestone or review-fix commits directly to `main`.
+- Delete the milestone branch after merge and start the next milestone from the updated `main`.
+
 ## AI development workflow
 
 - Read `docs/AI_DEVELOPMENT_GUIDE.md` or `docs/AI_DEVELOPMENT_GUIDE_JA.md` before implementation work.
