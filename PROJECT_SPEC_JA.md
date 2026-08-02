@@ -322,7 +322,7 @@ reports/
 |---|---|
 | 言語/UI | Kotlin、Jetpack Compose、Material 3 |
 | 構造 | UI → ViewModel → Repository → Room/API |
-| ネットワーク | RetrofitまたはKtorから実装時に一つを確定 |
+| ネットワーク | Retrofit |
 | JSON | Kotlinx Serialization |
 | 保存 | Room、DataStore |
 | 非同期/DI | Coroutines、Flow、Hilt |
@@ -431,8 +431,16 @@ country-issue-cloud/
 ├── frontend/
 ├── config/
 ├── deploy/
-├── docs/adr/
+├── docs/
+│   ├── AI_DEVELOPMENT_GUIDE.md
+│   ├── AI_DEVELOPMENT_GUIDE_JA.md
+│   ├── DEVELOPMENT_STATUS.md
+│   ├── DEVELOPMENT_STATUS_JA.md
+│   └── adr/
 ├── sample-data/
+├── scripts/
+│   ├── check-spec-sync.ps1
+│   └── verify-all.ps1
 ├── .github/workflows/
 ├── PROJECT_SPEC.md
 ├── PROJECT_SPEC_JA.md
@@ -569,6 +577,14 @@ python -m app.batch.pipeline_entry --countries US,JP
 - TalkBack、文字拡大、長い多言語ラベル
 - 小画面、タブレット、フォルダブル
 - release AABから運用APIへ接続
+- タイル型・クラウド型・各状態のCompose screenshot回帰test
+
+### LLM回帰評価
+
+- `sample-data/evaluation/{US,JP,KR}`に国別固定入力を置く。
+- `sample-data/evaluation/expected`には文章全体ではなく、Schema、根拠ID、重複禁止、決定的順位の期待値を置く。
+- 標準CIはmockのみを使い、実model評価は明示的なlive/evaluation実行へ分離する。
+- promptまたはclustering変更時に国間混在、入力外根拠、TOP 5重複、費用上限を再検証する。
 
 ### Web
 
@@ -639,6 +655,7 @@ READMEにはアプリ/Webリンク、スクリーンショット、アーキテ�
 
 Pull Request CI：
 
+- 共通：韓国語・日本語仕様の同時変更と主要構造の同期検査
 - Python：Ruff、mypy、pytest、import境界、セキュリティ検査
 - Android：ktlint、detekt、Android Lint、テスト、debugビルド
 - Web：静的検査、JSテスト、基本アクセシビリティ検査
@@ -647,6 +664,17 @@ Pull Request CI：
 main merge → 全CI → VPS配布 → health/ready → 失敗時ロールバック
 v* tag → release AAB → GitHub Release → Play内部テストトラック
 ```
+
+### AI開発ガードレール
+
+- 実装作業は目標、範囲、対象外、完了条件、検証command、目標commitを含む作業契約に従う。
+- `docs/AI_DEVELOPMENT_GUIDE.md`と日本語版をAI作業の実行基準とする。
+- `docs/DEVELOPMENT_STATUS.md`と日本語版へ現在目標、完了commit、検証結果、次作業、外部依存を記録する。
+- 共通完了条件に機能・エラー経路、関連test、lint/type/build、秘密情報検査、文書同期、日本語コメント規則を含める。
+- 目標commit前に`scripts/verify-all.ps1`を実行し、仕様同期と各project検査を一つの入口で行う。
+- 目標branchの一時WIP commitは許可するが、完了時にsquashして目標単位commit一つへ整理する。
+- AIがAPI契約、主要architecture、技術stack、費用・公開範囲を変える場合はADRと利用者確認が必要。
+- UI screenshot基準変更は自動承認せず、人が意図された変更か確認する。
 
 ---
 
@@ -683,7 +711,7 @@ v* tag → release AAB → GitHub Release → Play内部テストトラック
 
 | 日付 | 開発内容 | 成果物・検証 |
 |---|---|---|
-| 8/3(月) | 環境、monorepo、設定分離、fixture、CI | 目標1検証・`feat: scaffold local development environment` |
+| 8/3(月) | 環境、monorepo、設定分離、fixture、CI、AI開発検証入口 | 目標1検証・`feat: scaffold local development environment` |
 | 8/4(火) | データモデル、Schema、JSON Repository | fixture・Repositoryテスト |
 | 8/5(水) | アトミック保存、保管、FastAPI | 目標2検証・`feat: implement local data API` |
 | 8/6(木) | Collector、fixture/実ソース、重複排除 | 契約・重複排除テスト |

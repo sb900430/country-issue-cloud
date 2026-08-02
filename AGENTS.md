@@ -19,3 +19,13 @@
 
 - Update the Korean and Japanese specifications together in one commit.
 - Follow the milestone commit policy defined in both specification files.
+
+## AI development workflow
+
+- Read `docs/AI_DEVELOPMENT_GUIDE.md` or `docs/AI_DEVELOPMENT_GUIDE_JA.md` before implementation work.
+- Read and update both `docs/DEVELOPMENT_STATUS.md` and `docs/DEVELOPMENT_STATUS_JA.md` when a milestone starts or completes.
+- Use Retrofit for Android HTTP and uv for Python dependency management unless an approved ADR changes the decision.
+- Run `scripts/verify-all.ps1` before a milestone commit.
+- A milestone is complete only when its implementation, tests, documentation, and verification pass together.
+- Real news APIs and LLMs must not be called from the default test suite; use mocks and fixtures.
+- Do not automatically approve visual regression baseline changes.

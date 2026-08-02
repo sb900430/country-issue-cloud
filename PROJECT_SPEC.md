@@ -322,7 +322,7 @@ reports/
 |---|---|
 | 언어/UI | Kotlin, Jetpack Compose, Material 3 |
 | 구조 | UI → ViewModel → Repository → Room/API |
-| 네트워크 | Retrofit 또는 Ktor 중 구현 시 하나로 확정 |
+| 네트워크 | Retrofit |
 | JSON | Kotlinx Serialization |
 | 저장 | Room, DataStore |
 | 비동기/DI | Coroutines, Flow, Hilt |
@@ -446,6 +446,10 @@ country-issue-cloud/
 ├── deploy/
 ├── docs/
 │   ├── architecture.md
+│   ├── AI_DEVELOPMENT_GUIDE.md
+│   ├── AI_DEVELOPMENT_GUIDE_JA.md
+│   ├── DEVELOPMENT_STATUS.md
+│   ├── DEVELOPMENT_STATUS_JA.md
 │   ├── functional-design.md
 │   ├── screen-design.md
 │   ├── api-spec.md
@@ -454,6 +458,9 @@ country-issue-cloud/
 │   ├── operations-runbook.md
 │   └── adr/
 ├── sample-data/
+├── scripts/
+│   ├── check-spec-sync.ps1
+│   └── verify-all.ps1
 ├── .github/workflows/
 ├── LICENSE
 ├── SECURITY.md
@@ -600,6 +607,14 @@ python -m app.batch.pipeline_entry --countries US,JP
 - TalkBack, 글자 확대, 긴 다국어 라벨
 - 작은 화면, 태블릿, 폴더블
 - release AAB의 운영 API 연결
+- 타일형·클라우드형·상태별 Compose 스크린샷 회귀 테스트
+
+### LLM 회귀 평가
+
+- `sample-data/evaluation/{US,JP,KR}`에 국가별 고정 입력을 둔다.
+- `sample-data/evaluation/expected`에는 문장 전체가 아니라 Schema, 근거 ID, 중복 금지, 결정적 순위의 기대값을 둔다.
+- 기본 CI는 mock만 사용하며 실제 모델 평가는 명시적인 live/evaluation 실행으로 분리한다.
+- 프롬프트 또는 클러스터링 변경 시 국가 간 혼합, 입력에 없는 근거, TOP 5 중복과 비용 상한을 재검증한다.
 
 ### 웹
 
@@ -690,6 +705,7 @@ README에는 앱/웹 링크, 스크린샷, 아키텍처, 기술 선택, 실행�
 
 Pull Request CI:
 
+- 공통: 한·일 명세 동시 변경과 핵심 구조 동기화 검사
 - Python: Ruff, mypy, pytest, import 경계, 보안 검사
 - Android: ktlint, detekt, Android Lint, 테스트, debug 빌드
 - 웹: 정적 검사, JS 테스트, 기본 접근성 검사
@@ -698,6 +714,17 @@ Pull Request CI:
 main merge → 전체 CI → VPS 배포 → health/ready → 실패 시 롤백
 v* 태그 → release AAB → GitHub Release → Play 내부 테스트 트랙
 ```
+
+### AI 개발 가드레일
+
+- 구현 작업은 목표, 범위, 제외 범위, 완료 조건, 검증 명령, 목표 커밋을 포함하는 작업 계약을 따른다.
+- `docs/AI_DEVELOPMENT_GUIDE.md`와 일본어판을 AI 작업의 실행 기준으로 사용한다.
+- `docs/DEVELOPMENT_STATUS.md`와 일본어판에 현재 목표, 완료 커밋, 검증 결과, 다음 작업과 외부 의존성을 기록한다.
+- 공통 완료 조건에는 기능·오류 경로, 관련 테스트, lint/type/build, 비밀정보 검사, 문서 동기화와 일본어 주석 규칙을 포함한다.
+- 목표 커밋 전에 `scripts/verify-all.ps1`을 실행한다. 이 스크립트는 명세 동기화와 생성된 각 프로젝트의 검사를 한 진입점에서 수행한다.
+- 목표 브랜치의 임시 WIP 커밋은 허용하되 완료 시 squash하여 목표 단위 커밋 하나로 정리한다.
+- AI가 API 계약, 핵심 아키텍처, 기술 스택, 비용·공개 범위를 바꾸려면 ADR과 사용자 확인이 필요하다.
+- UI 스크린샷 기준 변경은 자동 승인하지 않고 사람이 의도된 변경인지 확인한다.
 
 ---
 
@@ -734,7 +761,7 @@ v* 태그 → release AAB → GitHub Release → Play 내부 테스트 트랙
 
 | 날짜 | 개발 내용 | 당일 산출물·검증 |
 |---|---|---|
-| 8/3(월) | 환경 점검, monorepo, 설정 분리, fixture, 기본 CI | 목표 1 검증 후 `feat: scaffold local development environment` 커밋 |
+| 8/3(월) | 환경 점검, monorepo, 설정 분리, fixture, 기본 CI, AI 개발 검증 진입점 | 목표 1 검증 후 `feat: scaffold local development environment` 커밋 |
 | 8/4(화) | 데이터 모델, Schema, JSON Repository 구현 | 정상·오류 fixture와 Repository 테스트 |
 | 8/5(수) | 원자적 저장, 보관 정책, FastAPI 전체 엔드포인트 | 목표 2 검증 후 `feat: implement local data API` 커밋 |
 | 8/6(목) | Collector 계약, fixture·실제 소스 어댑터, 중복 제거 | 동일 출력 Schema와 중복 제거 테스트 |
