@@ -666,16 +666,59 @@ Git除外対象：
 
 ```text
 .env
+.env.*（`.env.example`を除く）
+secrets/
+credentials/
 *.jks
 *.keystore
+*.p12
+*.pfx
+*.pem
 key.properties
+keystore.properties
 google-services.json
+*service-account*.json
+firebase-adminsdk*.json
 local.properties
 data/
 reports/
 reviews/
+logs/
 *.log
+*.db
+*.sqlite*
+.vscode/settings.json
+.vscode/launch.json
 ```
+
+### ファイル別Secret管理
+
+| ファイル・領域 | 想定される機密情報 | 開発環境の保存先 | 運用環境の保存先 | Gitポリシー |
+|---|---|---|---|---|
+| `backend/.env` | ニュースAPI key、NAVER Client ID/Secret、LLM key、DB URL、JWT/Admin Secret | ローカルの非追跡ファイル | hosting Secretまたは`/etc/country-issue-cloud/backend.env` | commit禁止 |
+| `backend/.env.example` | 環境変数名と非機密の例 | repository | repository | 実値なしでcommit可 |
+| `backend/app/config.py` | 環境変数Schemaと検証規則 | repository | 配布code | 値のhardcode禁止、変数名のみ可 |
+| `android/local.properties` | SDK pathとローカル設定 | 開発者PC | 対象外 | commit禁止 |
+| `key.properties`、`keystore.properties`、`*.jks`、`*.keystore` | アプリ署名keyとpassword | Git外で暗号化保管 | Play App Signing/CI Secret | commit禁止 |
+| Android `BuildConfig`、`strings.xml`、Kotlin source | backend URL、誤入力されたprovider key | 公開可能なURLのみ含める | AAB/APKに含まれる | 外部API/LLM keyとClient Secret禁止 |
+| `google-services.json`、service account JSON | Firebase client設定または管理者credential | 必要時に別経路で共有 | hosting Secret | 原則commit禁止、service accountは絶対禁止 |
+| `.github/workflows/*.yml` | 配布・署名・hosting credential | `${{ secrets.NAME }}`参照 | GitHub Environment Secrets | 平文値禁止 |
+| `deploy/`、Docker、systemd設定 | DB password、API key、SSH key | 変数参照のみ保存 | server環境変数・Secret保存先 | 平文値禁止 |
+| `tests/fixtures/`、`sample-data/` | 実responseのtoken、header、執筆者の個人情報 | 匿名化したmock/fixture | 対象外 | 加工dataのみ可 |
+| `logs/`、`data/`、`*.db`、日報・review | 認証header、IP、device情報、raw response | ローカル専用・mask処理 | access制限付き保存先 | raw機密情報のcommit禁止 |
+| `.vscode/launch.json`、IDE実行設定 | 実行環境変数とtoken | 開発者PC | 対象外 | 機密値を含むファイルはcommit禁止 |
+
+Android binaryはreverse engineering可能であると仮定する。`API_BASE_URL`と公開用OAuth Client IDだけをアプリへ含められ、ニュースAPI key、LLM key、NAVER Client Secret、DB credential、管理者token、JWT署名key、署名passwordはbackendまたは配布Secretだけに保存する。Client IDもprovider policyで機密扱いの場合はserver専用とする。
+
+### commitブロック基準
+
+- `scripts/check-secrets.ps1`でGit追跡ファイル名と信頼度の高いsecret patternを検査し、`scripts/verify-all.ps1`の必須stepとして実行する。
+- `.env.example`には変数名、空値、明白なplaceholderだけを許可する。実keyに似た例を使用しない。
+- 機密ファイル、private key、provider token、credentialを検出した場合は検証とcommitを失敗させる。
+- log、fixture、文書、screenshotへ`Authorization`、cookie、個人識別情報、外部response全体を含めない。
+- PR CIでも同じ検査とGitHub secret scanning/push protectionを使う。ローカル検査はserver側保護の代替ではない。
+- 疑わしい値をallowlistで回避せず、保存先をSecret保存先へ変更する。例外には利用者承認とADRを必要とする。
+- 漏えいしたkeyはGitから文字列を削除するだけで解決したとみなさない。直ちに無効化・再発行し、影響範囲を確認して必要ならrepository履歴を整理する。
 
 READMEにはアプリ/Webリンク、スクリーンショット、アーキテクチャ、技術選定、実行方法、API例、テスト、出典・LLM・運用ポリシーを含める。MIT License、secret scanning、依存関係更新、Issue/PRテンプレートを使う。
 

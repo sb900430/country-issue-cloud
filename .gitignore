@@ -1,3 +1,34 @@
-# Local-only automated review history
-reviews/
+# Environment variables and credentials
+.env
+.env.*
+!.env.example
+secrets/
+credentials/
+*service-account*.json
+firebase-adminsdk*.json
 
+# Android local and signing files
+local.properties
+key.properties
+keystore.properties
+*.jks
+*.keystore
+*.p12
+*.pfx
+*.pem
+google-services.json
+
+# Local runtime data
+data/
+reports/
+reviews/
+logs/
+*.log
+*.db
+*.sqlite
+*.sqlite3
+cache/
+
+# IDE-local launch settings
+.vscode/settings.json
+.vscode/launch.json
