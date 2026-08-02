@@ -17,6 +17,7 @@
 
 - ローカルMVP期間は2026-08-03から2026-08-29までの4週間。
 - 8目標ごとに最終commitを一つ作成。
+- 全commit subjectは`YYYY/MM/DD <type>: <English> | <한국어> | <日本語>`形式を使う。
 - Android HTTPはRetrofitを利用。
 - Python環境とpackageはuvで管理。
 - 韓国語・日本語仕様は同じ作業とcommitで同期。

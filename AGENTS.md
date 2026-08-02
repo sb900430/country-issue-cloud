@@ -19,6 +19,9 @@
 
 - Update the Korean and Japanese specifications together in one commit.
 - Follow the milestone commit policy defined in both specification files.
+- Start every commit subject with the actual commit date in `YYYY/MM/DD` format.
+- Use `YYYY/MM/DD <type>: <English> | <한국어> | <日本語>`.
+- Keep all three summaries concise and semantically equivalent. Example: `2026/08/03 feat: scaffold local environment | 로컬 환경 구성 | ローカル環境を構成`.
 
 ## AI development workflow
 

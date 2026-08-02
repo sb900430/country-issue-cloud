@@ -761,11 +761,11 @@ v* 태그 → release AAB → GitHub Release → Play 내부 테스트 트랙
 
 | 날짜 | 개발 내용 | 당일 산출물·검증 |
 |---|---|---|
-| 8/3(월) | 환경 점검, monorepo, 설정 분리, fixture, 기본 CI, AI 개발 검증 진입점 | 목표 1 검증 후 `feat: scaffold local development environment` 커밋 |
+| 8/3(월) | 환경 점검, monorepo, 설정 분리, fixture, 기본 CI, AI 개발 검증 진입점 | 목표 1 검증 후 목표 커밋 템플릿 적용 |
 | 8/4(화) | 데이터 모델, Schema, JSON Repository 구현 | 정상·오류 fixture와 Repository 테스트 |
-| 8/5(수) | 원자적 저장, 보관 정책, FastAPI 전체 엔드포인트 | 목표 2 검증 후 `feat: implement local data API` 커밋 |
+| 8/5(수) | 원자적 저장, 보관 정책, FastAPI 전체 엔드포인트 | 목표 2 검증 후 목표 커밋 템플릿 적용 |
 | 8/6(목) | Collector 계약, fixture·실제 소스 어댑터, 중복 제거 | 동일 출력 Schema와 중복 제거 테스트 |
-| 8/7(금) | 국가별 병렬 수집, 실패 격리, `fixture/live/mixed` 모드 | 목표 3 검증 후 `feat: implement country news collection` 커밋 |
+| 8/7(금) | 국가별 병렬 수집, 실패 격리, `fixture/live/mixed` 모드 | 목표 3 검증 후 목표 커밋 템플릿 적용 |
 | 8/8(토) | 첫 주 자동 코드·문서 리뷰 | 로컬 리뷰 MD, Critical/High 발견 시 수정·검증·push |
 
 ### 2주차 — LLM, 전체 배치, 웹 데모
@@ -774,9 +774,9 @@ v* 태그 → release AAB → GitHub Release → Play 내부 테스트 트랙
 |---|---|---|
 | 8/10(월) | LLM 인터페이스, mock, 구조화 출력, 실제 어댑터 | 외부 호출 없는 테스트와 제한된 실호출 검증 |
 | 8/11(화) | 국가 내부 클러스터링, 근거 검증, 결정적 TOP 5 | 유사 표현 병합·환각 방지·동률 테스트 |
-| 8/12(수) | 캐시, timeout·retry, 토큰·비용 기록과 품질 리뷰 | 목표 4 검증 후 `feat: implement issue extraction and ranking` 커밋 |
+| 8/12(수) | 캐시, timeout·retry, 토큰·비용 기록과 품질 리뷰 | 목표 4 검증 후 목표 커밋 템플릿 적용 |
 | 8/13(목) | 전체 pipeline, 부분 성공, lock, retry, 보고서 | 한 국가 실패·중복 실행·마스킹 테스트 |
-| 8/14(금) | 정적 웹 타일/클라우드, 상태 처리, 통합 실행 | 목표 5 검증 후 `feat: complete batch pipeline and web demo` 커밋 |
+| 8/14(금) | 정적 웹 타일/클라우드, 상태 처리, 통합 실행 | 목표 5 검증 후 목표 커밋 템플릿 적용 |
 | 8/15(토) | 주간 자동 리뷰 | 로컬 리뷰 MD와 심각도별 처리 이력 |
 
 ### 3주차 — Android 연결, 확정 UI, 오프라인
@@ -784,10 +784,10 @@ v* 태그 → release AAB → GitHub Release → Play 내부 테스트 트랙
 | 날짜 | 개발 내용 | 당일 산출물·검증 |
 |---|---|---|
 | 8/17(월) | Compose, Material 3, Hilt, Navigation, API Repository | 앱 기본 구조와 mock Repository 테스트 |
-| 8/18(화) | Emulator 로컬 API 연결, 국가·날짜 선택, 기본 상태 | 목표 6 검증 후 `feat: connect android app to local API` 커밋 |
+| 8/18(화) | Emulator 로컬 API 연결, 국가·날짜 선택, 기본 상태 | 목표 6 검증 후 목표 커밋 템플릿 적용 |
 | 8/19(수) | 기본 C안 가중치 타일형과 중복 목록 없는 홈 | 순위·기사 수·상세 선택 표시 |
 | 8/20(목) | A안 클라우드형, 전환 버튼, DataStore 상태 복원 | 전환 시 무호출과 재실행 복원 테스트 |
-| 8/21(금) | 공통 상세, Room, 오프라인·부분 성공·오류 상태 | 목표 7 검증 후 `feat: implement android issue UI and offline cache` 커밋 |
+| 8/21(금) | 공통 상세, Room, 오프라인·부분 성공·오류 상태 | 목표 7 검증 후 목표 커밋 템플릿 적용 |
 | 8/22(토) | 주간 자동 리뷰 | 로컬 리뷰 MD와 심각도별 처리 이력 |
 
 ### 4주차 — 로컬 MVP 안정화와 포트폴리오
@@ -798,23 +798,23 @@ v* 태그 → release AAB → GitHub Release → Play 내부 테스트 트랙
 | 8/25(화) | 성능, 캐시, 오류 복구, 접근성과 다기기 검증 | 성능·호환성 점검 결과 |
 | 8/26(수) | 로컬 원클릭 실행, 설치 문서, 새 환경 재현 | 문서만으로 전체 흐름 실행 |
 | 8/27(목) | README, 아키텍처, 스크린샷과 데모 자료 | GitHub 포트폴리오 완성본 |
-| 8/28(금) | release URL 설정, 비밀정보 검사, 최종 시연 | 목표 8 검증 후 `release: complete local MVP` 커밋 |
+| 8/28(금) | release URL 설정, 비밀정보 검사, 최종 시연 | 목표 8 검증 후 목표 커밋 템플릿 적용 |
 | 8/29(토) | 주간 자동 리뷰 | 로컬 리뷰 MD와 심각도별 처리 이력 |
 
 ### 목표 단위 커밋 정책
 
 | 목표 | 커밋 메시지 |
 |---|---|
-| 1. 환경과 프로젝트 골격 | `feat: scaffold local development environment` |
-| 2. 데이터 계약과 로컬 API | `feat: implement local data API` |
-| 3. 국가별 수집과 정제 | `feat: implement country news collection` |
-| 4. LLM과 TOP 5 | `feat: implement issue extraction and ranking` |
-| 5. 전체 배치와 웹 데모 | `feat: complete batch pipeline and web demo` |
-| 6. Android API 연결 | `feat: connect android app to local API` |
-| 7. Android UI와 오프라인 | `feat: implement android issue UI and offline cache` |
-| 8. MVP 안정화 | `release: complete local MVP` |
+| 1. 환경과 프로젝트 골격 | `YYYY/MM/DD feat: scaffold local environment`<br>`로컬 환경 구성`<br>`ローカル環境を構成` |
+| 2. 데이터 계약과 로컬 API | `YYYY/MM/DD feat: implement local data API`<br>`로컬 데이터 API 구현`<br>`ローカルデータAPIを実装` |
+| 3. 국가별 수집과 정제 | `YYYY/MM/DD feat: implement country news collection`<br>`국가별 뉴스 수집 구현`<br>`国別ニュース収集を実装` |
+| 4. LLM과 TOP 5 | `YYYY/MM/DD feat: implement issue extraction and ranking`<br>`이슈 추출 및 순위 구현`<br>`イシュー抽出と順位付けを実装` |
+| 5. 전체 배치와 웹 데모 | `YYYY/MM/DD feat: complete pipeline and web demo`<br>`배치 파이프라인과 웹 데모 완성`<br>`バッチパイプラインとWebデモを完成` |
+| 6. Android API 연결 | `YYYY/MM/DD feat: connect Android to local API`<br>`안드로이드와 로컬 API 연결`<br>`AndroidをローカルAPIに接続` |
+| 7. Android UI와 오프라인 | `YYYY/MM/DD feat: implement Android UI and offline cache`<br>`안드로이드 UI 및 오프라인 캐시 구현`<br>`Android UIとオフラインキャッシュを実装` |
+| 8. MVP 안정화 | `YYYY/MM/DD release: complete local MVP`<br>`로컬 MVP 완성`<br>`ローカルMVPを完成` |
 
-각 목표의 구현과 관련 테스트가 모두 통과한 뒤 한 번 커밋한다. 작업 중 임시 커밋이 필요하면 목표 완료 전에 squash한다. 각 목표 커밋은 독립적으로 빌드·테스트 가능해야 한다. 토요일 리뷰 전에 미커밋 상태인 Critical/High 수정은 해당 목표 커밋에 포함한다. 이미 push된 목표에서 발견된 Critical/High는 예외적으로 별도 `fix:` 커밋을 허용하고 로컬 리뷰에 해결 커밋 SHA를 남긴다.
+모든 커밋 제목은 `YYYY/MM/DD <type>: <English> | <한국어> | <日本語>` 형식을 사용한다. 날짜는 실제 커밋 날짜, type은 영어로 작성하고 세 요약은 같은 의미를 간결하게 번역한다. 위 표의 세 줄은 실제 제목에서 ` | `로 연결한다. 각 목표의 구현과 관련 테스트가 모두 통과한 뒤 한 번 커밋한다. 작업 중 임시 커밋이 필요하면 목표 완료 전에 squash한다. 각 목표 커밋은 독립적으로 빌드·테스트 가능해야 한다. 토요일 리뷰 전에 미커밋 상태인 Critical/High 수정은 해당 목표 커밋에 포함한다. 이미 push된 목표에서 발견된 Critical/High는 예외적으로 같은 형식의 `fix` 커밋을 허용하고 로컬 리뷰에 해결 커밋 SHA를 남긴다.
 
 ### 호스팅 계약 후 1주차 — 운영 배포
 

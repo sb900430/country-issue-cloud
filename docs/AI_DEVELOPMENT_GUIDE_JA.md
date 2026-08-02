@@ -86,7 +86,7 @@ Compose screenshot基準には、タイル、クラウド、loading、部分成�
 
 ## 8. Commitと復旧
 
-目標別branchでローカルWIP commitを使用できる。目標完了時にsquashし、仕様の目標commit一つへ整理する。Critical/Highの事後修正だけ別`fix:`を許可する。完了後、状態文書へSHAと検証結果を記録する。
+全commit subjectは`YYYY/MM/DD <type>: <English> | <한국어> | <日本語>`形式を使う。日付は実際のcommit日、typeは英語とし、3つのsummaryは同じ意味を簡潔に翻訳する。例は`2026/08/03 feat: scaffold local environment | 로컬 환경 구성 | ローカル環境を構成`である。目標別branchのWIPにも同形式を適用し、完了時にsquashして目標commit一つへ整理する。Critical/Highの事後修正だけ別`fix:`を許可するがsubject形式は同じである。完了後、状態文書へSHAと検証結果を記録する。
 
 ## 9. 標準command
 

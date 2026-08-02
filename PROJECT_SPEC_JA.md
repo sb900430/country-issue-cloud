@@ -711,11 +711,11 @@ v* tag → release AAB → GitHub Release → Play内部テストトラック
 
 | 日付 | 開発内容 | 成果物・検証 |
 |---|---|---|
-| 8/3(月) | 環境、monorepo、設定分離、fixture、CI、AI開発検証入口 | 目標1検証・`feat: scaffold local development environment` |
+| 8/3(月) | 環境、monorepo、設定分離、fixture、CI、AI開発検証入口 | 目標1検証後、目標commit templateを適用 |
 | 8/4(火) | データモデル、Schema、JSON Repository | fixture・Repositoryテスト |
-| 8/5(水) | アトミック保存、保管、FastAPI | 目標2検証・`feat: implement local data API` |
+| 8/5(水) | アトミック保存、保管、FastAPI | 目標2検証後、目標commit templateを適用 |
 | 8/6(木) | Collector、fixture/実ソース、重複排除 | 契約・重複排除テスト |
-| 8/7(金) | 国別並列収集、失敗隔離、データモード | 目標3検証・`feat: implement country news collection` |
+| 8/7(金) | 国別並列収集、失敗隔離、データモード | 目標3検証後、目標commit templateを適用 |
 | 8/8(土) | 自動レビュー | ローカルレビュー、Critical/High修正 |
 
 ### 2週目 — LLM、全体バッチ、Webデモ
@@ -724,9 +724,9 @@ v* tag → release AAB → GitHub Release → Play内部テストトラック
 |---|---|---|
 | 8/10(月) | LLM interface、mock、構造化出力、実adapter | mockと限定実呼出検証 |
 | 8/11(火) | 国内cluster、根拠検証、決定的TOP 5 | 統合・幻覚防止・同順位テスト |
-| 8/12(水) | cache、timeout/retry、token/費用 | 目標4検証・`feat: implement issue extraction and ranking` |
+| 8/12(水) | cache、timeout/retry、token/費用 | 目標4検証後、目標commit templateを適用 |
 | 8/13(木) | pipeline、部分成功、lock、retry、report | 失敗・重複実行・maskテスト |
-| 8/14(金) | 静的Webと状態処理、統合実行 | 目標5検証・`feat: complete batch pipeline and web demo` |
+| 8/14(金) | 静的Webと状態処理、統合実行 | 目標5検証後、目標commit templateを適用 |
 | 8/15(土) | 自動レビュー | ローカルレビューと重大度別履歴 |
 
 ### 3週目 — Android接続、確定UI、オフライン
@@ -734,10 +734,10 @@ v* tag → release AAB → GitHub Release → Play内部テストトラック
 | 日付 | 開発内容 | 成果物・検証 |
 |---|---|---|
 | 8/17(月) | Compose、Material 3、Hilt、Navigation、Repository | 基本構造とmockテスト |
-| 8/18(火) | Emulator API接続、国・日付選択、基本状態 | 目標6検証・`feat: connect android app to local API` |
+| 8/18(火) | Emulator API接続、国・日付選択、基本状態 | 目標6検証後、目標commit templateを適用 |
 | 8/19(水) | C案タイル型、重複リストなしホーム | 順位・記事数・詳細選択 |
 | 8/20(木) | A案クラウド、切替、DataStore | 無通信切替・再起動復元テスト |
-| 8/21(金) | 詳細、Room、オフライン・エラー状態 | 目標7検証・`feat: implement android issue UI and offline cache` |
+| 8/21(金) | 詳細、Room、オフライン・エラー状態 | 目標7検証後、目標commit templateを適用 |
 | 8/22(土) | 自動レビュー | ローカルレビューと重大度別履歴 |
 
 ### 4週目 — ローカルMVP安定化とポートフォリオ
@@ -748,23 +748,23 @@ v* tag → release AAB → GitHub Release → Play内部テストトラック
 | 8/25(火) | 性能、cache、復旧、アクセシビリティ、多端末 | 性能・互換性結果 |
 | 8/26(水) | ワンクリック実行と新環境再現 | 文書だけで全体実行 |
 | 8/27(木) | README、architecture、画像、demo | GitHubポートフォリオ完成 |
-| 8/28(金) | release URL、secret検査、最終実演 | 目標8検証・`release: complete local MVP` |
+| 8/28(金) | release URL、secret検査、最終実演 | 目標8検証後、目標commit templateを適用 |
 | 8/29(土) | 自動レビュー | 最終ローカルレビュー |
 
 ### 目標単位コミットポリシー
 
 | 目標 | コミットメッセージ |
 |---|---|
-| 1 環境・骨格 | `feat: scaffold local development environment` |
-| 2 データ・API | `feat: implement local data API` |
-| 3 国別収集・整形 | `feat: implement country news collection` |
-| 4 LLM・TOP 5 | `feat: implement issue extraction and ranking` |
-| 5 バッチ・Web | `feat: complete batch pipeline and web demo` |
-| 6 Android API接続 | `feat: connect android app to local API` |
-| 7 Android UI・オフライン | `feat: implement android issue UI and offline cache` |
-| 8 MVP安定化 | `release: complete local MVP` |
+| 1 環境・骨格 | `YYYY/MM/DD feat: scaffold local environment`<br>`로컬 환경 구성`<br>`ローカル環境を構成` |
+| 2 データ・API | `YYYY/MM/DD feat: implement local data API`<br>`로컬 데이터 API 구현`<br>`ローカルデータAPIを実装` |
+| 3 国別収集・整形 | `YYYY/MM/DD feat: implement country news collection`<br>`국가별 뉴스 수집 구현`<br>`国別ニュース収集を実装` |
+| 4 LLM・TOP 5 | `YYYY/MM/DD feat: implement issue extraction and ranking`<br>`이슈 추출 및 순위 구현`<br>`イシュー抽出と順位付けを実装` |
+| 5 バッチ・Web | `YYYY/MM/DD feat: complete pipeline and web demo`<br>`배치 파이프라인과 웹 데모 완성`<br>`バッチパイプラインとWebデモを完成` |
+| 6 Android API接続 | `YYYY/MM/DD feat: connect Android to local API`<br>`안드로이드와 로컬 API 연결`<br>`AndroidをローカルAPIに接続` |
+| 7 Android UI・オフライン | `YYYY/MM/DD feat: implement Android UI and offline cache`<br>`안드로이드 UI 및 오프라인 캐시 구현`<br>`Android UIとオフラインキャッシュを実装` |
+| 8 MVP安定化 | `YYYY/MM/DD release: complete local MVP`<br>`로컬 MVP 완성`<br>`ローカルMVPを完成` |
 
-各目標は実装と関連テストの通過後に1回コミットする。作業中の一時コミットは完了前にsquashする。各目標コミットは単独でビルド・テスト可能とする。レビュー前の未コミットCritical/High修正は目標コミットへ含める。push済み目標で見つかったCritical/Highだけは別`fix:`コミットを許可し、ローカルレビューへSHAを残す。
+全commit subjectは`YYYY/MM/DD <type>: <English> | <한국어> | <日本語>`形式を使う。日付は実際のcommit日、typeは英語とし、3つのsummaryは同じ意味を簡潔に翻訳する。上表の3行は実際のsubjectでは` | `で連結する。各目標は実装と関連testの通過後に1回commitする。作業中の一時commitは完了前にsquashし、各目標commitは単独でbuild/test可能とする。review前の未commit Critical/High修正は目標commitへ含める。push済み目標で見つかったCritical/Highだけは同形式の`fix` commitを許可し、ローカルreviewへSHAを残す。
 
 ### ホスティング契約後1週目 — 運用配布
 

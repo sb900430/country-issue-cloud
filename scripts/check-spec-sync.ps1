@@ -59,13 +59,13 @@ $requiredTokens = @(
     '/api/v1',
     'USD 10',
     'v0.8.0-local-mvp',
-    'feat: scaffold local development environment',
+    'feat: scaffold local environment',
     'feat: implement local data API',
     'feat: implement country news collection',
     'feat: implement issue extraction and ranking',
-    'feat: complete batch pipeline and web demo',
-    'feat: connect android app to local API',
-    'feat: implement android issue UI and offline cache',
+    'feat: complete pipeline and web demo',
+    'feat: connect Android to local API',
+    'feat: implement Android UI and offline cache',
     'release: complete local MVP'
 )
 
