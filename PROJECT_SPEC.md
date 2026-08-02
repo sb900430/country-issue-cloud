@@ -711,108 +711,75 @@ v* 태그 → release AAB → GitHub Release → Play 내부 테스트 트랙
 
 ## 17. 개발 일정
 
-2026년 8월 3일 월요일부터 시작하는 로컬 우선 일정이다. 호스팅 계약 전에는 fixture, 로컬 FastAPI, Android Emulator를 사용해 8주 동안 로컬 MVP를 완성한다. 월요일부터 금요일까지 개발하고 토요일 10:00(JST)에 자동 리뷰를 실행한다. 일요일은 고정 작업을 배정하지 않은 휴식·지연 보완일이다. 호스팅과 Play 연동은 계약 이후 별도 단계로 진행한다.
+2026년 8월 3일 월요일부터 시작하는 AI 개발 지원 기반의 로컬 우선 일정이다. 호스팅 계약 전에는 fixture, 로컬 FastAPI, Android Emulator를 사용해 4주 동안 로컬 MVP를 완성한다. 기존 8개 개발 목표는 축소하지 않고 두 목표씩 병렬·연속 수행한다. 월요일부터 금요일까지 개발하고 토요일 10:00(JST)에 자동 리뷰를 실행한다. 일요일은 고정 작업을 배정하지 않은 휴식·지연 보완일이다. 호스팅과 Play 연동은 계약 이후 별도 단계로 진행한다.
 
 ### 주차별 개발 목표 요약
 
-| 주차 | 기간 | 큰 목표 | 주간 완료 기준 |
+| 주차 | 기간 | 포함 목표 | 주간 완료 기준 |
 |---|---|---|---|
-| 1주차 | 8/3~8/8 | 개발 환경과 프로젝트 골격 | 새 PC에서도 백엔드·Android 기본 빌드와 테스트 실행 |
-| 2주차 | 8/10~8/15 | 데이터 계약과 로컬 API | `localhost:8000`에서 fixture 기반 전체 API 시연 |
-| 3주차 | 8/17~8/22 | 국가별 뉴스 수집과 정제 | 3개국 fixture와 허용된 실제 소스 1개 이상을 같은 계약으로 처리 |
-| 4주차 | 8/24~8/29 | LLM 추출·클러스터링·TOP 5 | 세 국가에서 서로 독립적인 TOP 5 JSON 생성 |
-| 5주차 | 8/31~9/5 | 전체 배치와 웹 데모 | 배치 → API → 웹 전체 흐름 로컬 검증 |
-| 6주차 | 9/7~9/12 | Android 골격과 API 연결 | Emulator에서 로컬 FastAPI의 국가·날짜 결과 표시 |
-| 7주차 | 9/14~9/19 | 확정 UI, 상세, 오프라인 | 타일/클라우드 전환과 오프라인 조회 검증 |
-| 8주차 | 9/21~9/26 | 로컬 MVP 안정화와 포트폴리오 | PC와 Emulator에서 전체 제품 흐름 재현 및 태그 후보 준비 |
+| 1주차 | 8/3~8/8 | 목표 1 환경·골격, 목표 2 데이터·API, 목표 3 수집·정제 | 로컬 API와 3개국 수집 기반 동작 |
+| 2주차 | 8/10~8/15 | 목표 4 LLM·TOP 5, 목표 5 배치·웹 | 국가별 TOP 5를 배치→API→웹으로 시연 |
+| 3주차 | 8/17~8/22 | 목표 6 Android 연결, 목표 7 확정 UI·오프라인 | Emulator에서 확정 UI와 오프라인 조회 검증 |
+| 4주차 | 8/24~8/29 | 목표 8 안정화·포트폴리오 | 전체 제품 흐름 재현 및 `v0.8.0-local-mvp` 후보 준비 |
 
-### 1주차 — 개발 환경과 프로젝트 골격
+### 1주차 — 기반, 로컬 API, 국가별 수집
 
 | 날짜 | 개발 내용 | 당일 산출물·검증 |
 |---|---|---|
-| 8/3(월) | Python, Android Studio, SDK/JDK, Git 환경 점검 | 버전 기록과 개발환경 체크리스트 |
-| 8/4(화) | monorepo 디렉터리, 기본 설정, `.gitignore`, `.env.example` 구성 | 백엔드와 Android 빈 프로젝트 빌드 |
-| 8/5(수) | 로컬·운영 설정 분리, API URL 주입 방식과 ADR 작성 | fixture/local/production 설정 계약 |
-| 8/6(목) | US·JP·KR 샘플 기사와 예상 결과 fixture 작성 | 세 국가 입력·출력 JSON Schema 검증 |
-| 8/7(금) | 백엔드·Android 기본 테스트와 GitHub Actions CI 구성 | push 시 기본 빌드·테스트 통과 |
+| 8/3(월) | 환경 점검, monorepo, 설정 분리, fixture, 기본 CI | 목표 1 검증 후 `feat: scaffold local development environment` 커밋 |
+| 8/4(화) | 데이터 모델, Schema, JSON Repository 구현 | 정상·오류 fixture와 Repository 테스트 |
+| 8/5(수) | 원자적 저장, 보관 정책, FastAPI 전체 엔드포인트 | 목표 2 검증 후 `feat: implement local data API` 커밋 |
+| 8/6(목) | Collector 계약, fixture·실제 소스 어댑터, 중복 제거 | 동일 출력 Schema와 중복 제거 테스트 |
+| 8/7(금) | 국가별 병렬 수집, 실패 격리, `fixture/live/mixed` 모드 | 목표 3 검증 후 `feat: implement country news collection` 커밋 |
 | 8/8(토) | 첫 주 자동 코드·문서 리뷰 | 로컬 리뷰 MD, Critical/High 발견 시 수정·검증·push |
 
-### 2주차 — 데이터 계약과 로컬 API
+### 2주차 — LLM, 전체 배치, 웹 데모
 
 | 날짜 | 개발 내용 | 당일 산출물·검증 |
 |---|---|---|
-| 8/10(월) | Article, Issue, CountryResult, DailyResult 모델과 Schema 구현 | 정상·오류 fixture 검증 테스트 |
-| 8/11(화) | JSON Repository와 날짜별/latest 조회 구현 | Repository 단위 테스트 |
-| 8/12(수) | 임시 작성·Schema 검증·원자적 교체와 7일 보관 구현 | 저장 실패·손상 파일 테스트 |
-| 8/13(목) | issues latest/dates/date/country API 구현 | 정상·400·404 응답 테스트 |
-| 8/14(금) | status/app-config/health/ready, Swagger와 로컬 실행 확인 | fixture API 전체 시연 |
+| 8/10(월) | LLM 인터페이스, mock, 구조화 출력, 실제 어댑터 | 외부 호출 없는 테스트와 제한된 실호출 검증 |
+| 8/11(화) | 국가 내부 클러스터링, 근거 검증, 결정적 TOP 5 | 유사 표현 병합·환각 방지·동률 테스트 |
+| 8/12(수) | 캐시, timeout·retry, 토큰·비용 기록과 품질 리뷰 | 목표 4 검증 후 `feat: implement issue extraction and ranking` 커밋 |
+| 8/13(목) | 전체 pipeline, 부분 성공, lock, retry, 보고서 | 한 국가 실패·중복 실행·마스킹 테스트 |
+| 8/14(금) | 정적 웹 타일/클라우드, 상태 처리, 통합 실행 | 목표 5 검증 후 `feat: complete batch pipeline and web demo` 커밋 |
 | 8/15(토) | 주간 자동 리뷰 | 로컬 리뷰 MD와 심각도별 처리 이력 |
 
-### 3주차 — 국가별 뉴스 수집과 정제
+### 3주차 — Android 연결, 확정 UI, 오프라인
 
 | 날짜 | 개발 내용 | 당일 산출물·검증 |
 |---|---|---|
-| 8/17(월) | Collector 인터페이스, 공통 기사 모델, 소스 설정 구조 | fixture collector 계약 테스트 |
-| 8/18(화) | US·JP·KR fixture 어댑터와 허용된 실제 RSS/API 어댑터 1개 | 동일 출력 Schema 확인 |
-| 8/19(수) | URL 정규화, 제목 일치, 유사도 기반 중복 제거 | 경계값·동률 단위 테스트 |
-| 8/20(목) | 국가별 병렬 수집과 국가 단위 실패 격리 | 한 국가 실패 통합 테스트 |
-| 8/21(금) | `fixture/live/mixed` 모드, 출처 약관·필드 기록 | 3개국 수집 결과와 이용조건 문서 |
+| 8/17(월) | Compose, Material 3, Hilt, Navigation, API Repository | 앱 기본 구조와 mock Repository 테스트 |
+| 8/18(화) | Emulator 로컬 API 연결, 국가·날짜 선택, 기본 상태 | 목표 6 검증 후 `feat: connect android app to local API` 커밋 |
+| 8/19(수) | 기본 C안 가중치 타일형과 중복 목록 없는 홈 | 순위·기사 수·상세 선택 표시 |
+| 8/20(목) | A안 클라우드형, 전환 버튼, DataStore 상태 복원 | 전환 시 무호출과 재실행 복원 테스트 |
+| 8/21(금) | 공통 상세, Room, 오프라인·부분 성공·오류 상태 | 목표 7 검증 후 `feat: implement android issue UI and offline cache` 커밋 |
 | 8/22(토) | 주간 자동 리뷰 | 로컬 리뷰 MD와 심각도별 처리 이력 |
 
-### 4주차 — LLM 추출·클러스터링·TOP 5
+### 4주차 — 로컬 MVP 안정화와 포트폴리오
 
 | 날짜 | 개발 내용 | 당일 산출물·검증 |
 |---|---|---|
-| 8/24(월) | LLM 인터페이스, mock 어댑터, 구조화 출력 Schema | 외부 호출 없는 추출 테스트 |
-| 8/25(화) | 실제 LLM 어댑터, 프롬프트, timeout·재시도·묶음 처리 | 제한된 표본 실호출 검증 |
-| 8/26(수) | 국가 내부 의미 클러스터링과 근거 기사 ID 검증 | 유사 표현 병합·환각 방지 테스트 |
-| 8/27(목) | 기사 수·매체 수·최신성 기반 TOP 5 결정 정렬 | 동률 포함 결정적 순위 테스트 |
-| 8/28(금) | 내용 해시 캐시, 토큰·비용 기록, 품질 표본 리뷰 | 3개국 독립 TOP 5 JSON |
+| 8/24(월) | 백엔드·웹·Android 전체 회귀 테스트와 결함 수정 | 전체 테스트 통과 기록 |
+| 8/25(화) | 성능, 캐시, 오류 복구, 접근성과 다기기 검증 | 성능·호환성 점검 결과 |
+| 8/26(수) | 로컬 원클릭 실행, 설치 문서, 새 환경 재현 | 문서만으로 전체 흐름 실행 |
+| 8/27(목) | README, 아키텍처, 스크린샷과 데모 자료 | GitHub 포트폴리오 완성본 |
+| 8/28(금) | release URL 설정, 비밀정보 검사, 최종 시연 | 목표 8 검증 후 `release: complete local MVP` 커밋 |
 | 8/29(토) | 주간 자동 리뷰 | 로컬 리뷰 MD와 심각도별 처리 이력 |
 
-### 5주차 — 전체 배치와 웹 데모
+### 목표 단위 커밋 정책
 
-| 날짜 | 개발 내용 | 당일 산출물·검증 |
-|---|---|---|
-| 8/31(월) | 수집부터 게시까지 전체 pipeline 연결 | fixture 전체 흐름 성공 |
-| 9/1(화) | 부분 성공 판정, lock, retry, retention 구현 | 1개국 실패·중복 실행 테스트 |
-| 9/2(수) | 품질 리뷰, 실행 요약, 장애 보고서와 비밀정보 마스킹 | 실패 상황별 로컬 보고서 |
-| 9/3(목) | 정적 웹의 국가·날짜 선택과 타일/클라우드 시각화 | 브라우저 로컬 데모 |
-| 9/4(금) | 웹 상태 처리, Windows 실행 스크립트, 통합 테스트 | 배치→API→웹 원클릭 시연 |
-| 9/5(토) | 주간 자동 리뷰 | 로컬 리뷰 MD와 심각도별 처리 이력 |
+| 목표 | 커밋 메시지 |
+|---|---|
+| 1. 환경과 프로젝트 골격 | `feat: scaffold local development environment` |
+| 2. 데이터 계약과 로컬 API | `feat: implement local data API` |
+| 3. 국가별 수집과 정제 | `feat: implement country news collection` |
+| 4. LLM과 TOP 5 | `feat: implement issue extraction and ranking` |
+| 5. 전체 배치와 웹 데모 | `feat: complete batch pipeline and web demo` |
+| 6. Android API 연결 | `feat: connect android app to local API` |
+| 7. Android UI와 오프라인 | `feat: implement android issue UI and offline cache` |
+| 8. MVP 안정화 | `release: complete local MVP` |
 
-### 6주차 — Android 골격과 API 연결
-
-| 날짜 | 개발 내용 | 당일 산출물·검증 |
-|---|---|---|
-| 9/7(월) | Compose, Material 3, Hilt, Navigation 기본 구성 | 앱 시작과 화면 이동 확인 |
-| 9/8(화) | API DTO, Retrofit/Ktor 확정, Repository와 오류 매핑 | mock API Repository 테스트 |
-| 9/9(수) | debug URL `10.0.2.2:8000`, release URL 설정 주입 | Emulator의 로컬 API 연결 |
-| 9/10(목) | 국가 탭과 최근 7일 날짜 선택 UI·상태 구현 | 국가 전환 무호출·날짜 전환 호출 테스트 |
-| 9/11(금) | ViewModel 상태, 로딩·오류 기본 화면, HTTPS 정책 | API 결과 홈 화면 표시 |
-| 9/12(토) | 주간 자동 리뷰 | 로컬 리뷰 MD와 심각도별 처리 이력 |
-
-### 7주차 — 확정 UI, 상세, 오프라인
-
-| 날짜 | 개발 내용 | 당일 산출물·검증 |
-|---|---|---|
-| 9/14(월) | 기본 C안 `WeightedIssueTiles`와 중복 목록 없는 홈 구성 | 순위·기사 수 타일 표시 |
-| 9/15(화) | A안 `DeterministicIssueCloud`와 접근성 설명 구현 | 회전·겹침 없는 동일 TOP 5 표시 |
-| 9/16(수) | `타일 / 클라우드` 전환과 DataStore 선택 복원 | 전환 무호출·앱 재실행 복원 테스트 |
-| 9/17(목) | 공통 이슈 상세, 대표 기사와 외부 링크 동작 | 두 보기에서 같은 상세 진입 |
-| 9/18(금) | Room 캐시, 오프라인 폴백, 부분 성공·지연 상태 | 네트워크 차단 상태 검증 |
-| 9/19(토) | 주간 자동 리뷰 및 접근성·다기기 집중 검토 | 로컬 리뷰 MD와 UI 개선 이력 |
-
-### 8주차 — 로컬 MVP 안정화와 포트폴리오
-
-| 날짜 | 개발 내용 | 당일 산출물·검증 |
-|---|---|---|
-| 9/21(월) | 백엔드·웹·Android 전체 회귀 테스트와 결함 수정 | 전체 테스트 통과 기록 |
-| 9/22(화) | 성능, 캐시, 오류 복구, 작은 화면·태블릿 검증 | 성능·호환성 점검 결과 |
-| 9/23(수) | 로컬 원클릭 실행 스크립트와 설치·실행 문서 | 새 환경 재현 점검 |
-| 9/24(목) | README, 아키텍처, 스크린샷·데모 자료 정리 | GitHub 포트폴리오 초안 |
-| 9/25(금) | release URL 설정, 비밀정보 검사, MVP 최종 시연 | `v0.8.0-local-mvp` 태그 후보 |
-| 9/26(토) | 로컬 MVP 최종 자동 리뷰 | 출시 전 미해결 항목과 다음 단계 목록 |
+각 목표의 구현과 관련 테스트가 모두 통과한 뒤 한 번 커밋한다. 작업 중 임시 커밋이 필요하면 목표 완료 전에 squash한다. 각 목표 커밋은 독립적으로 빌드·테스트 가능해야 한다. 토요일 리뷰 전에 미커밋 상태인 Critical/High 수정은 해당 목표 커밋에 포함한다. 이미 push된 목표에서 발견된 Critical/High는 예외적으로 별도 `fix:` 커밋을 허용하고 로컬 리뷰에 해결 커밋 SHA를 남긴다.
 
 ### 호스팅 계약 후 1주차 — 운영 배포
 
