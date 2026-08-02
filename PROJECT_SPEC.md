@@ -711,7 +711,7 @@ Pull Request CI:
 - 웹: 정적 검사, JS 테스트, 기본 접근성 검사
 
 ```text
-main merge → 전체 CI → VPS 배포 → health/ready → 실패 시 롤백
+main merge → 병합된 main 전체 CI·로컬 smoke 재검증 → VPS 배포 → health/ready → 실패 시 롤백
 v* 태그 → release AAB → GitHub Release → Play 내부 테스트 트랙
 ```
 
@@ -725,7 +725,9 @@ v* 태그 → release AAB → GitHub Release → Play 내부 테스트 트랙
 - 목표 브랜치의 임시 WIP 커밋은 허용하되 완료 시 squash하여 목표 단위 커밋 하나로 정리한다.
 - 각 목표는 지정된 `codex/milestone-*` 브랜치에서 시작하고 `main` 대상 Draft PR로 게시한다.
 - 통합 검증과 CI, 리뷰 통과 후 Ready로 전환해 PR로 병합하며 목표 변경을 `main`에 직접 push하지 않는다.
-- 병합 후 목표 브랜치를 삭제하고 최신 `main`에서 다음 목표 브랜치를 만든다.
+- 병합 후 최신 `main`에서 `scripts/verify-all.ps1`과 가능한 로컬 smoke test를 다시 실행해 병합 충돌, 의존성 조합과 통합 오류를 확인한다.
+- 병합 후 검증이 통과해야 목표가 완료된다. 실패하면 `codex/post-merge-fix-<milestone>` 브랜치와 별도 PR로 수정하며 `main`을 직접 고치지 않는다.
+- 병합 후 검증 통과 뒤 목표 브랜치를 삭제하고, 검증된 최신 `main`에서 다음 목표 브랜치를 만든다.
 - AI가 API 계약, 핵심 아키텍처, 기술 스택, 비용·공개 범위를 바꾸려면 ADR과 사용자 확인이 필요하다.
 - UI 스크린샷 기준 변경은 자동 승인하지 않고 사람이 의도된 변경인지 확인한다.
 
@@ -828,7 +830,7 @@ v* 태그 → release AAB → GitHub Release → Play 내부 테스트 트랙
 | 7. Android UI와 오프라인 | `YYYY/MM/DD feat: implement Android UI and offline cache`<br>`안드로이드 UI 및 오프라인 캐시 구현`<br>`Android UIとオフラインキャッシュを実装` |
 | 8. MVP 안정화 | `YYYY/MM/DD release: complete local MVP`<br>`로컬 MVP 완성`<br>`ローカルMVPを完成` |
 
-모든 커밋 제목은 `YYYY/MM/DD <type>: <English> | <한국어> | <日本語>` 형식을 사용한다. 날짜는 실제 커밋 날짜, type은 영어로 작성하고 세 요약은 같은 의미를 간결하게 번역한다. 위 표의 세 줄은 실제 제목에서 ` | `로 연결한다. 각 목표의 구현과 관련 테스트가 모두 통과한 뒤 한 번 커밋한다. 작업 중 임시 커밋이 필요하면 목표 완료 전에 squash한다. 각 목표 커밋은 독립적으로 빌드·테스트 가능해야 한다. 목표 브랜치를 push한 뒤 `main` 대상 Draft PR을 만들고 CI·리뷰 통과 후 병합한다. 토요일 리뷰 전에 미커밋 상태인 Critical/High 수정은 해당 목표 커밋에 포함한다. 이미 push된 목표에서 발견된 Critical/High는 별도 수정 브랜치와 같은 형식의 `fix` 커밋·PR로 처리한다.
+모든 커밋 제목은 `YYYY/MM/DD <type>: <English> | <한국어> | <日本語>` 형식을 사용한다. 날짜는 실제 커밋 날짜, type은 영어로 작성하고 세 요약은 같은 의미를 간결하게 번역한다. 위 표의 세 줄은 실제 제목에서 ` | `로 연결한다. 각 목표의 구현과 관련 테스트가 모두 통과한 뒤 한 번 커밋한다. 작업 중 임시 커밋이 필요하면 목표 완료 전에 squash한다. 각 목표 커밋은 독립적으로 빌드·테스트 가능해야 한다. 목표 브랜치를 push한 뒤 `main` 대상 Draft PR을 만들고 CI·리뷰 통과 후 병합한다. 병합 직후 최신 `main`에서 전체 검증과 smoke test가 통과해야 목표를 완료 처리한다. 토요일 리뷰 전에 미커밋 상태인 Critical/High 수정은 해당 목표 커밋에 포함한다. 이미 push된 목표에서 발견된 Critical/High는 별도 수정 브랜치와 같은 형식의 `fix` 커밋·PR로 처리한다.
 
 ### 호스팅 계약 후 1주차 — 운영 배포
 

@@ -56,6 +56,8 @@
 8. WIP 커밋을 squash해 목표 단위 커밋 하나로 정리한다.
 9. 목표 브랜치를 push하고 `main` 대상 Draft PR을 만든다.
 10. CI와 리뷰가 통과하면 Ready로 전환하고 PR로 병합한다.
+11. 최신 `main`으로 전환해 `scripts/verify-all.ps1`과 가능한 로컬 smoke test를 다시 실행한다.
+12. 병합 후 검증이 통과한 경우에만 목표를 완료 처리하고 다음 목표 브랜치를 만든다.
 
 ## 4. 공통 Definition of Done
 
@@ -98,7 +100,7 @@ Compose 스크린샷 기준은 기본 타일형, 클라우드형, 로딩, 부분
 
 ## 8. 커밋과 복구
 
-모든 커밋 제목은 `YYYY/MM/DD <type>: <English> | <한국어> | <日本語>` 형식을 사용한다. 날짜는 실제 커밋 날짜이고 type은 영어로 작성하며, 세 요약은 같은 의미를 간결하게 번역한다. 예시는 `2026/08/03 feat: scaffold local environment | 로컬 환경 구성 | ローカル環境を構成`이다. 목표별 작업 브랜치에서 로컬 WIP 커밋을 사용할 수 있으며 WIP에도 같은 형식을 적용한다. 목표 완료 시 WIP을 squash해 목표 커밋 하나로 정리한다. Critical/High 사후 수정은 별도 `codex/review-fix-*` 브랜치와 `fix:` 커밋으로 처리한다. 목표와 리뷰 수정은 모두 Draft PR을 거쳐 `main`에 병합하며 직접 push하지 않는다. 목표 완료 후 상태 문서에 PR 번호, 커밋 SHA와 검증 결과를 기록한다.
+모든 커밋 제목은 `YYYY/MM/DD <type>: <English> | <한국어> | <日本語>` 형식을 사용한다. 날짜는 실제 커밋 날짜이고 type은 영어로 작성하며, 세 요약은 같은 의미를 간결하게 번역한다. 예시는 `2026/08/03 feat: scaffold local environment | 로컬 환경 구성 | ローカル環境を構成`이다. 목표별 작업 브랜치에서 로컬 WIP 커밋을 사용할 수 있으며 WIP에도 같은 형식을 적용한다. 목표 완료 시 WIP을 squash해 목표 커밋 하나로 정리한다. Critical/High 사후 수정은 별도 `codex/review-fix-*` 브랜치와 `fix:` 커밋으로 처리한다. 목표와 리뷰 수정은 모두 Draft PR을 거쳐 `main`에 병합하며 직접 push하지 않는다. 병합 후 최신 `main`에서 전체 검증과 smoke test를 다시 실행해 병합 충돌, 의존성 조합, 통합 오류가 없는지 확인한다. 실패하면 `codex/post-merge-fix-<milestone>` 브랜치에서 수정하고 별도 PR을 만든다. 목표 완료 후 상태 문서에 PR 번호, 커밋 SHA, 병합 후 검증 결과를 기록한다.
 
 ## 9. 표준 명령
 

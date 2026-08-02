@@ -54,6 +54,8 @@
 8. WIPをsquashして目標commit一つに整理する。
 9. 目標branchをpushし、`main`対象のDraft PRを作成する。
 10. CIとreview通過後にReadyへ変更し、PRからmergeする。
+11. 最新`main`へ切り替え、`scripts/verify-all.ps1`と利用可能なローカルsmoke testを再実行する。
+12. merge後検証が成功した場合だけ目標を完了扱いとし、次の目標branchを作る。
 
 ## 4. 共通Definition of Done
 
@@ -87,7 +89,7 @@ Compose screenshot基準には、タイル、クラウド、loading、部分成�
 
 ## 8. Commitと復旧
 
-全commit subjectは`YYYY/MM/DD <type>: <English> | <한국어> | <日本語>`形式を使う。日付は実際のcommit日、typeは英語とし、3つのsummaryは同じ意味を簡潔に翻訳する。例は`2026/08/03 feat: scaffold local environment | 로컬 환경 구성 | ローカル環境を構成`である。目標別branchのWIPにも同形式を適用し、完了時にsquashして目標commit一つへ整理する。Critical/Highの事後修正は別`codex/review-fix-*` branchと`fix:` commitで処理する。目標とreview修正はすべてDraft PRを通して`main`へmergeし、直接pushしない。完了後、状態文書へPR番号、SHA、検証結果を記録する。
+全commit subjectは`YYYY/MM/DD <type>: <English> | <한국어> | <日本語>`形式を使う。日付は実際のcommit日、typeは英語とし、3つのsummaryは同じ意味を簡潔に翻訳する。例は`2026/08/03 feat: scaffold local environment | 로컬 환경 구성 | ローカル環境を構成`である。目標別branchのWIPにも同形式を適用し、完了時にsquashして目標commit一つへ整理する。Critical/Highの事後修正は別`codex/review-fix-*` branchと`fix:` commitで処理する。目標とreview修正はすべてDraft PRを通して`main`へmergeし、直接pushしない。merge後は最新`main`で全検証とsmoke testを再実行し、merge conflict、依存関係組合せ、統合errorがないことを確認する。失敗時は`codex/post-merge-fix-<milestone>` branchで修正し、別PRを作る。完了後、状態文書へPR番号、SHA、merge後検証結果を記録する。
 
 ## 9. 標準command
 

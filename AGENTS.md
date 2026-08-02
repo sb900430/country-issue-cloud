@@ -32,7 +32,10 @@
 - Push the milestone branch and open a Draft PR targeting `main`.
 - Move the PR to ready only after `scripts/verify-all.ps1`, CI, and review pass.
 - Merge through the PR. Do not push milestone or review-fix commits directly to `main`.
-- Delete the milestone branch after merge and start the next milestone from the updated `main`.
+- After merge, switch to the updated `main` and run `scripts/verify-all.ps1` plus the available local smoke tests again against the merged code.
+- A milestone is complete only after the post-merge checks on `main` pass.
+- If a post-merge check fails, create `codex/post-merge-fix-<milestone>` from the failing `main`, fix it, and use another PR. Do not repair `main` directly.
+- Delete the milestone branch only after post-merge verification passes, then start the next milestone from the verified `main`.
 
 ## AI development workflow
 
