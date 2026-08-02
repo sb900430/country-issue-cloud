@@ -50,14 +50,26 @@
 4. 要件、影響ファイル、検証基準を確認する。
 5. 最小の完結単位で実装し、関連testを実行する。
 6. 仕様へ影響する場合は韓国語・日本語版を同時更新する。
-7. `scripts/verify-all.ps1`を実行し、開発状態文書を更新する。
-8. WIPをsquashして目標commit一つに整理する。
-9. 目標branchをpushし、`main`対象のDraft PRを作成する。
-10. CIとreview通過後にReadyへ変更し、**Rebase and merge**でmergeする。
-11. 最新`main`へ切り替え、`scripts/verify-all.ps1`と利用可能なローカルsmoke testを再実行する。
-12. merge後検証が成功した場合だけ目標を完了扱いとし、次の目標branchを作る。
+7. `scripts/verify-all.ps1`を実行する。
+8. 当日に開発作業があれば`docs/daily/YYYY-MM-DD.md`の日次報告を作成し、開発状態文書を更新する。
+9. WIPをsquashして目標commit一つに整理する。
+10. 目標branchをpushし、`main`対象のDraft PRを作成する。
+11. CIとreview通過後にReadyへ変更し、**Rebase and merge**でmergeする。
+12. 最新`main`へ切り替え、`scripts/verify-all.ps1`と利用可能なローカルsmoke testを再実行する。
+13. merge後検証が成功した場合だけ目標を完了扱いとし、次の目標branchを作る。
 
-## 4. 共通Definition of Done
+## 4. 日次開発レポート
+
+- 開発作業を行った日の終了時に`docs/daily/TEMPLATE.md`から`docs/daily/YYYY-MM-DD.md`を作成する。
+- 一つのファイルに同じ意味の韓国語・日本語sectionを両方記述する。
+- 日付は`Asia/Tokyo`基準とし、同日ファイルがあれば新規作成せず更新する。
+- 本日の目標、実施作業、主な変更ファイル、検証commandとPASS/FAIL/SKIP、決定事項、問題・risk、次作業を含める。
+- 失敗・未完了作業も隠さず、原因と次の対応を残す。
+- API key、token、認証header、個人情報、raw log全体を記録しない。
+- 日次reportはGit追跡対象であり、現在の目標branchへ保存する。日次report専用commitは作らず、目標の最終commitとPRへ含める。
+- 土曜日の`reviews/`自動reviewはローカル専用であるため、日次reportと分離する。
+
+## 5. 共通Definition of Done
 
 - 要求機能とエラー経路を実装済み。
 - 新動作を検証するunit/integration testがある。
@@ -67,9 +79,10 @@
 - 実行・設定・契約変更を関連文書へ反映。
 - 仕様変更時は韓国語版と日本語版を同時更新。
 - method単位コメントとTODO/FIXME説明は日本語。
+- 開発した各日の日次reportが作成済み。
 - 目標commit単体でbuild/test可能。
 
-## 5. AI変更制限
+## 6. AI変更制限
 
 - 依頼なしにAPI v1の既存field意味を変更しない。
 - 国別独立処理とAPI/batch import境界を壊さない。
@@ -79,19 +92,19 @@
 - 技術stackや主要構造変更にはADRと利用者確認が必要。
 - 非保護HTTP、アプリ内秘密鍵、本文全体保存を許可しない。
 
-## 6. LLM回帰検証
+## 7. LLM回帰検証
 
 `sample-data/evaluation/{US,JP,KR}`に固定入力、`sample-data/evaluation/expected`に期待値を置く。文章完全一致ではなく、Schema、入力外ID/根拠禁止、国間混在禁止、決定的順位、TOP 5重複禁止、呼出量・費用上限を検査する。実model評価は明示的なlive/evaluation作業だけで実行し、標準CIはmockを使う。
 
-## 7. UI回帰検証
+## 8. UI回帰検証
 
 Compose screenshot基準には、タイル、クラウド、loading、部分成功、offline、小画面、文字拡大、長い多言語labelを含める。差分を自動承認せず、人が画像と意図を確認する。
 
-## 8. Commitと復旧
+## 9. Commitと復旧
 
 全commit subjectは`YYYY/MM/DD <type>: <English> | <한국어> | <日本語>`形式を使う。日付は実際のcommit日、typeは英語とし、3つのsummaryは同じ意味を簡潔に翻訳する。例は`2026/08/03 feat: scaffold local environment | 로컬 환경 구성 | ローカル環境を構成`である。目標別branchのWIPにも同形式を適用し、完了時にsquashして目標commit一つへ整理する。Critical/Highの事後修正は別`codex/review-fix-*` branchと`fix:` commitで処理する。目標とreview修正はすべてDraft PRを通して**Rebase and merge**で`main`へmergeし、直接pushしない。`Create a merge commit`は使わない。ローカルでWIPをsquashできなかった例外時だけ`Squash and merge`を許可し、squash commit subjectを所定の日付・3言語形式で手動入力する。merge後は最新`main`で全検証とsmoke testを再実行し、merge conflict、依存関係組合せ、統合errorがないことを確認する。失敗時は`codex/post-merge-fix-<milestone>` branchで修正し、別PRを作る。完了後、状態文書へPR番号、SHA、merge後検証結果を記録する。
 
-## 9. 標準command
+## 10. 標準command
 
 ```powershell
 .\scripts\check-spec-sync.ps1

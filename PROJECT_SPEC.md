@@ -450,12 +450,18 @@ country-issue-cloud/
 │   ├── AI_DEVELOPMENT_GUIDE_JA.md
 │   ├── DEVELOPMENT_STATUS.md
 │   ├── DEVELOPMENT_STATUS_JA.md
+│   ├── daily/
+│   │   ├── TEMPLATE.md
+│   │   └── YYYY-MM-DD.md
 │   ├── functional-design.md
 │   ├── screen-design.md
 │   ├── api-spec.md
 │   ├── data-policy.md
 │   ├── deployment-guide.md
 │   ├── operations-runbook.md
+│   ├── review/
+│   │   ├── WEEKLY_REVIEW_GUIDE.md
+│   │   └── WEEKLY_REVIEW_TEMPLATE.md
 │   └── adr/
 ├── sample-data/
 ├── scripts/
@@ -629,6 +635,24 @@ python -m app.batch.pipeline_entry --countries US,JP
 - 범위: 마지막 리뷰 이후의 커밋과 diff, 관련 테스트·빌드·정적 검사
 - 평가: 보안, 정확성, 성능, 유지보수성, 테스트 충분성, 문서·아키텍처 준수
 - 결과: 로컬 전용 `reviews/YYYY-MM-DD-weekly-review.md`
+- 상세 기준과 템플릿: `docs/review/WEEKLY_REVIEW_GUIDE.md`, `docs/review/WEEKLY_REVIEW_TEMPLATE.md`
+
+| 항목 | 확정 기준 |
+|---|---|
+| 리뷰 시간 | 최대 60분 |
+| Critical/High 수정 시간 | 리뷰 후 별도 최대 90분 |
+| 명령 timeout | 기본 20분, Android 전체 30분 |
+| 일시적 실패 재시도 | 원인 확인 후 1회 |
+| 동일 finding 수정 시도 | 최대 2회, 이후 `BLOCKED` |
+| 변경 코드 coverage | Line 80%, Branch 70% |
+| 전체 coverage | Backend 80/70, Web 75/65, Android 70/60 (Line/Branch) |
+| 핵심 경로 | Backend 집계·Repository 90% Line, Android ViewModel·Repository 80% Line |
+
+리뷰 범위는 로컬 `reviews/.last-reviewed-sha`부터 현재 `HEAD`까지이며 리뷰가 정상 완료된 경우에만 기준 SHA를 갱신한다. 첫 리뷰는 저장소 전체 보안·설정과 최근 7일 diff를 확인한다. diff 밖의 기존 문제는 `LEGACY`로 구분하되 Critical/High는 수정한다.
+
+필수 검사는 명세 동기화, diff 형식, secret·보안, 의존성 취약점, `scripts/verify-all.ps1`, coverage, 정확성·성능·유지보수성·아키텍처 순으로 수행한다. LLM 또는 UI 변경 시 해당 회귀 검사를 추가한다. 성능은 동일 로컬 환경 3회 중앙값으로 캐시 API p95 500ms, fixture 비캐시 API p95 1초, mock 3개국 pipeline 60초를 기준으로 한다.
+
+LLM 변경 시 Schema 100%, 입력 밖 기사 ID·근거 0건, 국가 혼합 0건, TOP 5 중복 0건, 순위 결정성 100%, 추출 성공률 80% 이상을 요구한다. label은 국가별 최대 5개 표본에서 80% 이상 수용 가능해야 한다.
 
 심각도 처리 정책:
 
@@ -638,6 +662,8 @@ python -m app.batch.pipeline_entry --countries US,JP
 | High | Critical과 동일하게 수정·재검증하고 해결 상태를 기록한다. |
 | Medium | 코드를 자동 수정하지 않고 파일·라인·영향·권장 조치를 리뷰 이력에 남긴다. |
 | Low | 코드를 자동 수정하지 않고 개선 후보로 리뷰 이력에 남긴다. |
+
+리뷰 최종 상태는 `PASS`, `PASS_WITH_FINDINGS`, `FAIL`, `BLOCKED` 중 하나다. finding ID는 `WR-YYYYMMDD-NNN` 형식이며 같은 파일·규칙·원인은 fingerprint로 중복 생성을 막는다. Medium 3회, Low 4회 연속 미해결은 우선 검토 대상으로 표시하지만 기간만으로 심각도를 자동 승격하지 않는다.
 
 `reviews/`는 `.gitignore`에 포함하고 모든 리뷰 MD를 로컬에만 저장한다. Critical/High 수정은 `codex/review-fix-YYYY-MM-DD` 브랜치에서 관련 검증을 통과시킨 뒤 명확한 수정 커밋과 Draft PR로 `main`에 반영한다. 해결된 항목은 로컬 리뷰에 `RESOLVED`, 수정 커밋 SHA와 PR 번호를 표시한다. Critical/High가 없으면 브랜치·커밋·PR 없이 로컬 리뷰만 남긴다. 외부 계약, 자격증명, 사용자 결정이 필요한 항목은 임의로 우회하지 않는다.
 
@@ -720,6 +746,7 @@ v* 태그 → release AAB → GitHub Release → Play 내부 테스트 트랙
 - 구현 작업은 목표, 범위, 제외 범위, 완료 조건, 검증 명령, 목표 커밋을 포함하는 작업 계약을 따른다.
 - `docs/AI_DEVELOPMENT_GUIDE.md`와 일본어판을 AI 작업의 실행 기준으로 사용한다.
 - `docs/DEVELOPMENT_STATUS.md`와 일본어판에 현재 목표, 완료 커밋, 검증 결과, 다음 작업과 외부 의존성을 기록한다.
+- 개발 작업이 수행된 날에는 종료 시점에 `docs/daily/YYYY-MM-DD.md`를 작성한다. 한 파일에 한국어·일본어 내용을 함께 기록하고 목표 최종 커밋과 PR에 포함한다.
 - 공통 완료 조건에는 기능·오류 경로, 관련 테스트, lint/type/build, 비밀정보 검사, 문서 동기화와 일본어 주석 규칙을 포함한다.
 - 목표 커밋 전에 `scripts/verify-all.ps1`을 실행한다. 이 스크립트는 명세 동기화와 생성된 각 프로젝트의 검사를 한 진입점에서 수행한다.
 - 목표 브랜치의 임시 WIP 커밋은 허용하되 완료 시 squash하여 목표 단위 커밋 하나로 정리한다.
@@ -753,7 +780,17 @@ v* 태그 → release AAB → GitHub Release → Play 내부 테스트 트랙
 
 ## 17. 개발 일정
 
-2026년 8월 3일 월요일부터 시작하는 AI 개발 지원 기반의 로컬 우선 일정이다. 호스팅 계약 전에는 fixture, 로컬 FastAPI, Android Emulator를 사용해 4주 동안 로컬 MVP를 완성한다. 기존 8개 개발 목표는 축소하지 않고 두 목표씩 병렬·연속 수행한다. 월요일부터 금요일까지 개발하고 토요일 10:00(JST)에 자동 리뷰를 실행한다. 일요일은 고정 작업을 배정하지 않은 휴식·지연 보완일이다. 호스팅과 Play 연동은 계약 이후 별도 단계로 진행한다.
+2026년 8월 3일 월요일부터 시작하는 AI 개발 지원 기반의 로컬 우선 일정이다. 호스팅 계약 전에는 fixture, 로컬 FastAPI, Android Emulator를 사용해 4주 동안 로컬 MVP를 완성한다. 기존 8개 개발 목표는 축소하지 않고 두 목표씩 병렬·연속 수행한다. 월요일부터 금요일까지 개발하고 각 개발일 종료 시 일일 보고서를 작성한다. 토요일 10:00(JST)에는 자동 리뷰를 실행한다. 일요일은 고정 작업을 배정하지 않은 휴식·지연 보완일이다. 호스팅과 Play 연동은 계약 이후 별도 단계로 진행한다.
+
+### 일일 개발 보고서 정책
+
+- 경로: `docs/daily/YYYY-MM-DD.md` (`Asia/Tokyo` 기준)
+- 형식: `docs/daily/TEMPLATE.md`를 사용하고 한 파일 안에 동등한 한국어·일본어 섹션을 작성한다.
+- 내용: 오늘의 목표, 수행 작업, 주요 변경 파일, 검증 결과, 결정사항, 문제·리스크, 다음 작업
+- 실패·미완료 작업도 원인과 후속 조치와 함께 기록한다.
+- 비밀키, 토큰, 인증 헤더, 개인정보와 원문 로그 전체는 포함하지 않는다.
+- Git 추적 대상으로 목표 브랜치에 저장하며, 별도 일일 커밋 없이 해당 목표의 최종 커밋과 PR에 포함한다.
+- 토요일 자동 리뷰의 `reviews/*.md`는 계속 로컬 전용으로 유지하고 일일 보고서와 혼합하지 않는다.
 
 ### 주차별 개발 목표 요약
 
@@ -928,6 +965,7 @@ v1.0.0 첫 공개 릴리스
 - [ ] 개인정보처리방침과 문의 페이지
 - [ ] Google Play 등록 자료
 - [ ] README, 데모 이미지, GitHub Release
+- [ ] 개발일별 한·일 병기 일일 보고서
 
 ---
 

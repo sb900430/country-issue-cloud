@@ -436,6 +436,12 @@ country-issue-cloud/
 │   ├── AI_DEVELOPMENT_GUIDE_JA.md
 │   ├── DEVELOPMENT_STATUS.md
 │   ├── DEVELOPMENT_STATUS_JA.md
+│   ├── daily/
+│   │   ├── TEMPLATE.md
+│   │   └── YYYY-MM-DD.md
+│   ├── review/
+│   │   ├── WEEKLY_REVIEW_GUIDE.md
+│   │   └── WEEKLY_REVIEW_TEMPLATE.md
 │   └── adr/
 ├── sample-data/
 ├── scripts/
@@ -599,6 +605,24 @@ python -m app.batch.pipeline_entry --countries US,JP
 - 範囲：前回レビュー以降のcommit/diff、関連テスト・ビルド・静的検査
 - 評価：セキュリティ、正確性、性能、保守性、テスト十分性、文書・アーキテクチャ準拠
 - 結果：ローカル専用`reviews/YYYY-MM-DD-weekly-review.md`
+- 詳細基準とtemplate：`docs/review/WEEKLY_REVIEW_GUIDE.md`、`docs/review/WEEKLY_REVIEW_TEMPLATE.md`
+
+| 項目 | 確定基準 |
+|---|---|
+| review時間 | 最大60分 |
+| Critical/High修正時間 | review後の別枠で最大90分 |
+| command timeout | 基本20分、Android全体30分 |
+| 一時的失敗の再試行 | 原因確認後1回 |
+| 同一finding修正試行 | 最大2回、以後`BLOCKED` |
+| 変更コードcoverage | Line 80%、Branch 70% |
+| 全体coverage | Backend 80/70、Web 75/65、Android 70/60（Line/Branch） |
+| 主要経路 | Backend集計・Repository 90% Line、Android ViewModel・Repository 80% Line |
+
+review範囲はローカル`reviews/.last-reviewed-sha`から現在`HEAD`までとし、正常完了時だけ基準SHAを更新する。初回はリポジトリ全体のsecurity・設定と直近7日diffを確認する。diff外の既存問題は`LEGACY`とするが、Critical/Highは修正する。
+
+必須検査は仕様同期、diff形式、secret・security、依存関係脆弱性、`scripts/verify-all.ps1`、coverage、正確性・性能・保守性・architectureの順に行う。LLMまたはUI変更時は対応する回帰検査を追加する。性能は同一ローカル環境3回の中央値で、cache API p95 500ms、fixture非cache API p95 1秒、mock 3か国pipeline 60秒を基準とする。
+
+LLM変更時はSchema 100%、入力外article ID・根拠0件、国間混在0件、TOP 5重複0件、順位決定性100%、抽出成功率80%以上を要求する。labelは国別最大5件のsampleで80%以上が受容可能であること。
 
 | 重大度 | 対応 |
 |---|---|
@@ -606,6 +630,8 @@ python -m app.batch.pipeline_entry --countries US,JP
 | High | Criticalと同様に修正・再検証して状態を記録。 |
 | Medium | 自動修正せず、ファイル・行・影響・推奨対応を履歴化。 |
 | Low | 自動修正せず、改善候補として履歴化。 |
+
+review最終状態は`PASS`、`PASS_WITH_FINDINGS`、`FAIL`、`BLOCKED`のいずれかとする。finding IDは`WR-YYYYMMDD-NNN`形式とし、同じfile・rule・原因はfingerprintで重複生成を防ぐ。Mediumが3回、Lowが4回連続で未解決の場合は優先検討対象とするが、期間だけでseverityを自動昇格しない。
 
 `reviews/`は`.gitignore`へ含め、レビューMDはローカルだけに保存する。Critical/High修正は`codex/review-fix-YYYY-MM-DD` branchで検証し、明確な修正commitとDraft PRで`main`へ反映する。ローカルreviewへ`RESOLVED`、修正commit SHA、PR番号を記録する。Critical/Highがなければbranch・commit・PRを作らずローカルreviewだけを残す。外部契約、資格情報、利用者判断が必要な項目を勝手に回避しない。
 
@@ -670,6 +696,7 @@ v* tag → release AAB → GitHub Release → Play内部テストトラック
 - 実装作業は目標、範囲、対象外、完了条件、検証command、目標commitを含む作業契約に従う。
 - `docs/AI_DEVELOPMENT_GUIDE.md`と日本語版をAI作業の実行基準とする。
 - `docs/DEVELOPMENT_STATUS.md`と日本語版へ現在目標、完了commit、検証結果、次作業、外部依存を記録する。
+- 開発作業を行った日は終了時に`docs/daily/YYYY-MM-DD.md`を作成する。一つのファイルへ韓国語・日本語を併記し、目標の最終commitとPRへ含める。
 - 共通完了条件に機能・エラー経路、関連test、lint/type/build、秘密情報検査、文書同期、日本語コメント規則を含める。
 - 目標commit前に`scripts/verify-all.ps1`を実行し、仕様同期と各project検査を一つの入口で行う。
 - 目標branchの一時WIP commitは許可するが、完了時にsquashして目標単位commit一つへ整理する。
@@ -703,7 +730,17 @@ v* tag → release AAB → GitHub Release → Play内部テストトラック
 
 ## 17. 開発スケジュール
 
-2026年8月3日月曜日に開始する、AI開発支援前提のローカル優先日程である。ホスティング契約前はfixture、ローカルFastAPI、Android Emulatorを使い、4週間でローカルMVPを完成する。既存8目標は削らず、2目標ずつ連続・並行実施する。月～金曜日に開発し、土曜日10:00（JST）に自動レビューする。日曜日は休息・遅延吸収日とし、固定作業を置かない。
+2026年8月3日月曜日に開始する、AI開発支援前提のローカル優先日程である。ホスティング契約前はfixture、ローカルFastAPI、Android Emulatorを使い、4週間でローカルMVPを完成する。既存8目標は削らず、2目標ずつ連続・並行実施する。月～金曜日に開発し、各開発日の終了時に日次reportを作成する。土曜日10:00（JST）に自動reviewを実行する。日曜日は休息・遅延吸収日とし、固定作業を置かない。
+
+### 日次開発レポートポリシー
+
+- 保存先：`docs/daily/YYYY-MM-DD.md`（`Asia/Tokyo`基準）
+- 形式：`docs/daily/TEMPLATE.md`を使用し、一つのファイルに同等の韓国語・日本語sectionを記述する。
+- 内容：本日の目標、実施作業、主な変更ファイル、検証結果、決定事項、問題・risk、次作業
+- 失敗・未完了作業も原因と次の対応を含めて記録する。
+- 秘密鍵、token、認証header、個人情報、raw log全体を含めない。
+- Git追跡対象として目標branchへ保存し、日次専用commitを作らず対象目標の最終commitとPRへ含める。
+- 土曜日自動reviewの`reviews/*.md`は引き続きローカル専用とし、日次reportと混在させない。
 
 ### 週別目標
 
@@ -878,6 +915,7 @@ v1.0.0 初回公開リリース
 - [ ] プライバシーポリシーと問い合わせページ
 - [ ] Google Play登録資料
 - [ ] README、デモ画像、GitHub Release
+- [ ] 開発日ごとの韓国語・日本語併記日次report
 
 ---
 
