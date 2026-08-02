@@ -607,7 +607,7 @@ python -m app.batch.pipeline_entry --countries US,JP
 | Medium | 自動修正せず、ファイル・行・影響・推奨対応を履歴化。 |
 | Low | 自動修正せず、改善候補として履歴化。 |
 
-`reviews/`は`.gitignore`へ含め、レビューMDはローカルだけに保存する。Critical/High修正は検証通過時に修正コードだけを明確なコミットにし、`origin/main`へpushする。ローカルレビューへ`RESOLVED`と修正コミットSHAを記録する。Critical/Highがなければcommit/pushしない。外部契約、資格情報、利用者判断が必要な項目を勝手に回避しない。
+`reviews/`は`.gitignore`へ含め、レビューMDはローカルだけに保存する。Critical/High修正は`codex/review-fix-YYYY-MM-DD` branchで検証し、明確な修正commitとDraft PRで`main`へ反映する。ローカルreviewへ`RESOLVED`、修正commit SHA、PR番号を記録する。Critical/Highがなければbranch・commit・PRを作らずローカルreviewだけを残す。外部契約、資格情報、利用者判断が必要な項目を勝手に回避しない。
 
 ---
 
@@ -661,7 +661,7 @@ Pull Request CI：
 - Web：静的検査、JSテスト、基本アクセシビリティ検査
 
 ```text
-main merge → 全CI → VPS配布 → health/ready → 失敗時ロールバック
+main merge → merge済みmainの全CI・ローカルsmoke再検証 → VPS配布 → health/ready → 失敗時ロールバック
 v* tag → release AAB → GitHub Release → Play内部テストトラック
 ```
 
@@ -673,6 +673,11 @@ v* tag → release AAB → GitHub Release → Play内部テストトラック
 - 共通完了条件に機能・エラー経路、関連test、lint/type/build、秘密情報検査、文書同期、日本語コメント規則を含める。
 - 目標commit前に`scripts/verify-all.ps1`を実行し、仕様同期と各project検査を一つの入口で行う。
 - 目標branchの一時WIP commitは許可するが、完了時にsquashして目標単位commit一つへ整理する。
+- 各目標は指定された`codex/milestone-*` branchで開始し、`main`対象のDraft PRとして公開する。
+- 統合検証、CI、review通過後にReadyへ変更してPRからmergeし、目標変更を`main`へ直接pushしない。
+- merge後、最新`main`で`scripts/verify-all.ps1`と利用可能なローカルsmoke testを再実行し、merge conflict、依存関係の組合せ、統合errorを確認する。
+- merge後検証の成功を目標完了条件とする。失敗時は`codex/post-merge-fix-<milestone>` branchと別PRで修正し、`main`を直接変更しない。
+- merge後検証の成功後に目標branchを削除し、検証済みの最新`main`から次の目標branchを作る。
 - AIがAPI契約、主要architecture、技術stack、費用・公開範囲を変える場合はADRと利用者確認が必要。
 - UI screenshot基準変更は自動承認せず、人が意図された変更か確認する。
 
@@ -753,6 +758,17 @@ v* tag → release AAB → GitHub Release → Play内部テストトラック
 
 ### 目標単位コミットポリシー
 
+| 目標 | 作業branch |
+|---|---|
+| 1 環境・骨格 | `codex/milestone-01-scaffold` |
+| 2 データ・API | `codex/milestone-02-local-api` |
+| 3 国別収集・整形 | `codex/milestone-03-news-collection` |
+| 4 LLM・TOP 5 | `codex/milestone-04-issue-ranking` |
+| 5 バッチ・Web | `codex/milestone-05-pipeline-web` |
+| 6 Android API接続 | `codex/milestone-06-android-api` |
+| 7 Android UI・オフライン | `codex/milestone-07-android-ui` |
+| 8 MVP安定化 | `codex/milestone-08-local-mvp` |
+
 | 目標 | コミットメッセージ |
 |---|---|
 | 1 環境・骨格 | `YYYY/MM/DD feat: scaffold local environment`<br>`로컬 환경 구성`<br>`ローカル環境を構成` |
@@ -764,7 +780,7 @@ v* tag → release AAB → GitHub Release → Play内部テストトラック
 | 7 Android UI・オフライン | `YYYY/MM/DD feat: implement Android UI and offline cache`<br>`안드로이드 UI 및 오프라인 캐시 구현`<br>`Android UIとオフラインキャッシュを実装` |
 | 8 MVP安定化 | `YYYY/MM/DD release: complete local MVP`<br>`로컬 MVP 완성`<br>`ローカルMVPを完成` |
 
-全commit subjectは`YYYY/MM/DD <type>: <English> | <한국어> | <日本語>`形式を使う。日付は実際のcommit日、typeは英語とし、3つのsummaryは同じ意味を簡潔に翻訳する。上表の3行は実際のsubjectでは` | `で連結する。各目標は実装と関連testの通過後に1回commitする。作業中の一時commitは完了前にsquashし、各目標commitは単独でbuild/test可能とする。review前の未commit Critical/High修正は目標commitへ含める。push済み目標で見つかったCritical/Highだけは同形式の`fix` commitを許可し、ローカルreviewへSHAを残す。
+全commit subjectは`YYYY/MM/DD <type>: <English> | <한국어> | <日本語>`形式を使う。日付は実際のcommit日、typeは英語とし、3つのsummaryは同じ意味を簡潔に翻訳する。上表の3行は実際のsubjectでは` | `で連結する。各目標は実装と関連testの通過後に1回commitし、作業中の一時commitは完了前にsquashする。各目標commitは単独でbuild/test可能とする。目標branchをpushした後、`main`対象のDraft PRを作り、CI・review通過後にmergeする。merge直後の最新`main`で全検証とsmoke testが成功した場合だけ目標完了とする。review前の未commit Critical/High修正は目標commitへ含める。push済み目標で見つかったCritical/Highは別修正branchと同形式の`fix` commit・PRで処理する。
 
 ### ホスティング契約後1週目 — 運用配布
 

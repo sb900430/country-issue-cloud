@@ -5,6 +5,7 @@
 | 現在目標 | 目標1 — 環境とプロジェクト骨格 |
 | 状態 | 開始前 |
 | 基準branch | `main` |
+| 予定作業branch | `codex/milestone-01-scaffold` |
 | 最終完了commit | なし |
 | 全体検証 | 文書段階の検査のみ可能 |
 | 次作業 | 2026-08-03 開発環境確認とmonorepo scaffold |
@@ -17,6 +18,7 @@
 
 - ローカルMVP期間は2026-08-03から2026-08-29までの4週間。
 - 8目標ごとに最終commitを一つ作成。
+- 各目標は専用branchとDraft PRを通して`main`へ反映する。
 - 全commit subjectは`YYYY/MM/DD <type>: <English> | <한국어> | <日本語>`形式を使う。
 - Android HTTPはRetrofitを利用。
 - Python環境とpackageはuvで管理。
