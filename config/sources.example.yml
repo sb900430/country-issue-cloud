@@ -1,0 +1,16 @@
+sources:
+  US:
+    - id: federal_reserve
+      type: rss
+      enabled: false
+      terms_status: pending
+      terms_checked_at: null
+      terms_review_due_at: null
+      allowed_fields:
+        - title
+        - summary
+        - url
+        - publisher
+        - published_at
+  JP: []
+  KR: []

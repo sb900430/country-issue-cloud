@@ -3,6 +3,13 @@ param()
 
 $ErrorActionPreference = "Stop"
 $projectRoot = Split-Path -Parent $PSScriptRoot
+$uvCommand = Get-Command uv -ErrorAction SilentlyContinue
+if (-not $uvCommand) {
+    $localUv = Join-Path $projectRoot ".tools/uv/bin/uv.exe"
+    if (Test-Path -LiteralPath $localUv) {
+        $uvCommand = $localUv
+    }
+}
 
 function Invoke-VerificationStep {
     param(
@@ -28,12 +35,12 @@ try {
     }
 
     if (Test-Path -LiteralPath "backend/pyproject.toml") {
-        if (-not (Get-Command uv -ErrorAction SilentlyContinue)) {
+        if (-not $uvCommand) {
             throw "The backend exists, but uv is unavailable."
         }
-        Invoke-VerificationStep "Python Ruff" { uv run --project backend ruff check backend }
-        Invoke-VerificationStep "Python mypy" { uv run --project backend mypy backend/app }
-        Invoke-VerificationStep "Python pytest" { uv run --project backend pytest backend/tests }
+        Invoke-VerificationStep "Python Ruff" { & $uvCommand run --project backend ruff check backend }
+        Invoke-VerificationStep "Python mypy" { & $uvCommand run --project backend mypy backend/app }
+        Invoke-VerificationStep "Python pytest" { & $uvCommand run --project backend pytest backend/tests }
     } else {
         Write-Host "SKIP: backend scaffold is not present yet." -ForegroundColor Yellow
     }
