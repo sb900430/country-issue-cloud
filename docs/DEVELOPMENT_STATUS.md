@@ -2,17 +2,21 @@
 
 | 항목 | 현재 상태 |
 |---|---|
-| 현재 목표 | 목표 1 — 환경과 프로젝트 골격 |
-| 상태 | 구현·로컬 검증 완료, Draft PR 준비 |
+| 현재 목표 | 목표 2 — 데이터 계약과 로컬 API |
+| 상태 | 목표 1 완료, 목표 2 시작 전 |
 | 기준 브랜치 | `main` |
-| 작업 브랜치 | `codex/milestone-01-scaffold` |
-| 마지막 완료 커밋 | 없음 |
-| 전체 검증 | `scripts/verify-all.ps1` PASS, Python 테스트 4개 PASS |
-| 다음 작업 | 목표 1 커밋·push 후 `main` 대상 Draft PR 생성 |
+| 예정 작업 브랜치 | `codex/milestone-02-local-api` |
+| 마지막 완료 커밋 | `fb1fa04` — 목표 1 |
+| 전체 검증 | 병합된 `main` 전체 검증·fixture smoke·CI PASS |
+| 다음 작업 | 2026-08-04 데이터 모델, Schema와 JSON Repository 구현 |
 
 ## 완료된 목표
 
-아직 없음.
+- 목표 1 — 환경과 프로젝트 골격
+  - 완료일: 2026-08-03
+  - PR: #5
+  - `main` 커밋: `fb1fa04`
+  - 검증: Ruff, mypy strict, pytest 4개, Secret 검사, fixture smoke, GitHub CI PASS
 
 ## 목표 1 진행 결과
 

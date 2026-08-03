@@ -2,17 +2,21 @@
 
 | 項目 | 現在状態 |
 |---|---|
-| 現在目標 | 目標1 — 環境とプロジェクト骨格 |
-| 状態 | 実装・ローカル検証完了、Draft PR準備中 |
+| 現在目標 | 目標2 — データ契約とローカルAPI |
+| 状態 | 目標1完了、目標2開始前 |
 | 基準branch | `main` |
-| 作業branch | `codex/milestone-01-scaffold` |
-| 最終完了commit | なし |
-| 全体検証 | `scripts/verify-all.ps1` PASS、Python test 4件PASS |
-| 次作業 | 目標1のcommit・push後、`main`向けDraft PR作成 |
+| 予定作業branch | `codex/milestone-02-local-api` |
+| 最終完了commit | `fb1fa04` — 目標1 |
+| 全体検証 | merge済み`main`の全検証・fixture smoke・CI PASS |
+| 次作業 | 2026-08-04 data model、Schema、JSON Repository実装 |
 
 ## 完了済み目標
 
-まだなし。
+- 目標1 — 環境とプロジェクト骨格
+  - 完了日：2026-08-03
+  - PR：#5
+  - `main` commit：`fb1fa04`
+  - 検証：Ruff、mypy strict、pytest 4件、Secret検査、fixture smoke、GitHub CI PASS
 
 ## 目標1の進行結果
 
