@@ -1,0 +1,29 @@
+{
+  "schema_version": "1.0",
+  "date": "2026-08-03",
+  "generated_at": "2026-08-03T08:10:00+09:00",
+  "status": "success",
+  "countries": {
+    "US": {
+      "status": "success",
+      "article_count": 30,
+      "extraction_success_rate": 1.0,
+      "top_issues": [],
+      "warnings": []
+    },
+    "JP": {
+      "status": "success",
+      "article_count": 30,
+      "extraction_success_rate": 1.0,
+      "top_issues": [],
+      "warnings": []
+    },
+    "KR": {
+      "status": "success",
+      "article_count": 30,
+      "extraction_success_rate": 1.0,
+      "top_issues": [],
+      "warnings": []
+    }
+  }
+}

@@ -3,16 +3,25 @@
 | 항목 | 현재 상태 |
 |---|---|
 | 현재 목표 | 목표 1 — 환경과 프로젝트 골격 |
-| 상태 | 시작 전 |
+| 상태 | 구현·로컬 검증 완료, Draft PR 준비 |
 | 기준 브랜치 | `main` |
-| 예정 작업 브랜치 | `codex/milestone-01-scaffold` |
+| 작업 브랜치 | `codex/milestone-01-scaffold` |
 | 마지막 완료 커밋 | 없음 |
-| 전체 검증 | 문서 단계 검사만 가능 |
-| 다음 작업 | 2026-08-03 개발환경 점검과 monorepo 스캐폴드 |
+| 전체 검증 | `scripts/verify-all.ps1` PASS, Python 테스트 4개 PASS |
+| 다음 작업 | 목표 1 커밋·push 후 `main` 대상 Draft PR 생성 |
 
 ## 완료된 목표
 
 아직 없음.
+
+## 목표 1 진행 결과
+
+- `backend`, `android`, `frontend`, `config`, `deploy`, `sample-data` monorepo 골격을 구성했다.
+- Python 3.12, FastAPI, Pydantic Settings, uv 기반 backend 환경과 `uv.lock`을 구성했다.
+- 기본 실행 모드를 `fixture`로 고정하고 외부 API·LLM key가 없어도 설정을 읽을 수 있게 했다.
+- US/JP/KR가 독립된 샘플 fixture와 검증 테스트를 추가했다.
+- PR과 `main`에서 공통 검증을 실행하는 기본 CI를 추가했다.
+- 로컬 PATH에는 uv·Python·Java·ADB가 없었다. uv 0.11.32는 Git 제외된 `.tools/`에 설치해 검증했으며 Java·Android SDK는 Android 목표 시작 전 설치가 필요하다.
 
 ## 현재 결정사항
 

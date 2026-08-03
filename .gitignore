@@ -32,3 +32,16 @@ cache/
 # IDE-local launch settings
 .vscode/settings.json
 .vscode/launch.json
+
+# Local development tools and generated artifacts
+.tools/
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+node_modules/
+dist/
+build/
+.gradle/

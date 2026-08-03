@@ -3,16 +3,25 @@
 | 項目 | 現在状態 |
 |---|---|
 | 現在目標 | 目標1 — 環境とプロジェクト骨格 |
-| 状態 | 開始前 |
+| 状態 | 実装・ローカル検証完了、Draft PR準備中 |
 | 基準branch | `main` |
-| 予定作業branch | `codex/milestone-01-scaffold` |
+| 作業branch | `codex/milestone-01-scaffold` |
 | 最終完了commit | なし |
-| 全体検証 | 文書段階の検査のみ可能 |
-| 次作業 | 2026-08-03 開発環境確認とmonorepo scaffold |
+| 全体検証 | `scripts/verify-all.ps1` PASS、Python test 4件PASS |
+| 次作業 | 目標1のcommit・push後、`main`向けDraft PR作成 |
 
 ## 完了済み目標
 
 まだなし。
+
+## 目標1の進行結果
+
+- `backend`、`android`、`frontend`、`config`、`deploy`、`sample-data`のmonorepo scaffoldを構成した。
+- Python 3.12、FastAPI、Pydantic Settings、uvベースのbackend環境と`uv.lock`を構成した。
+- 標準実行modeを`fixture`に固定し、外部API・LLM keyなしでも設定を読み込めるようにした。
+- US/JP/KRを独立させたsample fixtureと検証testを追加した。
+- PRと`main`で共通検証を実行する基本CIを追加した。
+- ローカルPATHにuv・Python・Java・ADBはなかった。uv 0.11.32はGit除外対象の`.tools/`へ導入して検証し、Java・Android SDKはAndroid目標開始前にinstallが必要である。
 
 ## 現在の決定事項
 
