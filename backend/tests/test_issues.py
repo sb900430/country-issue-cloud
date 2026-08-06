@@ -45,6 +45,15 @@ def test_mock_extractor_is_deterministic_and_grounded() -> None:
     assert validate_extraction(first, articles) == first
 
 
+def test_mock_extractor_truncates_long_article_titles_for_issue_labels() -> None:
+    article = make_article(1, CountryCode.US, "A" * 200)
+
+    extraction = MockIssueExtractor().extract(CountryCode.US, [article])
+
+    assert len(extraction.issues[0].issue_label) == 120
+    assert extraction.issues[0].evidence_expressions == (article.title,)
+
+
 def test_grounding_rejects_unknown_article_and_evidence() -> None:
     articles = [make_article(1)]
     unknown_id = ExtractionResult(
@@ -98,6 +107,25 @@ def test_top_five_merges_similar_labels_and_uses_deterministic_code_ranking() ->
     assert first.top_issues[0].issue_label == "기준금리 동결"
     assert first.top_issues[0].article_count == 8
     assert [issue.rank for issue in first.top_issues] == [1, 2, 3, 4, 5]
+
+
+def test_supplementary_articles_rank_below_primary_articles() -> None:
+    supplementary = make_article(1, title="Supplementary").model_copy(
+        update={"ranking_weight": 0.5}
+    )
+    primary = make_article(2, title="Primary")
+    articles = [supplementary, primary]
+
+    result = aggregate_top_issues(
+        CountryCode.KR,
+        articles,
+        MockIssueExtractor().extract(CountryCode.KR, articles),
+    )
+
+    assert [issue.issue_label for issue in result.top_issues] == [
+        "Primary",
+        "Supplementary",
+    ]
 
 
 def test_country_mixing_is_rejected() -> None:

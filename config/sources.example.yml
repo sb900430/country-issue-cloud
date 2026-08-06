@@ -1,18 +1,129 @@
 sources:
   US:
-    - id: federal_reserve
+    - id: federal_reserve_all_releases
       type: rss
       publisher: Federal Reserve
-      feed_url: null
+      feed_url: https://www.federalreserve.gov/feeds/press_all.xml
+      enabled: true
+      terms_status: approved
+      terms_checked_at: 2026-08-06
+      terms_review_due_at: 2026-11-04
+      allowed_fields: &public_rss_fields [title, summary, url, publisher, published_at]
+    - id: bls_employment_situation
+      type: rss
+      publisher: U.S. Bureau of Labor Statistics
+      feed_url: https://www.bls.gov/feed/empsit.rss
       enabled: false
-      terms_status: pending
-      terms_checked_at: null
-      terms_review_due_at: null
-      allowed_fields:
-        - title
-        - summary
-        - url
-        - publisher
-        - published_at
-  JP: []
-  KR: []
+      terms_status: automated_access_blocked
+      terms_checked_at: 2026-08-06
+      terms_review_due_at: 2026-11-04
+      allowed_fields: *public_rss_fields
+    - id: bls_consumer_price_index
+      type: rss
+      publisher: U.S. Bureau of Labor Statistics
+      feed_url: https://www.bls.gov/feed/cpi.rss
+      enabled: false
+      terms_status: automated_access_blocked
+      terms_checked_at: 2026-08-06
+      terms_review_due_at: 2026-11-04
+      allowed_fields: *public_rss_fields
+    - id: bea_api
+      type: api
+      publisher: U.S. Bureau of Economic Analysis
+      enabled: false
+      terms_status: registration_required
+      terms_checked_at: 2026-08-06
+      terms_review_due_at: 2026-11-04
+      allowed_fields: *public_rss_fields
+  JP:
+    - id: meti_news_releases
+      type: atom
+      publisher: Ministry of Economy, Trade and Industry
+      feed_url: https://www.meti.go.jp/ml_index_release_atom.xml
+      enabled: false
+      terms_status: stale_feed
+      terms_checked_at: 2026-08-06
+      terms_review_due_at: 2026-11-04
+      allowed_fields: *public_rss_fields
+    - id: boj_whats_new
+      type: rss
+      publisher: Bank of Japan
+      feed_url: https://www.boj.or.jp/rss/whatsnew.xml
+      enabled: true
+      terms_status: approved_noncommercial
+      terms_checked_at: 2026-08-06
+      terms_review_due_at: 2026-11-04
+      allowed_fields: [title, url, publisher, published_at]
+    - id: boj_statistics
+      type: rss
+      publisher: Bank of Japan
+      feed_url: https://www.boj.or.jp/rss/statistics.xml
+      enabled: true
+      terms_status: approved_noncommercial
+      terms_checked_at: 2026-08-06
+      terms_review_due_at: 2026-11-04
+      allowed_fields: [title, url, publisher, published_at]
+    - id: e_stat_api
+      type: api
+      publisher: Statistics Bureau of Japan
+      enabled: false
+      terms_status: application_id_required
+      terms_checked_at: 2026-08-06
+      terms_review_due_at: 2026-11-04
+      allowed_fields: *public_rss_fields
+  KR:
+    - id: bok_all_releases
+      type: rss
+      publisher: Bank of Korea
+      feed_url: https://www.bok.or.kr/portal/bbs/B0000552/news.rss?menuNo=200690
+      enabled: true
+      terms_status: approved
+      terms_checked_at: 2026-08-06
+      terms_review_due_at: 2026-11-04
+      allowed_fields: [title, url, publisher, published_at]
+    - id: bok_monetary_policy
+      type: rss
+      publisher: Bank of Korea
+      feed_url: https://www.bok.or.kr/portal/bbs/P0000559/news.rss?menuNo=200690
+      enabled: true
+      terms_status: approved
+      terms_checked_at: 2026-08-06
+      terms_review_due_at: 2026-11-04
+      allowed_fields: [title, url, publisher, published_at]
+    - id: bok_economic_statistics
+      type: rss
+      publisher: Bank of Korea
+      feed_url: https://www.bok.or.kr/portal/bbs/B0000501/news.rss?menuNo=201264
+      enabled: true
+      terms_status: approved
+      terms_checked_at: 2026-08-06
+      terms_review_due_at: 2026-11-04
+      allowed_fields: [title, url, publisher, published_at]
+    - id: fsc_press_releases
+      type: rss
+      publisher: Financial Services Commission
+      feed_url: https://www.fsc.go.kr/about/fsc_bbs_rss/?fid=0111
+      enabled: true
+      terms_status: approved
+      terms_checked_at: 2026-08-06
+      terms_review_due_at: 2026-11-04
+      allowed_fields: [title, url, publisher, published_at]
+    - id: fsc_press_explanations
+      type: rss
+      publisher: Financial Services Commission
+      feed_url: https://www.fsc.go.kr/about/fsc_bbs_rss/?fid=0112
+      enabled: true
+      terms_status: approved
+      terms_checked_at: 2026-08-06
+      terms_review_due_at: 2026-11-04
+      allowed_fields: [title, url, publisher, published_at]
+      source_role: supplementary
+    - id: mss_press_releases
+      type: rss
+      publisher: Ministry of SMEs and Startups
+      feed_url: https://mss.go.kr/rss/smba/board/86.do
+      enabled: true
+      terms_status: approved
+      terms_checked_at: 2026-08-06
+      terms_review_due_at: 2026-11-04
+      allowed_fields: [title, url, publisher, published_at]

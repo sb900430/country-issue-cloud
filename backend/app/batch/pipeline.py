@@ -89,8 +89,12 @@ class IssuePipeline:
         country: CountryCode,
         collection: CountryCollectionResult | None,
     ) -> CountryIssueResult:
-        if collection is None or not collection.articles:
+        if collection is None:
             return self._failed_country("collection_unavailable")
+        if not collection.articles:
+            return self._failed_country(
+                "collection_unavailable", additional_warnings=list(collection.errors)
+            )
         try:
             articles = list(collection.articles)
             extraction = self.extractor.extract(country, articles)
@@ -104,11 +108,13 @@ class IssuePipeline:
             return self._failed_country(f"pipeline_failed:{type(error).__name__}")
 
     @staticmethod
-    def _failed_country(warning: str) -> CountryIssueResult:
+    def _failed_country(
+        warning: str, additional_warnings: list[str] | None = None
+    ) -> CountryIssueResult:
         return CountryIssueResult(
             status=IssueStatus.FAILED,
             article_count=0,
             extraction_success_rate=0,
             top_issues=[],
-            warnings=[warning],
+            warnings=[warning, *(additional_warnings or [])],
         )

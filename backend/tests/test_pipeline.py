@@ -55,6 +55,23 @@ def test_pipeline_does_not_replace_latest_with_only_one_publishable_country(
     assert repository.find_latest() is None
 
 
+def test_pipeline_preserves_sanitized_collection_error_codes(tmp_path: Path) -> None:
+    repository = JsonIssueRepository(tmp_path)
+    pipeline = IssuePipeline(repository, MockIssueExtractor(), PipelineLock(tmp_path / "lock"))
+    failed = CountryCollectionResult(
+        country=CountryCode.US,
+        errors=("bls:FeedFetchError",),
+        collected_at=datetime.now(UTC),
+    )
+
+    result = pipeline.run(TARGET_DATE, {CountryCode.US: failed})
+
+    assert result.countries[CountryCode.US].warnings == [
+        "collection_unavailable",
+        "bls:FeedFetchError",
+    ]
+
+
 def test_pipeline_dry_run_does_not_write_files(tmp_path: Path) -> None:
     repository = JsonIssueRepository(tmp_path)
     pipeline = IssuePipeline(repository, MockIssueExtractor(), PipelineLock(tmp_path / "lock"))

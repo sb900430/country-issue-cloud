@@ -1,0 +1,96 @@
+name: Publish Country Issue Cloud Pages
+
+on:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: "0 7 * * *"
+  workflow_dispatch:
+    inputs:
+      data_mode:
+        description: Data source used to build the Pages artifact
+        required: true
+        default: live
+        type: choice
+        options:
+          - live
+          - fixture
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: country-issue-cloud-pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    outputs:
+      artifact-name: github-pages
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b
+        with:
+          version: "0.11.32"
+          enable-cache: true
+
+      - name: Install Python
+        run: uv python install 3.12
+
+      - name: Synchronize locked dependencies
+        run: uv sync --project backend --locked --group dev
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install web dependencies
+        run: npm ci --prefix frontend
+
+      - name: Verify source
+        shell: pwsh
+        run: .\scripts\verify-all.ps1
+
+      - name: Select data mode
+        id: mode
+        shell: pwsh
+        run: |
+          $mode = "live"
+          if ("${{ github.event_name }}" -eq "workflow_dispatch") {
+            $mode = "${{ inputs.data_mode }}"
+          }
+          "value=$mode" >> $env:GITHUB_OUTPUT
+
+      - name: Build validated Pages artifact
+        shell: pwsh
+        run: .\scripts\build-pages-site.ps1 -Mode "${{ steps.mode.outputs.value }}" -OutputDirectory "${{ runner.temp }}\site"
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: ${{ runner.temp }}\site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

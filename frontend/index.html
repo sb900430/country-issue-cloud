@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="한국·미국·일본의 오늘 이슈를 한눈에 보는 국가별 이슈 클라우드" />
+    <title>국가별 이슈 클라우드</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="./" aria-label="국가별 이슈 클라우드 홈">
+        <span class="brand__mark">C</span>
+        <span>국가별 이슈 클라우드<small>Country Issue Cloud</small></span>
+      </a>
+      <label class="date-picker">날짜 · 日付 <select data-date aria-label="날짜 선택"></select></label>
+    </header>
+
+    <main>
+      <section class="hero" aria-labelledby="hero-title">
+        <p class="eyebrow">TODAY'S PUBLIC ISSUES</p>
+        <h1 id="hero-title">세 나라의 오늘을<br /><em>각자의 시선</em>으로.</h1>
+        <p>공식 기관이 발표한 제목을 국가별로 독립 분석합니다.</p>
+      </section>
+
+      <nav class="country-tabs" data-countries aria-label="국가 선택">
+        <button data-country="KR" class="is-active" aria-pressed="true">KR <span>한국</span></button>
+        <button data-country="US" aria-pressed="false">US <span>미국</span></button>
+        <button data-country="JP" aria-pressed="false">JP <span>일본</span></button>
+      </nav>
+
+      <section class="issue-panel" aria-labelledby="issues-title">
+        <div class="panel-heading">
+          <div><p class="eyebrow">ISSUE CLOUD</p><h2 id="issues-title">오늘의 핵심 이슈</h2></div>
+          <label class="layout-switch">
+            <span>C 타일</span><input type="checkbox" data-layout aria-label="클라우드형으로 전환" /><i></i><span>A 클라우드</span>
+          </label>
+        </div>
+        <div class="issues issues--tiles" data-issues aria-live="polite"></div>
+        <p class="status" data-status role="status"></p>
+      </section>
+    </main>
+
+    <footer><span>Updated <time data-generated>—</time></span><span><a href="./about.html">출처·개인정보·문의</a> · 최근 7일</span></footer>
+
+    <dialog class="detail" data-dialog>
+      <form method="dialog"><button class="detail__close" data-dialog-close aria-label="닫기">×</button></form>
+      <p class="eyebrow">SOURCE ARTICLES</p><h2 data-dialog-title></h2><ul data-dialog-articles></ul>
+    </dialog>
+    <script type="module" src="./src/app.js"></script>
+  </body>
+</html>
