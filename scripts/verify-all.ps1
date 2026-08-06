@@ -46,11 +46,20 @@ try {
     }
 
     if (Test-Path -LiteralPath "frontend/package.json") {
-        if (-not (Get-Command npm -ErrorAction SilentlyContinue)) {
-            throw "The frontend exists, but npm is unavailable."
+        $packageRunner = Get-Command npm -ErrorAction SilentlyContinue
+        if (-not $packageRunner) {
+            $packageRunner = Get-Command pnpm -ErrorAction SilentlyContinue
         }
-        Invoke-VerificationStep "Web lint" { npm --prefix frontend run lint }
-        Invoke-VerificationStep "Web test" { npm --prefix frontend test -- --run }
+        if (-not $packageRunner) {
+            throw "The frontend exists, but npm or pnpm is unavailable."
+        }
+        if ($packageRunner.Name -like "npm*") {
+            Invoke-VerificationStep "Web lint" { & $packageRunner --prefix frontend run lint }
+            Invoke-VerificationStep "Web test" { & $packageRunner --prefix frontend test }
+        } else {
+            Invoke-VerificationStep "Web lint" { & $packageRunner --dir frontend run lint }
+            Invoke-VerificationStep "Web test" { & $packageRunner --dir frontend test }
+        }
     } else {
         Write-Host "SKIP: frontend scaffold is not present yet." -ForegroundColor Yellow
     }

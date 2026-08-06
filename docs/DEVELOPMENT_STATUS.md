@@ -2,13 +2,24 @@
 
 | 항목 | 현재 상태 |
 |---|---|
-| 현재 목표 | 1주차 — 데이터·API와 국가별 수집 |
-| 상태 | 1주차 완료 후보 — 데이터·API·3개국 수집 구현 완료 |
+| 현재 목표 | 2주차 — LLM·TOP 5·pipeline·정적 게시 |
+| 상태 | 2주차 완료 후보 — LLM·TOP 5·pipeline·정적 게시 구현 완료 |
 | 기준 브랜치 | `main` |
-| 작업 브랜치 | `codex/week-01-data-collection` |
-| 마지막 완료 커밋 | `fb1fa04` — 목표 1 |
-| 전체 검증 | `scripts/verify-all.ps1` PASS, Python 테스트 28개 PASS |
-| 다음 작업 | 1주차 전체 검증 후 후보 커밋·완료 리뷰·Draft PR 생성 |
+| 작업 브랜치 | `codex/week-02-pipeline-publishing` |
+| 마지막 완료 커밋 | `f2bc07c` — 1주차 PR #7 Rebase and merge |
+| 전체 검증 | `scripts/verify-all.ps1` PASS, Python 테스트 46개·웹 테스트 4개 PASS |
+| 다음 작업 | 2주차 후보 커밋·완료 리뷰·Draft PR 생성 |
+
+## 2주차 진행 결과
+
+- 실제 provider를 주입할 수 있는 구조화 LLM client 경계와 결정적 mock extractor를 구현했다.
+- 입력 기사 ID·근거 표현·국가 경계를 코드에서 검증해 환각과 국가 혼합을 차단한다.
+- 국가 내부 유사 label을 병합하고 기사 수·매체 수·최신 시각·issue ID 순으로 TOP 5를 결정한다.
+- 30초 timeout 전달, 최대 2회 재시도, 내용 hash cache, token·비용 기록과 월 USD 10 상한을 구현했다.
+- 세 국가 pipeline, 국가별 실패 격리, 최소 2개국 게시, dry-run과 중복 실행 lock을 구현했다.
+- 검증된 최근 7일 JSON을 기존 정상 site와 원자적으로 교체하는 static publisher를 구현했다.
+- `StaticJsonDataSource`와 후속 `ApiDataSource`가 동일 Schema를 검증하도록 웹 기반을 추가했다.
+- 마스킹된 로컬 장애 보고서와 fixture→검증된 정적 JSON 통합 CLI를 구현했다.
 
 ## 목표 2 진행 결과
 
