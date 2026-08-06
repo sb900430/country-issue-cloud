@@ -2,13 +2,28 @@
 
 | 項目 | 現在状態 |
 |---|---|
-| 現在目標 | 2週目 — LLM・TOP 5・pipeline・静的公開 |
-| 状態 | 2週目完了候補 — LLM・TOP 5・pipeline・静的公開の実装完了 |
+| 現在目標 | 3週目 — responsive Web・GitHub Pages MVP |
+| 状態 | 3週目実装・全検証完了 — 候補commit・完了review待ち |
 | 基準branch | `main` |
-| 作業branch | `codex/week-02-pipeline-publishing` |
-| 最終完了commit | `f2bc07c` — 1週目PR #7 Rebase and merge |
-| 全体検証 | `scripts/verify-all.ps1` PASS、Python test 46件・Web test 4件PASS |
-| 次作業 | 2週目候補commit・完了review・Draft PRを作成 |
+| 作業branch | `codex/week-03-pages-mvp` |
+| 最終完了commit | `be4af98` — 2週目PR #8 Rebase and merge |
+| 全体検証 | PASS — Python 62件・Web 6件・Ruff・mypy・Secret・仕様・Pages artifact |
+| 次作業 | 週完了候補commitと即時完了review |
+
+## 3週目の進行結果
+
+- 米国はFederal Reserve・BLS RSS、日本はMETI Atom・BOJ RSS、韓国は韓国銀行RSSを有効候補として確定した。
+- BEA・e-Statは登録情報が必要なため標準無効として記録した。
+- 2件の条件付きAPIについて、利用者登録、Secret保管、adapter実装、有効化checklistを韓日guideとして作成した。
+- KDIの代わりに登録不要の金融委員会報道資料・報道説明RSSと中小ベンチャー企業部報道資料RSSを有効候補へ反映した。
+- 公式RSS実接続で米国7件・日本28件・韓国27件とPages JSON生成を検証した。
+- BLSは自動request 403、METIは6月以降未更新を確認し、状態が変わるまで無効へ切り替えた。
+- source別許可field、利用条件確認日、90日後の再確認日を設定へ反映した。
+- RSS 2.0とAtomを同じCollectorで処理し、不正な日付entryだけを分離するよう補完した。
+- C案tile標準・A案cloud切替、国・日付選択、原文詳細、cache復旧とresponsive accessibility画面を実装した。
+- 毎日16:00 JST/KSTに実RSSを検証・公開するPages workflowと、失敗時に既存配布を維持する構造を実装した。
+- 出典・保存・privacy・問い合わせpageとlocal fixture preview手順を追加した。
+- 完了review High 2件であるPages出力path保護と補助RSS順位weightを修正・再検証した。
 
 ## 2週目の進行結果
 

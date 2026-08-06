@@ -154,20 +154,18 @@ Android 앱은 폐기하지 않는다. 웹 MVP와 공개 URL의 안정화가 끝
 - NewsAPI 무료 플랜은 로컬 개발·테스트에서만 사용한다.
 - 운영은 공식 RSS 또는 운영 사용이 허용된 공개 API만 사용한다.
 - 국가별 최소 2개 출처를 목표로 한다.
-- 일본 공식 소스와 NAVER API HUB의 운영 조건 확인은 출시 게이트다.
+- 일일 공식 발표량을 고려해 국가별 5건 이상은 부분 성공, 15건 이상은 완전 성공의 수집 기준으로 사용한다.
+- 등록 소스는 공식 RSS·공공 API만 사용하며 민간 뉴스 HTML과 정책브리핑의 중단된 RSS는 사용하지 않는다.
 - 소스별 이용조건 확인일과 허용 필드를 설정에 기록한다.
+- 이용조건은 90일마다 재확인하고 승인·등록·앱 ID가 필요한 소스는 확인 전 비활성으로 둔다.
 
 ```yaml
-sources:
-  US:
-    - id: federal_reserve
-      type: rss
-      enabled: true
-      terms_checked_at: "YYYY-MM-DD"
-      allowed_fields: [title, summary, url, publisher, published_at]
-  JP: []
-  KR: []
+US: Federal Reserve RSS; BLS RSS는 자동 요청 403으로 비활성, BEA API는 등록 후 활성화
+JP: BOJ RSS; METI Atom은 갱신 중단으로 비활성, e-Stat API는 app ID 등록 후 활성화
+KR: 한국은행 RSS, 금융위원회 보도자료·보도설명 RSS, 중소벤처기업부 보도자료 RSS
 ```
+
+기본 허용 필드는 RSS가 직접 제공한 제목·짧은 요약·원문 URL·매체·발행 시각이다. BOJ·BOK·금융위원회·중소벤처기업부는 보수적으로 제목·URL·매체·발행 시각만 사용한다. 금융위원회 보도설명 RSS는 일반 보도자료를 보완하는 보조 소스로 사용한다. 기사 본문, PDF·첨부파일, 이미지와 HTML을 파싱한 요약은 수집·재배포하지 않는다. 실제 URL과 승인 상태는 `config/sources.example.yml`을 기준으로 하며, 조건부 비활성 소스의 등록·승인·Secret·검증 절차는 `docs/SOURCE_REGISTRATION_GUIDE.md`를 따른다.
 
 ### 중복 제거
 
@@ -960,20 +958,20 @@ v1.0.0 첫 공개 릴리스
 
 ## 19. 출시 게이트
 
-- [ ] 수집이 특정 주제 검색에 편향되지 않음
-- [ ] 최소 2개국 운영 소스 이용조건 확인
+- [x] 수집이 특정 주제 검색에 편향되지 않음
+- [x] 최소 2개국 운영 소스 이용조건 확인
 - [ ] 7일 연속 자동 배치 결과 확보
-- [ ] 한 국가 실패 시 다른 국가 결과 유지
-- [ ] LLM 결과에 없는 기사/표현이 포함되지 않음
-- [ ] API 200/400/404/503 검증
-- [ ] 웹 브라우저 캐시와 복구 검증
+- [x] 한 국가 실패 시 다른 국가 결과 유지
+- [x] LLM 결과에 없는 기사/표현이 포함되지 않음
+- [x] API 200/400/404/503 검증
+- [x] 웹 브라우저 캐시와 복구 검증
 - [ ] 공개 웹 URL에서 주요 화면과 API가 동작
-- [ ] 개인정보처리방침, 문의, 출처, 발행일 표시
-- [ ] GitHub에 비밀키와 운영 데이터가 없음
-- [ ] Pages 배포 실패 시 기존 정상 artifact 유지·롤백 검증
+- [x] 개인정보처리방침, 문의, 출처, 발행일 표시
+- [x] GitHub에 비밀키와 운영 데이터가 없음
+- [x] Pages 배포 실패 시 기존 정상 artifact 유지·롤백 검증
 - [ ] VPS/EC2 재개 시 server 롤백 검증
 - [ ] Android 재개 시 Play 선언과 테스트 요건 충족
-- [ ] README에서 실제 앱/웹/설계/테스트 확인 가능
+- [x] README에서 실제 앱/웹/설계/테스트 확인 가능
 
 ---
 
@@ -997,15 +995,15 @@ v1.0.0 첫 공개 릴리스
 ## 21. 최종 산출물
 
 - [ ] 통합 명세, 화면/기능/아키텍처 설계서와 ADR
-- [ ] 데이터·출처 정책과 API 명세
-- [ ] Python 배치와 FastAPI
-- [ ] 반응형 웹 애플리케이션
-- [ ] Android 후속 트랙 보류 기록
-- [ ] 자동 테스트와 CI/CD
-- [ ] GitHub Actions 배치·Pages 배포 workflow
+- [x] 데이터·출처 정책과 API 명세
+- [x] Python 배치와 FastAPI
+- [x] 반응형 웹 애플리케이션
+- [x] Android 후속 트랙 보류 기록
+- [x] 자동 테스트와 CI/CD
+- [x] GitHub Actions 배치·Pages 배포 workflow
 - [ ] 후속 VPS/EC2용 배포 스크립트, nginx, systemd/container 템플릿
 - [ ] 운영 런북과 장애 보고서 예시
-- [ ] 개인정보처리방침과 문의 페이지
+- [x] 개인정보처리방침과 문의 페이지
 - [ ] Android 재개 시 Google Play 등록 자료
 - [ ] README, 데모 이미지, GitHub Release
 - [ ] 개발일별 한·일 병기 일일 보고서

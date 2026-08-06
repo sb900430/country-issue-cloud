@@ -58,6 +58,8 @@ class MockIssueExtractor:
             label, display_label = self.labels.get(
                 article.article_id, (article.title, article.title)
             )
+            label = label[:120].strip()
+            display_label = display_label[:120].strip()
             issues.append(
                 ExtractedIssue(
                     issue_label=label,
@@ -117,7 +119,7 @@ def aggregate_top_issues(
         else:
             cluster.append(issue)
 
-    ranked: list[tuple[int, int, datetime, str, TopIssue]] = []
+    ranked: list[tuple[float, int, datetime, str, TopIssue]] = []
     for cluster in clusters:
         article_ids = sorted({article_id for issue in cluster for article_id in issue.article_ids})
         cluster_articles = [indexed[article_id] for article_id in article_ids]
@@ -131,7 +133,7 @@ def aggregate_top_issues(
         )[:3]
         ranked.append(
             (
-                len(cluster_articles),
+                sum(article.ranking_weight for article in cluster_articles),
                 publisher_count,
                 latest,
                 issue_id,
@@ -163,9 +165,9 @@ def aggregate_top_issues(
     success_rate = (
         len(set(extraction.processed_article_ids)) / len(articles) if articles else 0.0
     )
-    if len(articles) >= 30 and success_rate >= 0.8 and len(top_issues) >= 3:
+    if len(articles) >= 15 and success_rate >= 0.8 and len(top_issues) >= 3:
         status = IssueStatus.SUCCESS
-    elif len(articles) >= 15 and success_rate >= 0.7 and top_issues:
+    elif len(articles) >= 5 and success_rate >= 0.7 and top_issues:
         status = IssueStatus.PARTIAL_SUCCESS
     else:
         status = IssueStatus.FAILED

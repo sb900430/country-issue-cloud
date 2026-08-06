@@ -26,6 +26,8 @@ class Settings(BaseSettings):
     news_api_key: str | None = None
     naver_client_id: str | None = None
     naver_client_secret: str | None = None
+    bea_api_key: str | None = None
+    e_stat_app_id: str | None = None
     llm_provider: str = "mock"
     llm_api_key: str | None = None
     llm_model: str | None = None

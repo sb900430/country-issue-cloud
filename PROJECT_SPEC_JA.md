@@ -154,20 +154,18 @@ Androidアプリは廃止しない。Web MVPと公開URLの安定化後に、同
 - NewsAPI無料プランはローカル開発・テストにのみ使う。
 - 運用では公式RSSまたは運用利用が許可された公開APIのみ使う。
 - 国別に最低2つの出典を目標とする。
-- 日本の公式ソースとNAVER API HUBの運用条件確認をリリースゲートとする。
+- 日次公式発表量を考慮し、国別5件以上を部分成功、15件以上を完全成功の収集基準として使う。
+- 登録sourceは公式RSS・公共APIのみを使用し、民間news HTMLと政策ブリーフィングの終了済みRSSは使用しない。
 - ソースごとの利用条件確認日と許可フィールドを設定へ記録する。
+- 利用条件は90日ごとに再確認し、承認・登録・app IDが必要なsourceは確認前に無効とする。
 
 ```yaml
-sources:
-  US:
-    - id: federal_reserve
-      type: rss
-      enabled: true
-      terms_checked_at: "YYYY-MM-DD"
-      allowed_fields: [title, summary, url, publisher, published_at]
-  JP: []
-  KR: []
+US: Federal Reserve RSS；BLS RSSは自動request 403のため無効、BEA APIは登録後に有効化
+JP: BOJ RSS；METI Atomは更新停止のため無効、e-Stat APIはapp ID登録後に有効化
+KR: 韓国銀行RSS、金融委員会の報道資料・報道説明RSS、中小ベンチャー企業部の報道資料RSS
 ```
+
+基本許可fieldはRSSが直接提供するtitle・短いsummary・原文URL・媒体・公開時刻とする。BOJ・BOK・金融委員会・中小ベンチャー企業部は保守的にtitle・URL・媒体・公開時刻だけを使う。金融委員会の報道説明RSSは一般報道資料を補完する補助sourceとして使う。記事本文、PDF・添付file、画像、HTMLを解析したsummaryは収集・再配布しない。実URLと承認状態は`config/sources.example.yml`を基準とし、条件付き無効sourceの登録・承認・Secret・検証手順は`docs/SOURCE_REGISTRATION_GUIDE.md`に従う。
 
 ### 重複排除
 
@@ -909,20 +907,20 @@ v1.0.0 初回公開リリース
 
 ## 19. リリースゲート
 
-- [ ] 収集が特定テーマ検索へ偏っていない
-- [ ] 最低2か国の運用ソース利用条件確認
+- [x] 収集が特定テーマ検索へ偏っていない
+- [x] 最低2か国の運用ソース利用条件確認
 - [ ] 7日連続自動バッチ結果
-- [ ] 一国失敗時に他国結果を維持
-- [ ] LLM結果に存在しない記事/表現なし
-- [ ] API 200/400/404/503検証
-- [ ] Web browser cache・復旧検証
+- [x] 一国失敗時に他国結果を維持
+- [x] LLM結果に存在しない記事/表現なし
+- [x] API 200/400/404/503検証
+- [x] Web browser cache・復旧検証
 - [ ] 公開Web URLで主要画面とAPIが動作
-- [ ] プライバシー、問い合わせ、出典、公開日表示
-- [ ] GitHubに秘密鍵・運用データなし
-- [ ] Pages配布失敗時の既存正常artifact維持・rollback検証
+- [x] プライバシー、問い合わせ、出典、公開日表示
+- [x] GitHubに秘密鍵・運用データなし
+- [x] Pages配布失敗時の既存正常artifact維持・rollback検証
 - [ ] VPS/EC2再開時のserver rollback検証
 - [ ] Android再開時にPlay申告・テスト要件充足
-- [ ] READMEでアプリ/Web/設計/テストを確認可能
+- [x] READMEでアプリ/Web/設計/テストを確認可能
 
 ---
 
@@ -946,15 +944,15 @@ v1.0.0 初回公開リリース
 ## 21. 最終成果物
 
 - [ ] 統合仕様、画面/機能/アーキテクチャ設計とADR
-- [ ] データ・出典ポリシーとAPI仕様
-- [ ] PythonバッチとFastAPI
-- [ ] Responsive Web application
-- [ ] Android後続track保留記録
-- [ ] 自動テストとCI/CD
-- [ ] GitHub Actions batch・Pages配布workflow
+- [x] データ・出典ポリシーとAPI仕様
+- [x] PythonバッチとFastAPI
+- [x] Responsive Web application
+- [x] Android後続track保留記録
+- [x] 自動テストとCI/CD
+- [x] GitHub Actions batch・Pages配布workflow
 - [ ] 後続VPS/EC2用配布script、nginx、systemd/container template
 - [ ] 運用Runbookと障害レポート例
-- [ ] プライバシーポリシーと問い合わせページ
+- [x] プライバシーポリシーと問い合わせページ
 - [ ] Android再開時にGoogle Play登録資料
 - [ ] README、デモ画像、GitHub Release
 - [ ] 開発日ごとの韓国語・日本語併記日次report

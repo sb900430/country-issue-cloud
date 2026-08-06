@@ -29,12 +29,23 @@ uv sync --project backend --locked --group dev
 
 The default mode is `fixture`; real news APIs and LLMs are not called by the default test suite. Copy `backend/.env.example` to the ignored `backend/.env` only when local environment values are needed.
 
+Build and preview a fixture-backed Pages artifact:
+
+```powershell
+.\scripts\build-pages-site.ps1 -Mode fixture -OutputDirectory .\preview-site
+Set-Location .\preview-site
+python -m http.server 8080
+```
+
+`publish-live` reads only approved, enabled official feeds from `config/sources.example.yml`. The scheduled Pages workflow runs every day at 07:00 UTC (16:00 JST/KST), validates the public artifact, and deploys only after successful generation. A failed build does not replace the last successful Pages deployment.
+
 ## Documentation
 
 - Korean specification: `PROJECT_SPEC.md`
 - Japanese specification: `PROJECT_SPEC_JA.md`
 - AI development guide: `docs/AI_DEVELOPMENT_GUIDE.md`
 - Current status: `docs/DEVELOPMENT_STATUS.md`
+- Conditional API registration: `docs/SOURCE_REGISTRATION_GUIDE.md`
 
 ## Security
 

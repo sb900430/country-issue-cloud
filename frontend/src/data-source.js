@@ -103,7 +103,7 @@ export function validateIssueResult(value) {
   return value;
 }
 
-function validateDates(value) {
+export function validateDates(value) {
   if (!Array.isArray(value) || value.some((date) => !isDate(date))) {
     throw new DataSourceError("invalid_schema");
   }

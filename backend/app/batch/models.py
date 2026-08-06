@@ -21,6 +21,7 @@ class CollectedArticle(BaseModel):
     url: str = Field(min_length=1, max_length=2_048)
     publisher: str = Field(min_length=1, max_length=200)
     published_at: AwareDatetime
+    ranking_weight: float = Field(default=1.0, gt=0, le=1)
 
     @field_validator("url")
     @classmethod

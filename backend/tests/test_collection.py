@@ -68,6 +68,36 @@ def test_rss_collector_uses_injected_fetcher_without_network() -> None:
     assert result[0].title == "Local headline"
 
 
+def test_feed_collector_supports_atom_and_skips_malformed_dates() -> None:
+    feed = b"""<feed xmlns="http://www.w3.org/2005/Atom">
+    <entry><title>Broken item</title><link href="https://example.com/broken"/>
+    <updated>not-a-date</updated></entry>
+    <entry><title>METI release</title><link rel="alternate" href="https://example.com/meti"/>
+    <summary>Official summary</summary><updated>2026-08-05T23:00:00Z</updated></entry>
+    </feed>"""
+    source = RssSource("meti", CountryCode.JP, "METI", "https://example.com/atom.xml")
+
+    result = RssCollector(source, lambda _: feed).collect(WINDOW_START, WINDOW_END, 10)
+
+    assert [item.title for item in result] == ["METI release"]
+    assert result[0].summary == "Official summary"
+
+
+def test_feed_collector_supports_dc_and_compact_dates_and_upgrades_links() -> None:
+    feed = b"""<rss xmlns:dc="http://purl.org/dc/elements/1.1/"><channel>
+    <item><title>DC date</title><link>http://example.com/dc</link>
+    <dc:date>2026-08-05T01:00:00Z</dc:date></item>
+    <item><title>Compact date</title><link>https://example.com/compact</link>
+    <pubDate>20260805120000</pubDate></item>
+    </channel></rss>"""
+    source = RssSource("source", CountryCode.KR, "Publisher", "https://example.com/rss")
+
+    result = RssCollector(source, lambda _: feed).collect(WINDOW_START, WINDOW_END, 10)
+
+    assert len(result) == 2
+    assert result[0].url == "https://example.com/dc"
+
+
 def test_deduplication_applies_url_title_and_similarity_rules() -> None:
     articles = [
         article("a", url="https://EXAMPLE.com/story?utm_source=x&id=1"),

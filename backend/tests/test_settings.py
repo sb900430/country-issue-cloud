@@ -9,6 +9,8 @@ def test_fixture_mode_is_the_safe_default() -> None:
     assert settings.app_mode is AppMode.FIXTURE
     assert settings.llm_provider == "mock"
     assert settings.news_api_key is None
+    assert settings.bea_api_key is None
+    assert settings.e_stat_app_id is None
     assert settings.llm_api_key is None
 
 

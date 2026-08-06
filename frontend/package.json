@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "lint": "node --check src/data-source.js",
+    "lint": "node --check src/data-source.js && node --check src/cached-data-source.js && node --check src/view-model.js && node --check src/app.js",
     "test": "node --test"
   }
 }
