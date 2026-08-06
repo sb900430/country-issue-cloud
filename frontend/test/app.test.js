@@ -70,9 +70,12 @@ test("failed initialization blocks country clicks and retry restores interaction
 
   assert.equal(dom.window.document.querySelector("[data-country='US']").disabled, false);
   assert.equal(dom.window.document.querySelector("[data-retry]").hidden, true);
+  assert.equal(dom.window.document.querySelectorAll("[data-date-strip] button").length, 1);
+  assert.match(dom.window.document.querySelector("[data-current-date]").textContent, /2026/);
   dom.window.document.querySelector("[data-country='US']").click();
   assert.equal(dom.window.document.querySelector("[data-country='US']").classList.contains("is-active"), true);
   assert.match(dom.window.document.querySelector("[data-issues]").textContent, /US issue/);
+  assert.match(dom.window.document.querySelector("[data-issues]").textContent, /기사 1건/);
 
   const layout = dom.window.document.querySelector("[data-layout]");
   layout.checked = true;

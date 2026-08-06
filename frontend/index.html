@@ -9,41 +9,48 @@
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <header class="site-header">
-      <a class="brand" href="./" aria-label="국가별 이슈 클라우드 홈">
-        <span class="brand__mark">C</span>
-        <span>국가별 이슈 클라우드<small>Country Issue Cloud</small></span>
-      </a>
-      <label class="date-picker">날짜 · 日付 <select data-date aria-label="날짜 선택"></select></label>
-    </header>
-
-    <main>
-      <section class="hero" aria-labelledby="hero-title">
-        <p class="eyebrow">TODAY'S PUBLIC ISSUES</p>
-        <h1 id="hero-title">세 나라의 오늘을<br /><em>각자의 시선</em>으로.</h1>
-        <p>공식 기관이 발표한 제목을 국가별로 독립 분석합니다.</p>
-      </section>
+    <div class="app-shell">
+      <header class="site-header">
+        <a class="brand" href="./" aria-label="국가별 이슈 클라우드 홈">
+          <strong>국가별 이슈 클라우드</strong>
+          <small>Country Issue Cloud</small>
+        </a>
+        <time class="current-date" data-current-date>—</time>
+      </header>
 
       <nav class="country-tabs" data-countries aria-label="국가 선택">
-        <button data-country="KR" class="is-active" aria-pressed="true">KR <span>한국</span></button>
-        <button data-country="US" aria-pressed="false">US <span>미국</span></button>
-        <button data-country="JP" aria-pressed="false">JP <span>일본</span></button>
+        <button data-country="US" aria-pressed="false">미국 <small>US</small></button>
+        <button data-country="JP" aria-pressed="false">일본 <small>JP</small></button>
+        <button data-country="KR" class="is-active" aria-pressed="true">한국 <small>KR</small></button>
       </nav>
 
-      <section class="issue-panel" aria-labelledby="issues-title">
-        <div class="panel-heading">
-          <div><p class="eyebrow">ISSUE CLOUD</p><h2 id="issues-title">오늘의 핵심 이슈</h2></div>
-          <label class="layout-switch">
-            <span>C 타일</span><input type="checkbox" data-layout aria-label="클라우드형으로 전환" /><i></i><span>A 클라우드</span>
-          </label>
-        </div>
-        <div class="issues issues--tiles" data-issues aria-live="polite"></div>
-        <p class="status" data-status role="status"></p>
-        <button class="retry" type="button" data-retry hidden>다시 시도 · 再試行</button>
+      <section class="date-section" aria-label="날짜 선택">
+        <select class="sr-only" data-date aria-label="날짜 선택"></select>
+        <div class="date-strip" data-date-strip></div>
       </section>
-    </main>
 
-    <footer><span>Updated <time data-generated>—</time></span><span><a href="./about.html">출처·개인정보·문의</a> · 최근 7일</span></footer>
+      <main>
+        <section class="issue-panel" aria-labelledby="issues-title">
+          <div class="panel-heading">
+            <p class="analysis-summary">분석 기사 <strong data-article-count>—</strong>건 <span>·</span> <time data-generated>—</time> 업데이트</p>
+            <label class="layout-switch">
+              <input type="checkbox" data-layout aria-label="클라우드형으로 전환" />
+              <span class="layout-option layout-option--tiles">▦ 타일</span>
+              <span class="layout-option layout-option--cloud">☁ 클라우드</span>
+            </label>
+          </div>
+          <h1 class="sr-only" id="issues-title">오늘의 핵심 이슈 TOP 5</h1>
+          <div class="issues issues--tiles" data-issues aria-live="polite"></div>
+          <p class="status" data-status role="status"></p>
+          <button class="retry" type="button" data-retry hidden>다시 시도 · 再試行</button>
+        </section>
+      </main>
+
+      <footer>
+        <button class="refresh" type="button" data-refresh>↻ 새로고침</button>
+        <a href="./about.html">출처 · 개인정보 · 문의</a>
+      </footer>
+    </div>
 
     <dialog class="detail" data-dialog>
       <form method="dialog"><button class="detail__close" data-dialog-close aria-label="닫기">×</button></form>
