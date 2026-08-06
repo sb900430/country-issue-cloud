@@ -11,10 +11,14 @@ export function createIssueCloudApp({
   const elements = {
     countries: root.querySelector("[data-countries]"),
     date: root.querySelector("[data-date]"),
+    dateStrip: root.querySelector("[data-date-strip]"),
+    currentDate: root.querySelector("[data-current-date]"),
     generated: root.querySelector("[data-generated]"),
+    articleCount: root.querySelector("[data-article-count]"),
     issues: root.querySelector("[data-issues]"),
     status: root.querySelector("[data-status]"),
     retry: root.querySelector("[data-retry]"),
+    refresh: root.querySelector("[data-refresh]"),
     layout: root.querySelector("[data-layout]"),
     dialog: root.querySelector("[data-dialog]"),
     dialogTitle: root.querySelector("[data-dialog-title]"),
@@ -57,21 +61,15 @@ export function createIssueCloudApp({
       state.layout = elements.layout.checked ? "cloud" : "tiles";
       render();
     });
-    elements.date.addEventListener("change", async () => {
-      if (!state.result) return;
-      setInteractive(false);
-      try {
-        state.result = await dataSource.getByDate(elements.date.value);
-        render();
-        announce(dataSource.usedCache ? "저장된 데이터를 표시합니다 · 保存データを表示中" : "");
-      } catch (error) {
-        logger.error("Issue date loading failed", error);
-        announce("선택한 날짜를 불러오지 못했습니다 · 選択日を読み込めませんでした", true);
-      } finally {
-        setInteractive(true);
-      }
+    elements.date.addEventListener("change", () => loadDate(elements.date.value));
+    elements.dateStrip.addEventListener("click", (event) => {
+      const button = event.target.closest("button[data-date-value]");
+      if (!button || !state.result) return;
+      elements.date.value = button.dataset.dateValue;
+      loadDate(button.dataset.dateValue);
     });
     elements.retry.addEventListener("click", start);
+    elements.refresh.addEventListener("click", start);
     root.querySelector("[data-dialog-close]").addEventListener("click", () => {
       elements.dialog.close();
     });
@@ -82,7 +80,11 @@ export function createIssueCloudApp({
       control.disabled = !enabled;
     }
     elements.date.disabled = !enabled;
+    for (const control of elements.dateStrip.querySelectorAll("button")) {
+      control.disabled = !enabled;
+    }
     elements.layout.disabled = !enabled;
+    elements.refresh.disabled = !enabled;
   }
 
   function renderDates(dates, selected) {
@@ -95,6 +97,33 @@ export function createIssueCloudApp({
         return option;
       }),
     );
+    elements.dateStrip.replaceChildren(
+      ...dates.map((date) => {
+        const value = new Date(`${date}T00:00:00Z`);
+        const button = root.createElement("button");
+        button.type = "button";
+        button.dataset.dateValue = date;
+        button.classList.toggle("is-active", date === selected);
+        button.innerHTML = `<strong>${value.getUTCMonth() + 1}.${value.getUTCDate()}</strong><small>${new Intl.DateTimeFormat("ko-KR", { weekday: "short", timeZone: "UTC" }).format(value)}</small>`;
+        return button;
+      }),
+    );
+  }
+
+  async function loadDate(date) {
+    if (!state.result) return;
+    setInteractive(false);
+    try {
+      state.result = await dataSource.getByDate(date);
+      renderDates([...elements.date.options].map((option) => option.value), date);
+      render();
+      announce(dataSource.usedCache ? "저장된 데이터를 표시합니다 · 保存データを表示中" : "");
+    } catch (error) {
+      logger.error("Issue date loading failed", error);
+      announce("선택한 날짜를 불러오지 못했습니다 · 選択日を読み込めませんでした", true);
+    } finally {
+      setInteractive(true);
+    }
   }
 
   function render() {
@@ -106,9 +135,13 @@ export function createIssueCloudApp({
       button.setAttribute("aria-pressed", String(selected));
     }
     elements.generated.textContent = new Intl.DateTimeFormat("ko-KR", {
-      dateStyle: "medium",
-      timeStyle: "short",
+      hour: "2-digit",
+      minute: "2-digit",
     }).format(new Date(view.generatedAt));
+    elements.currentDate.textContent = new Intl.DateTimeFormat("ko-KR", {
+      year: "numeric", month: "long", day: "numeric",
+    }).format(new Date(`${view.date}T00:00:00Z`));
+    elements.articleCount.textContent = view.articleCount;
     elements.issues.className = `issues issues--${state.layout}`;
     elements.issues.replaceChildren(...view.issues.map(issueButton));
     if (view.issues.length === 0) {
@@ -125,7 +158,7 @@ export function createIssueCloudApp({
     button.style.setProperty("--weight", issue.weight);
     button.innerHTML = `<span class="issue__rank">${issue.rank}</span><strong></strong><span class="issue__meta"></span>`;
     button.querySelector("strong").textContent = issue.display_label_ko;
-    button.querySelector(".issue__meta").textContent = `${issue.article_count} articles · ${issue.publisher_count} sources`;
+    button.querySelector(".issue__meta").textContent = `기사 ${issue.article_count}건 · 매체 ${issue.publisher_count}곳`;
     button.addEventListener("click", () => openDetail(issue));
     return button;
   }

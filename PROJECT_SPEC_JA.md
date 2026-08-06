@@ -352,6 +352,8 @@ reports/
 
 TOP 5は一つの可視化領域だけで提供し、同じ5件を下部リストへ重複表示しない。
 
+公開Webは確定済みmobile app sampleを視覚基準として使う。白背景とblue accent、中央title、国tab、横型日付選択、分析記事数・更新時刻、右側tile/cloud segment、TOP 5可視化、下部再読込の順で構成する。mobileでは画面幅を満たし、wide画面では最大幅の中央app panelとして表示する。
+
 | 項目 | 確定動作 |
 |---|---|
 | 基本表示 | 加重タイル型（C案） |
