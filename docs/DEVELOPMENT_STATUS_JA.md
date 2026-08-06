@@ -2,13 +2,24 @@
 
 | 項目 | 現在状態 |
 |---|---|
-| 現在目標 | 1週目 — data・APIと国別収集 |
-| 状態 | 1週目完了候補 — data・API・3か国収集の実装完了 |
+| 現在目標 | 2週目 — LLM・TOP 5・pipeline・静的公開 |
+| 状態 | 2週目完了候補 — LLM・TOP 5・pipeline・静的公開の実装完了 |
 | 基準branch | `main` |
-| 作業branch | `codex/week-01-data-collection` |
-| 最終完了commit | `fb1fa04` — 目標1 |
-| 全体検証 | `scripts/verify-all.ps1` PASS、Python test 28件PASS |
-| 次作業 | 1週目全体検証後、候補commit・完了review・Draft PRを作成 |
+| 作業branch | `codex/week-02-pipeline-publishing` |
+| 最終完了commit | `f2bc07c` — 1週目PR #7 Rebase and merge |
+| 全体検証 | `scripts/verify-all.ps1` PASS、Python test 46件・Web test 4件PASS |
+| 次作業 | 2週目候補commit・完了review・Draft PRを作成 |
+
+## 2週目の進行結果
+
+- 実providerを注入できる構造化LLM client境界と決定的mock extractorを実装した。
+- 入力article ID・根拠表現・国境界をコードで検証し、hallucinationと国混在を遮断する。
+- 国内類似labelを統合し、記事数・媒体数・最新時刻・issue ID順でTOP 5を決定する。
+- 30秒timeout伝達、最大2回retry、内容hash cache、token・cost記録と月USD 10上限を実装した。
+- 3か国pipeline、国別失敗分離、最低2か国公開、dry-run、重複実行lockを実装した。
+- 検証済み直近7日JSONを既存正常siteとatomicに交換するstatic publisherを実装した。
+- `StaticJsonDataSource`と後続`ApiDataSource`が同一Schemaを検証するWeb基盤を追加した。
+- masking済みlocal障害reportとfixture→検証済み静的JSON統合CLIを実装した。
 
 ## 目標2の進行結果
 
