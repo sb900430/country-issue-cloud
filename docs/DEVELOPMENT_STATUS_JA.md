@@ -3,12 +3,12 @@
 | 項目 | 現在状態 |
 |---|---|
 | 現在目標 | 3週目 — responsive Web・GitHub Pages MVP |
-| 状態 | 3週目merge完了 — Pages公式10分上限の訂正・検証完了 |
+| 状態 | 3週目merge完了 — 新SHAによるPages再配布準備 |
 | 基準branch | `main` |
-| 作業branch | `codex/post-merge-fix-week-03-pages-timeout-cap` |
-| 最終完了commit | `8a543bf` — Pages timeout延長PR #14 Rebase and merge |
+| 作業branch | `codex/post-merge-fix-week-03-pages-redeploy-sha` |
+| 最終完了commit | `46574a8` — Pages 10分上限復旧PR #15 Rebase and merge |
 | 全体検証 | PASS — Python 62件・Web 8件・Ruff・mypy・Secret・仕様同期 |
-| 次作業 | 修正commit・push後にDraft PR作成、merge後に時間を置いた手動再配布1回 |
+| 次作業 | 運用状態文書PRのmergeで新しいmain SHAを生成し、Pages自動配布を確認 |
 
 ## 3週目の進行結果
 
@@ -30,6 +30,7 @@
 - 実browserの`window.fetch`呼出contextを維持し、favicon 404を解消するmerge後修正を進める。
 - 確定app sampleの白・blue視覚体系と情報構造をresponsive Webへ適用する。
 - `deploy-pages`が設定値に関係なく10分に制限されることを実行logで確認し、deploy jobを10分へ戻して、queue timeout後に時間を置いた手動再試行1回の方針へ訂正する。
+- PR #15の新しい`main` SHA配布も10分間`deployment_queued`の後にcancelされ、同一SHAの手動再実行は即時`Deployment cancelled`で終了した。cancel済みPages配布IDを繰り返し使わないよう、文書変更を新SHAとしてmergeし、一度だけ再配布する。
 
 ## 2週目の進行結果
 
