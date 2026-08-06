@@ -1,6 +1,6 @@
 # 国別イシュークラウド（Country Issue Cloud）
 
-> 米国・日本・韓国の経済ニュースを国別に独立して分析し、各国でその日に注目された経済イシューを意味ベースのクラウドとして表示するAndroidアプリケーション
+> 米国・日本・韓国の経済ニュースを国別に独立分析し、各国でその日に注目された経済イシューをURLで確認するレスポンシブWebアプリケーション
 
 ## 文書情報
 
@@ -9,7 +9,7 @@
 | 目的 | 企画・設計・開発・テスト・配布・運用の単一基準 |
 | プロジェクト名 | 国別イシュークラウド |
 | 英語名 | Country Issue Cloud |
-| アプリ名 | イシュークラウド |
+| サービス名 | イシュークラウド |
 | リポジトリ名 | `country-issue-cloud` |
 | 基準タイムゾーン | `Asia/Tokyo` |
 
@@ -23,10 +23,12 @@
 
 本プロジェクトは、次を目的とする非商用ポートフォリオである。
 
-1. 実際に動作するAndroidアプリを制作し、Google Playで配布する。
+1. モバイルとPCからURLでアクセスできるレスポンシブWebサービスを制作・配布する。
 2. 設計・開発・テスト・配布の履歴をGitHubで公開する。
 3. データが毎日更新されるサービスを実運用する。
-4. 多言語処理、LLM構造化出力、バッチ/API分離、オフライン、CI/CDの能力を示す。
+4. 多言語処理、LLM構造化出力、バッチ/API分離、Webアクセシビリティ・キャッシュ、CI/CDの能力を示す。
+
+Androidアプリは廃止しない。Web MVPと公開URLの安定化後に、同じ`/api/v1`契約を利用する後続の選択トラックとして保留する。現在のローカルMVPと初回公開範囲にはAndroid実装・Google Play配布を含めない。
 
 ### 利用者価値
 
@@ -50,17 +52,16 @@
 
 ### 成功基準
 
-- AndroidアプリをGoogle Playの本番、または公開可能なテストトラックへ登録する。
+- GitHub Pagesのresponsive Web pageと公開JSONへ一つのHTTPS URLから外部アクセスできる。
 - 最低2か国の結果を毎日自動更新する。
 - 直近7日間の国別TOP 5と根拠記事を確認できる。
-- オフラインで最後の正常データを表示できる。
-- Webデモと運用APIへ外部からアクセスできる。
+- ブラウザキャッシュで最後の正常データを表示できる。
 
 | 指標 | 目標 |
 |---|---:|
 | 直近30日のバッチ公開成功率 | 95%以上 |
-| API可用性の内部目標 | 99%以上 |
-| キャッシュヒット時のAPI応答時間 | 500ms以内 |
+| Pages・公開JSON可用性の内部目標 | 99%以上 |
+| 静的JSON応答時間目標 | 500ms以内 |
 | 最終正常データ | 48時間以内 |
 | 国別の正常推奨サンプル | 30件以上 |
 | 国別の公開可能サンプル | 15件以上 |
@@ -69,19 +70,18 @@
 ### 初回リリースに含むもの
 
 - 国別収集、整形、重複排除、イシュークラスタリング、TOP 5
-- 直近7日分のJSON保存とFastAPI
-- Androidのタイル/クラウド、詳細、Roomキャッシュ
+- 直近7日分のJSON公開、ローカル・後続用FastAPIと共通Schema
+- レスポンシブWebのタイル/クラウド、詳細、ブラウザキャッシュ
 - 部分成功、遅延、メンテナンス、エラー状態
-- 静的Webデモ
+- モバイル・デスクトップ対応の正式Web UI
 - 自動レビューとMarkdown障害レポート
-- VPS、HTTPS、systemd、GitHub Actions
-- Google Playテストとリリース準備
+- GitHub Actions予約batch・検証・Pages配布、GitHub Pages HTTPS
 
 ### 初回リリースの対象外
 
 - ログイン、コメント、広告、決済、パーソナライズ推薦
 - サーバー同期型お気に入り、プッシュ通知
-- iOS、7日を超える履歴、リアルタイムストリーミング
+- VPS・EC2運用配布、Android・iOSネイティブアプリ、Google Play配布、7日を超える履歴、リアルタイムストリーミング
 
 ---
 
@@ -119,13 +119,13 @@
 | F-07 | 品質レビュー | サンプル、偏り、抽出率、ラベルを点検 |
 | F-08 | 障害レポート | 原因、影響、改善案、スタックを記録 |
 | F-09 | 保管 | 結果7日、レポート90日、ログ30日 |
-| F-10 | 定期実行 | systemd timerと制限付き再試行 |
+| F-10 | 定期実行 | GitHub Actions scheduleと制限付き再試行、後続systemd timer互換 |
 | F-11 | 日付照会 | 直近7日間の利用可能日を提供 |
 | F-12 | 国切替 | 同一日付の国別結果を即時切替 |
 | F-13 | イシュー可視化 | TOP 5を基本タイル型またはクラウド型で切替表示 |
 | F-14 | 詳細 | 統計、代表記事、原文リンク |
-| F-15 | オフライン | Roomキャッシュで直近結果を表示 |
-| F-16 | アプリ設定 | メンテナンス、バージョン、告知、ポリシーURL |
+| F-15 | オフライン | ブラウザキャッシュで最後の正常結果を表示 |
+| F-16 | サービス設定 | メンテナンス、バージョン、告知、ポリシーURL |
 | F-17 | 状態 | 最新データと国別状態を提供 |
 
 ---
@@ -285,7 +285,7 @@ reports/
 
 ## 8. API設計
 
-基本パスは`/api/v1`とする。
+論理API契約の基本pathは`/api/v1`とする。ローカルと後続VPS/EC2ではFastAPI endpointとして提供し、GitHub Pagesの初回運用では同じresponse Schemaを`data/v1/.../*.json`静的pathへ公開する。Web UIはpathを直接参照せずDataSource interfaceを使う。
 
 | Method | Path | 説明 |
 |---|---|---|
@@ -312,23 +312,23 @@ reports/
 - `ETag`、`Last-Modified`、`Cache-Control`をサポートする。
 - リリース済みv1フィールドの削除や意味変更をしない。
 - アプリへニュースAPI・LLMの秘密鍵を含めない。
-- nginx rate limitを適用する。
+- Pages modeでは静的JSONだけを読み、外部service keyをbrowserへ露出しない。
+- VPS/EC2 API modeではnginxまたは同等gatewayのrate limitを適用する。
 
 ---
 
-## 9. Androidアプリ設計
+## 9. Web UI設計とAndroid保留
 
 | 区分 | 選定 |
 |---|---|
-| 言語/UI | Kotlin、Jetpack Compose、Material 3 |
-| 構造 | UI → ViewModel → Repository → Room/API |
-| ネットワーク | Retrofit |
-| JSON | Kotlinx Serialization |
-| 保存 | Room、DataStore |
-| 非同期/DI | Coroutines、Flow、Hilt |
-| 最小SDK | API 26 |
-| Target SDK | リリース時のPlay要件を満たす。初期目標API 36 |
-| 配布 | AAB、Play App Signing |
+| 言語/UI | Semantic HTML、CSS、Vanilla JavaScript |
+| 構造 | UI → 状態/Service module → IssueDataSource → Browser cache |
+| ネットワーク | 標準`StaticJsonDataSource`、後続`ApiDataSource` |
+| 保存 | localStorage（表示設定）、Cache APIまたはIndexedDB（直近の正常応答） |
+| 対応環境 | 最新Chrome、Edge、Safari、Firefoxのmobile・desktop |
+| 初回配布 | GitHub Pagesが静的Webと生成JSONを同じHTTPS originで提供 |
+| 後続配布 | 設定でVPS/EC2 FastAPI `/api/v1`を選択し、必要時にCORS適用 |
+| Android | 公開Web安定化後に再検討する保留track |
 
 ### コードコメントの言語
 
@@ -359,7 +359,7 @@ TOP 5は一つの可視化領域だけで提供し、同じ5件を下部リス�
 | 基本表示 | 加重タイル型（C案） |
 | 代替表示 | 自由配置イシュークラウド（A案） |
 | 切替方法 | 可視化領域右上の`タイル / クラウド`スライド型セグメントボタン |
-| 状態保存 | 初回はタイル型。以後は最後の選択をDataStoreへ保存し、再起動時に復元 |
+| 状態保存 | 初回アクセスはタイル型。以後は最後の選択をlocalStorageへ保存し、再アクセス時に復元 |
 | 共通タイトル | `今日のイシューTOP 5` |
 | 共通情報 | 分析記事数とデータ生成/更新時刻 |
 | 下部領域 | 最終更新時刻と更新ボタンのみ |
@@ -369,10 +369,10 @@ TOP 5は一つの可視化領域だけで提供し、同じ5件を下部リス�
 
 クラウド型は同じTOP 5を横書きで配置し、`article_ratio`で文字サイズと明度を変える。回転・重なりを避け、キーワードから関連記事を開ける案内を表示する。順位と正確な記事数はアクセシビリティ説明と詳細画面で確認できるようにする。
 
-表示切替ではデータ再取得・再集計を行わず、同一ViewModel状態を別Composeコンポーネントで描画する。国・日付・ロード・エラー状態とスクロール位置を維持する。
+表示切替ではデータ再取得・再集計を行わず、同一Web状態を別DOMコンポーネントで描画する。国・日付・ロード・エラー状態とスクロール位置を維持する。
 
 ```text
-IssueHomeScreen
+IssueHomePage
 ├── CountryTabs
 ├── RecentDateSelector
 ├── IssueSectionHeader
@@ -385,6 +385,13 @@ IssueHomeScreen
     ├── LastUpdatedText
     └── RefreshButton
 ```
+
+### Android後続保留トラック
+
+- `android/` directoryとAndroid設計記録は削除せず、保留状態で維持する。
+- 現在のWeb MVPではAndroid実装、SDK導入、Emulator検証、AAB生成、Google Play提出を完了条件にしない。
+- 公開URLとWeb APIの安定化後、ユーザーが再開を決定した場合は同じ`/api/v1`契約とUI動作を再利用する。
+- 再開時にKotlin、Compose、Retrofit、Room、DataStore候補を再検証し、別途ADR・日程・費用・Play policyを確定する。
 
 ### クラウドルール
 
@@ -429,6 +436,11 @@ country-issue-cloud/
 ├── backend/tests/
 ├── android/
 ├── frontend/
+│   ├── src/data/
+│   │   ├── issue-data-source.js
+│   │   ├── static-json-data-source.js
+│   │   └── api-data-source.js
+│   └── public/data/v1/
 ├── config/
 ├── deploy/
 ├── docs/
@@ -464,7 +476,7 @@ save(result)
 delete_expired(retention_days)
 ```
 
-JSONをSQLite/PostgreSQLへ変更してもRouter、Service、Android API契約を維持する。Webデモは静的HTML/CSS/Vanilla JSで作り、Androidと同じAPI・状態定義を使う。最大幅720px、アクセントカラー一色、簡潔なクラウドデザインを適用する。
+JSONをSQLite/PostgreSQLへ変更してもRouter、Service、Web API契約、保留中のAndroid API契約を維持する。正式Web UIは静的HTML/CSS/Vanilla JSで作り、DataSourceに関係なく同じresponse Schemaと状態定義を使う。標準設定は`DATA_MODE=static`、`DATA_BASE_URL=./data/v1`で、後続serverでは`DATA_MODE=api`、`API_BASE_URL=https://.../api/v1`へ切り替える。mobile-first responsive layout、アクセントカラー一色、簡潔なクラウドデザインを適用する。生成した運用JSONはPages配布artifactへ含めるがsource branchへcommitしない。
 
 ---
 
@@ -494,7 +506,7 @@ JSONをSQLite/PostgreSQLへ変更してもRouter、Service、Android API契約�
 | 09:30 | 最終再試行 |
 | 10:00 | 状態確認と連続失敗通知候補 |
 
-systemd timerに`Persistent=true`を使う。公開済み日付は原則スキップし、OSファイルロックで同時実行を防ぐ。
+初回運用はGitHub ActionsのJST timezone scheduleで実行し、workflow concurrencyで重複実行を防ぐ。予約実行は遅延し得るため定刻依存logicを置かず、手動`workflow_dispatch`復旧経路を提供する。公開repositoryの長期非activityによるschedule停止可能性を運用点検へ含める。後続VPS/EC2では同じpipeline entryをsystemd timerの`Persistent=true`とOS file lockで実行する。両modeとも公開済み日付は原則skipする。
 
 ```text
 python -m app.batch.pipeline_entry
@@ -508,12 +520,12 @@ python -m app.batch.pipeline_entry --countries US,JP
 
 ---
 
-## 12. セキュリティ・プライバシー・Google Play
+## 12. セキュリティ・プライバシー・Web配布とAndroid保留
 
 ### アプリとサーバー
 
 - ログイン、広告、位置情報・連絡先・写真・ストレージ権限を使用しない。
-- Androidは`INTERNET`権限のみ使う。
+- Webは端末権限を要求せず、CSP、HTTPS、安全な外部link policyを適用する。
 - HTTPSを強制し、秘密鍵はサーバー環境変数だけに保存する。
 - 日付/国入力を検証し、ユーザー入力からファイルパスを作らない。
 - 非rootアカウント、最小ファイル権限、nginx rate limitを使う。
@@ -530,7 +542,9 @@ python -m app.batch.pipeline_entry --countries US,JP
 - 第三者提供の有無
 - 施行日と変更履歴
 
-### Google Play
+### Android再開時のGoogle Play
+
+以下は現在のWeb MVP範囲外であり、Android track再開時に再検証する。
 
 - デベロッパーアカウント、本人確認、登録料予算
 - AABとPlay App Signing
@@ -569,7 +583,7 @@ python -m app.batch.pipeline_entry --countries US,JP
 - ETag 304と破損ファイル処理
 - 入力によるパストラバーサル防止
 
-### Android
+### Android（保留track）
 
 - 国切替時に追加リクエストなし、日付切替時にリクエストあり
 - 初回はタイル型、最後の表示選択を再起動後に復元
@@ -583,7 +597,7 @@ python -m app.batch.pipeline_entry --countries US,JP
 - TalkBack、文字拡大、長い多言語ラベル
 - 小画面、タブレット、フォルダブル
 - release AABから運用APIへ接続
-- タイル型・クラウド型・各状態のCompose screenshot回帰test
+- Android再開時にタイル型・クラウド型・各状態のCompose screenshot回帰test
 
 ### LLM回帰評価
 
@@ -599,9 +613,10 @@ python -m app.batch.pipeline_entry --countries US,JP
 - ロード/部分成功/エラー状態
 - モバイル日付行の横スクロール
 
-### 週次自動レビュー
+### 週完了検知自動レビュー
 
-- 実行：2026年8月8日から9月26日まで毎週土曜日10:00（JST）
+- 実行：active週の実装・test・文書・`scripts/verify-all.ps1`成功を検知した直後に1回
+- 重複防止：同じ週次候補SHAは1回だけreviewし、Critical/High修正でSHAが変わった場合だけ再検証する。
 - 範囲：前回レビュー以降のcommit/diff、関連テスト・ビルド・静的検査
 - 評価：セキュリティ、正確性、性能、保守性、テスト十分性、文書・アーキテクチャ準拠
 - 結果：ローカル専用`reviews/YYYY-MM-DD-weekly-review.md`
@@ -611,12 +626,12 @@ python -m app.batch.pipeline_entry --countries US,JP
 |---|---|
 | review時間 | 最大60分 |
 | Critical/High修正時間 | review後の別枠で最大90分 |
-| command timeout | 基本20分、Android全体30分 |
+| command timeout | 基本・Web全体20分、Android再開時は全体30分 |
 | 一時的失敗の再試行 | 原因確認後1回 |
 | 同一finding修正試行 | 最大2回、以後`BLOCKED` |
 | 変更コードcoverage | Line 80%、Branch 70% |
-| 全体coverage | Backend 80/70、Web 75/65、Android 70/60（Line/Branch） |
-| 主要経路 | Backend集計・Repository 90% Line、Android ViewModel・Repository 80% Line |
+| 全体coverage | Backend 80/70、Web 75/65、Android再開時70/60（Line/Branch） |
+| 主要経路 | Backend集計・Repository 90% Line、Web状態・API・cache 80% Line、Android再開時ViewModel・Repository 80% Line |
 
 review範囲はローカル`reviews/.last-reviewed-sha`から現在`HEAD`までとし、正常完了時だけ基準SHAを更新する。初回はリポジトリ全体のsecurity・設定と直近7日diffを確認する。diff外の既存問題は`LEGACY`とするが、Critical/Highは修正する。
 
@@ -640,23 +655,24 @@ review最終状態は`PASS`、`PASS_WITH_FINDINGS`、`FAIL`、`BLOCKED`のいず
 ## 14. 配布と運用
 
 ```text
-Internet
-  → nginx (80/443, TLS)
-      → /       静的Web
-      → /api/   FastAPI/uvicorn
+初回運用
+GitHub Actions schedule/workflow_dispatch
+  → 収集・LLM・集計・Schema検証
+  → 静的Web + data/v1 JSON artifact
+  → GitHub Pages HTTPS
 
-systemd
-  → issue-cloud-api.service
-  → issue-cloud-batch.service
-  → issue-cloud-batch.timer
+後続運用
+Internet → nginx/ALB → FastAPI/uvicorn
+VPS/EC2 systemdまたはcontainer scheduler → 同じbatch entry
 ```
 
-- 初回設定と反復配布を分離する。
-- 配布後に`/health`、`/ready`を検証する。
-- 失敗時は直前の正常リリースへロールバックする。
-- サーバーに直近2リリースを保持する。
+- 初回Pages配布は公式Pages artifact方式で行い、生成JSONを`main`へ自動commitしない。
+- PRはmock・fixtureだけで検証し、実ニュース・LLM Secretは保護された予約/手動運用workflowだけで利用する。
+- 生成またはSchema検証に失敗した場合は既存Pages配布を維持し、失敗artifactを公開しない。
+- Pages artifactには直近7日の公開可能JSON、静的Web、policy pageだけを含める。
+- VPS/EC2後続配布は初回設定と反復配布を分離し、`/health`、`/ready`、rollback、直近2 release保管を適用する。
 
-運用指標は、バッチ時間、国・ソース別記事数/失敗率、LLM呼出・token・費用・再試行・成功率、最終公開成功時刻、API要求数・エラー率・応答時間とする。24時間遅延で案内、48時間遅延でアプリ警告を表示する。運用Runbookにソース認証/形式変更、LLM費用急増、JSON復旧、サービス再起動、証明書障害、ロールバックを含める。
+運用指標は、batch時間、国・source別記事数/失敗率、LLM呼出・token・費用・再試行・成功率、Actions実行・Pages配布成否、最終公開成功時刻、後続API modeのrequest数・error率・応答時間とする。24時間遅延で案内、48時間遅延でWeb警告を表示する。運用RunbookにはActions予約遅延・無効化、手動再実行、Pages artifact rollback、source認証/形式変更、LLM費用急増、JSON復旧を含める。VPS/EC2再開時にservice再起動、証明書障害、server rollbackを追加する。
 
 ---
 
@@ -695,14 +711,15 @@ logs/
 
 | ファイル・領域 | 想定される機密情報 | 開発環境の保存先 | 運用環境の保存先 | Gitポリシー |
 |---|---|---|---|---|
-| `backend/.env` | ニュースAPI key、NAVER Client ID/Secret、LLM key、DB URL、JWT/Admin Secret | ローカルの非追跡ファイル | hosting Secretまたは`/etc/country-issue-cloud/backend.env` | commit禁止 |
+| `backend/.env` | ニュースAPI key、NAVER Client ID/Secret、LLM key、DB URL、JWT/Admin Secret | ローカルの非追跡ファイル | 初回GitHub Environment Secrets、後続`/etc/country-issue-cloud/backend.env`またはcloud Secret | commit禁止 |
 | `backend/.env.example` | 環境変数名と非機密の例 | repository | repository | 実値なしでcommit可 |
 | `backend/app/config.py` | 環境変数Schemaと検証規則 | repository | 配布code | 値のhardcode禁止、変数名のみ可 |
 | `android/local.properties` | SDK pathとローカル設定 | 開発者PC | 対象外 | commit禁止 |
 | `key.properties`、`keystore.properties`、`*.jks`、`*.keystore` | アプリ署名keyとpassword | Git外で暗号化保管 | Play App Signing/CI Secret | commit禁止 |
 | Android `BuildConfig`、`strings.xml`、Kotlin source | backend URL、誤入力されたprovider key | 公開可能なURLのみ含める | AAB/APKに含まれる | 外部API/LLM keyとClient Secret禁止 |
 | `google-services.json`、service account JSON | Firebase client設定または管理者credential | 必要時に別経路で共有 | hosting Secret | 原則commit禁止、service accountは絶対禁止 |
-| `.github/workflows/*.yml` | 配布・署名・hosting credential | `${{ secrets.NAME }}`参照 | GitHub Environment Secrets | 平文値禁止 |
+| `.github/workflows/*.yml` | ニュース・LLM・Pages・後続配布credential | `${{ secrets.NAME }}`参照 | GitHub Environment Secrets | 平文値・PR Secret露出禁止 |
+| Pages配布artifact `data/v1/` | 公開issue resultと記事metadata | CI一時workspace | GitHub Pages | 公開可能fieldのみ、Secret・本文・raw log禁止 |
 | `deploy/`、Docker、systemd設定 | DB password、API key、SSH key | 変数参照のみ保存 | server環境変数・Secret保存先 | 平文値禁止 |
 | `tests/fixtures/`、`sample-data/` | 実responseのtoken、header、執筆者の個人情報 | 匿名化したmock/fixture | 対象外 | 加工dataのみ可 |
 | `logs/`、`data/`、`*.db`、日報・review | 認証header、IP、device情報、raw response | ローカル専用・mask処理 | access制限付き保存先 | raw機密情報のcommit禁止 |
@@ -726,30 +743,33 @@ Pull Request CI：
 
 - 共通：韓国語・日本語仕様の同時変更と主要構造の同期検査
 - Python：Ruff、mypy、pytest、import境界、セキュリティ検査
-- Android：ktlint、detekt、Android Lint、テスト、debugビルド
-- Web：静的検査、JSテスト、基本アクセシビリティ検査
+- Android（保留）：track再開時のみktlint、detekt、Android Lint、test、debug build
+- Web：静的検査、JS test、DataSource契約、基本accessibility検査
+- Pages：fixture基盤build、公開artifact Secret検査、link・JSON Schema smoke test
 
 ```text
-main merge → merge済みmainの全CI・ローカルsmoke再検証 → VPS配布 → health/ready → 失敗時ロールバック
-v* tag → release AAB → GitHub Release → Play内部テストトラック
+main merge → merge済みmainの全CI・ローカルsmoke再検証 → fixture Pages preview/build検証
+保護されたschedule/workflow_dispatch → 実batch → Schema・Secret検査 → Pages artifact配布 → 失敗時は既存配布を維持
+VPS/EC2再開後 → ApiDataSource設定 → server配布 → health/ready → 失敗時rollback
+v* tag → Pages URL検証 → GitHub Release。Android再開後のみAABとPlay内部test trackを追加する。
 ```
 
 ### AI開発ガードレール
 
-- 実装作業は目標、範囲、対象外、完了条件、検証command、目標commitを含む作業契約に従う。
+- 実装作業は目標、範囲、対象外、完了条件、検証command、週次commitを含む作業契約に従う。
 - `docs/AI_DEVELOPMENT_GUIDE.md`と日本語版をAI作業の実行基準とする。
 - `docs/DEVELOPMENT_STATUS.md`と日本語版へ現在目標、完了commit、検証結果、次作業、外部依存を記録する。
 - 開発作業を行った日は終了時に`docs/daily/YYYY-MM-DD.md`を作成する。一つのファイルへ韓国語・日本語を併記し、目標の最終commitとPRへ含める。
 - 共通完了条件に機能・エラー経路、関連test、lint/type/build、秘密情報検査、文書同期、日本語コメント規則を含める。
-- 目標commit前に`scripts/verify-all.ps1`を実行し、仕様同期と各project検査を一つの入口で行う。
-- 目標branchの一時WIP commitは許可するが、完了時にsquashして目標単位commit一つへ整理する。
-- 各目標は指定された`codex/milestone-*` branchで開始し、`main`対象のDraft PRとして公開する。
-- 統合検証、CI、review通過後にReadyへ変更し、**Rebase and merge**でmergeして検証済み目標commit subjectと線形履歴を維持する。
+- 週次commit前に`scripts/verify-all.ps1`を実行し、仕様同期と各project検査を一つの入口で行う。
+- 週次branchの一時WIP commitは許可するが、週完了検知review後にsquashまたはamendし、週次commit一つへ整理する。
+- 各開発週は指定された`codex/week-*` branchで進め、`main`対象のDraft PR一つとして公開する。
+- 統合検証、CI、review通過後にReadyへ変更し、**Rebase and merge**でmergeして検証済み週次commit subjectと線形履歴を維持する。
 - `Create a merge commit`は使わない。ローカルWIPのsquashができなかった例外時だけ`Squash and merge`を許可し、squash commit subjectを日付・3言語形式で手動指定する。
 - 目標変更を`main`へ直接pushしない。
 - merge後、最新`main`で`scripts/verify-all.ps1`と利用可能なローカルsmoke testを再実行し、merge conflict、依存関係の組合せ、統合errorを確認する。
-- merge後検証の成功を目標完了条件とする。失敗時は`codex/post-merge-fix-<milestone>` branchと別PRで修正し、`main`を直接変更しない。
-- merge後検証の成功後に目標branchを削除し、検証済みの最新`main`から次の目標branchを作る。
+- merge後検証の成功を対象週の完了条件とする。失敗時は`codex/post-merge-fix-week-<number>` branchと別PRで修正し、`main`を直接変更しない。
+- merge後検証の成功後に週次branchを削除し、検証済みの最新`main`から次週branchを作る。
 - AIがAPI契約、主要architecture、技術stack、費用・公開範囲を変える場合はADRと利用者確認が必要。
 - UI screenshot基準変更は自動承認せず、人が意図された変更か確認する。
 
@@ -760,12 +780,13 @@ v* tag → release AAB → GitHub Release → Play内部テストトラック
 | 項目 | ポリシー |
 |---|---|
 | Google Play | 1回限りの登録料を計上 |
-| VPS/ドメイン | 低価格の月額固定費を事前確定 |
+| GitHub Pages | 公開portfolio用途と無料提供量内で運用 |
+| VPS/EC2・ドメイン | 後続移行時のみ低価格の月額固定費と予算を事前確定 |
 | NewsAPI | 運用利用せず、ローカル開発のみ |
 | 運用ニュースソース | 無料・利用可能なソース優先 |
 | LLM | 月額USD 10上限 |
-| HTTPS | 無料証明書 |
-| GitHub Actions | 無料枠内を目標 |
+| HTTPS | 初回Pages標準HTTPS、後続は無料証明書またはcloud証明書 |
+| GitHub Actions | 公開repositoryの標準runnerと無料提供量内、larger runner禁止 |
 
 外部サービス料金と規約は本番配布直前に再確認する。
 
@@ -773,7 +794,7 @@ v* tag → release AAB → GitHub Release → Play内部テストトラック
 
 ## 17. 開発スケジュール
 
-2026年8月3日月曜日に開始する、AI開発支援前提のローカル優先日程である。ホスティング契約前はfixture、ローカルFastAPI、Android Emulatorを使い、4週間でローカルMVPを完成する。既存8目標は削らず、2目標ずつ連続・並行実施する。月～金曜日に開発し、各開発日の終了時に日次reportを作成する。土曜日10:00（JST）に自動reviewを実行する。日曜日は休息・遅延吸収日とし、固定作業を置かない。
+2026年8月3日月曜日に開始する、AI開発支援前提のローカル優先日程である。fixture、ローカルFastAPI、browserで開発し、3週間以内にGitHub Actions + GitHub Pagesのresponsive Web MVPを公開する。FastAPIとApiDataSourceは後続VPS/EC2互換境界として維持するが、server契約・配布は現在の完了条件から除外する。日付別表はbaselineとして維持するが作業を前倒しできる。reviewは固定曜日ではなく各週の実装・test・文書・全検証完了を検知した直後に実行する。土日は遅延吸収と利用者確認のbufferとする。Android・Play連携は別途再開決定後のみ日程化する。
 
 ### 日次開発レポートポリシー
 
@@ -782,17 +803,16 @@ v* tag → release AAB → GitHub Release → Play内部テストトラック
 - 内容：本日の目標、実施作業、主な変更ファイル、検証結果、決定事項、問題・risk、次作業
 - 失敗・未完了作業も原因と次の対応を含めて記録する。
 - 秘密鍵、token、認証header、個人情報、raw log全体を含めない。
-- Git追跡対象として目標branchへ保存し、日次専用commitを作らず対象目標の最終commitとPRへ含める。
-- 土曜日自動reviewの`reviews/*.md`は引き続きローカル専用とし、日次reportと混在させない。
+- Git追跡対象として週次branchへ保存し、日次専用commitを作らず対象週の最終commitとPRへ含める。
+- 週完了検知reviewの`reviews/*.md`は引き続きローカル専用とし、日次reportと混在させない。
 
 ### 週別目標
 
 | 週 | 期間 | 対象目標 | 完了基準 |
 |---|---|---|---|
 | 1週目 | 8/3～8/8 | 1 環境・骨格、2 データ・API、3 収集・整形 | ローカルAPIと3か国収集基盤が動作 |
-| 2週目 | 8/10～8/15 | 4 LLM・TOP 5、5 バッチ・Web | 国別TOP 5をバッチ→API→Webで実演 |
-| 3週目 | 8/17～8/22 | 6 Android接続、7 確定UI・オフライン | Emulatorで確定UIとオフライン照会を検証 |
-| 4週目 | 8/24～8/29 | 8 安定化・ポートフォリオ | 全体フロー再現と`v0.8.0-local-mvp`候補 |
+| 2週目 | 8/10～8/15 | 4 LLM・TOP 5、5 batch・Web基盤 | 国別TOP 5をbatch→静的JSON/FastAPI→Webで実演 |
+| 3週目 | 8/17～8/22 | 6 Web UI、7 cache・accessibility、8 Pages公開 | 実URLと自動更新を検証し`v0.8.0-pages-mvp`を公開 |
 
 ### 1週目 — 基盤、ローカルAPI、国別収集
 
@@ -800,82 +820,57 @@ v* tag → release AAB → GitHub Release → Play内部テストトラック
 |---|---|---|
 | 8/3(月) | 環境、monorepo、設定分離、fixture、CI、AI開発検証入口 | 目標1検証後、目標commit templateを適用 |
 | 8/4(火) | データモデル、Schema、JSON Repository | fixture・Repositoryテスト |
-| 8/5(水) | アトミック保存、保管、FastAPI | 目標2検証後、目標commit templateを適用 |
+| 8/5(水) | アトミック保存、保管、FastAPI | 目標2中間検証、commitなしで週次branchを維持 |
 | 8/6(木) | Collector、fixture/実ソース、重複排除 | 契約・重複排除テスト |
-| 8/7(金) | 国別並列収集、失敗隔離、データモード | 目標3検証後、目標commit templateを適用 |
-| 8/8(土) | 自動レビュー | ローカルレビュー、Critical/High修正 |
+| 8/7(金) | 国別並列収集、失敗隔離、データモード | 1週目全検証後に候補commit・Draft PR |
+| 8/8(土) | 1週目の遅延吸収・利用者確認buffer | 未完了項目がある場合だけ補完 |
 
-### 2週目 — LLM、全体バッチ、Webデモ
+### 2週目 — LLM、全体batch、Web基盤
 
 | 日付 | 開発内容 | 成果物・検証 |
 |---|---|---|
 | 8/10(月) | LLM interface、mock、構造化出力、実adapter | mockと限定実呼出検証 |
 | 8/11(火) | 国内cluster、根拠検証、決定的TOP 5 | 統合・幻覚防止・同順位テスト |
-| 8/12(水) | cache、timeout/retry、token/費用 | 目標4検証後、目標commit templateを適用 |
+| 8/12(水) | cache、timeout/retry、token/費用 | 目標4中間検証、commitなしで週次branchを維持 |
 | 8/13(木) | pipeline、部分成功、lock、retry、report | 失敗・重複実行・maskテスト |
-| 8/14(金) | 静的Webと状態処理、統合実行 | 目標5検証後、目標commit templateを適用 |
-| 8/15(土) | 自動レビュー | ローカルレビューと重大度別履歴 |
+| 8/14(金) | 静的JSON publisher、DataSource基盤Webと統合実行 | 2週目全検証後に候補commit・Draft PR |
+| 8/15(土) | 2週目の遅延吸収・利用者確認buffer | 未完了項目がある場合だけ補完 |
 
-### 3週目 — Android接続、確定UI、オフライン
-
-| 日付 | 開発内容 | 成果物・検証 |
-|---|---|---|
-| 8/17(月) | Compose、Material 3、Hilt、Navigation、Repository | 基本構造とmockテスト |
-| 8/18(火) | Emulator API接続、国・日付選択、基本状態 | 目標6検証後、目標commit templateを適用 |
-| 8/19(水) | C案タイル型、重複リストなしホーム | 順位・記事数・詳細選択 |
-| 8/20(木) | A案クラウド、切替、DataStore | 無通信切替・再起動復元テスト |
-| 8/21(金) | 詳細、Room、オフライン・エラー状態 | 目標7検証後、目標commit templateを適用 |
-| 8/22(土) | 自動レビュー | ローカルレビューと重大度別履歴 |
-
-### 4週目 — ローカルMVP安定化とポートフォリオ
+### 3週目 — Responsive Web UI、cache、Pages公開
 
 | 日付 | 開発内容 | 成果物・検証 |
 |---|---|---|
-| 8/24(月) | 全体回帰テストと不具合修正 | 全テスト通過記録 |
-| 8/25(火) | 性能、cache、復旧、アクセシビリティ、多端末 | 性能・互換性結果 |
-| 8/26(水) | ワンクリック実行と新環境再現 | 文書だけで全体実行 |
-| 8/27(木) | README、architecture、画像、demo | GitHubポートフォリオ完成 |
-| 8/28(金) | release URL、secret検査、最終実演 | 目標8検証後、目標commit templateを適用 |
-| 8/29(土) | 自動レビュー | 最終ローカルレビュー |
+| 8/17(月) | IssueDataSourceの2 adapter、responsive基本画面 | static/API契約と基本画面test |
+| 8/18(火) | 国・日付選択、C案tile、A案cloud、詳細 | 表示・切替・詳細flow test |
+| 8/19(水) | localStorage、Cache API/IndexedDB、error・accessibility | cache復旧・keyboard・拡大検証 |
+| 8/20(木) | Actions schedule/manual workflow、concurrency、Pages配布 | fixture artifactと失敗時の既存配布維持を検証 |
+| 8/21(金) | 全回帰、Secret検査、README・screenshot・Release候補 | 週次候補commitとDraft PR作成 |
+| 8/22(土) | 最終遅延吸収・release確認buffer | 未完了項目がある場合だけ補完 |
 
-### 目標単位コミットポリシー
+### 週単位commit・PR policy
 
-| 目標 | 作業branch |
-|---|---|
-| 1 環境・骨格 | `codex/milestone-01-scaffold` |
-| 2 データ・API | `codex/milestone-02-local-api` |
-| 3 国別収集・整形 | `codex/milestone-03-news-collection` |
-| 4 LLM・TOP 5 | `codex/milestone-04-issue-ranking` |
-| 5 バッチ・Web | `codex/milestone-05-pipeline-web` |
-| 6 Android API接続 | `codex/milestone-06-android-api` |
-| 7 Android UI・オフライン | `codex/milestone-07-android-ui` |
-| 8 MVP安定化 | `codex/milestone-08-local-mvp` |
+目標1 scaffoldは別PRで完了済みであり、残り開発は次の3週単位で管理する。
 
-| 目標 | コミットメッセージ |
-|---|---|
-| 1 環境・骨格 | `YYYY/MM/DD feat: scaffold local environment`<br>`로컬 환경 구성`<br>`ローカル環境を構成` |
-| 2 データ・API | `YYYY/MM/DD feat: implement local data API`<br>`로컬 데이터 API 구현`<br>`ローカルデータAPIを実装` |
-| 3 国別収集・整形 | `YYYY/MM/DD feat: implement country news collection`<br>`국가별 뉴스 수집 구현`<br>`国別ニュース収集を実装` |
-| 4 LLM・TOP 5 | `YYYY/MM/DD feat: implement issue extraction and ranking`<br>`이슈 추출 및 순위 구현`<br>`イシュー抽出と順位付けを実装` |
-| 5 バッチ・Web | `YYYY/MM/DD feat: complete pipeline and web demo`<br>`배치 파이프라인과 웹 데모 완성`<br>`バッチパイプラインとWebデモを完成` |
-| 6 Android API接続 | `YYYY/MM/DD feat: connect Android to local API`<br>`안드로이드와 로컬 API 연결`<br>`AndroidをローカルAPIに接続` |
-| 7 Android UI・オフライン | `YYYY/MM/DD feat: implement Android UI and offline cache`<br>`안드로이드 UI 및 오프라인 캐시 구현`<br>`Android UIとオフラインキャッシュを実装` |
-| 8 MVP安定化 | `YYYY/MM/DD release: complete local MVP`<br>`로컬 MVP 완성`<br>`ローカルMVPを完成` |
+| 週 | 作業branch | 対象目標 | 最終commit message |
+|---|---|---|---|
+| 1週目 | `codex/week-01-data-collection` | 2 data・API、3 国別収集 | `YYYY/MM/DD feat: implement local data and collection`<br>`로컬 데이터와 국가별 수집 구현`<br>`ローカルデータと国別収集を実装` |
+| 2週目 | `codex/week-02-pipeline-publishing` | 4 LLM・TOP 5、5 batch・静的公開 | `YYYY/MM/DD feat: complete issue pipeline and static publishing`<br>`이슈 파이프라인과 정적 게시 완성`<br>`イシューパイプラインと静的公開を完成` |
+| 3週目 | `codex/week-03-pages-mvp` | 6 Web UI、7 cache・accessibility、8 Pages公開 | `YYYY/MM/DD release: publish GitHub Pages MVP`<br>`GitHub Pages MVP 공개`<br>`GitHub Pages MVPを公開` |
 
-全commit subjectは`YYYY/MM/DD <type>: <English> | <한국어> | <日本語>`形式を使う。日付は実際のcommit日、typeは英語とし、3つのsummaryは同じ意味を簡潔に翻訳する。上表の3行は実際のsubjectでは` | `で連結する。各目標は実装と関連testの通過後に1回commitし、作業中の一時commitは完了前にsquashする。各目標commitは単独でbuild/test可能とする。目標branchをpushした後、`main`対象のDraft PRを作り、CI・review通過後に**Rebase and merge**でmergeする。merge直後の最新`main`で全検証とsmoke testが成功した場合だけ目標完了とする。review前の未commit Critical/High修正は目標commitへ含める。push済み目標で見つかったCritical/Highは別修正branchと同形式の`fix` commit・PRで処理する。
+各週はbranch一つ、最終commit一つ、Draft PR一つを使う。週の範囲が完了した直後に候補commitを作り、自動reviewを実行する。Critical/High修正は同じcommitへamendして`--force-with-lease`で更新する。Medium/Lowはローカルreview履歴だけを残す。CI・review通過後に**Rebase and merge**し、merge直後の最新`main`で全検証とsmoke testが成功した場合だけ対象週を完了とする。
 
-### ホスティング契約後1週目 — 運用配布
+### 後続選択日程 — VPS/EC2移行
 
 | 営業日 | 内容 | 完了基準 |
 |---|---|---|
-| 1日目 | VPS、ドメイン、非root、firewall | 基本セキュリティ確認 |
+| 1日目 | VPSまたはEC2、domain、非root/IAM、firewall | 基本server・cloud security確認 |
 | 2日目 | nginx、TLS、FastAPI systemd | HTTPS APIアクセス |
 | 3日目 | バッチservice/timer、運用環境変数 | 手動・予約バッチ成功 |
-| 4日目 | GitHub Actions、health/ready、rollback | 配布・検証・rollback訓練 |
-| 5日目 | Android release URLとAAB smoke test | ロジック変更なしで運用API接続 |
+| 4日目 | server配布workflow、health/ready、rollback | 配布・検証・rollback訓練 |
+| 5日目 | `DATA_MODE=api`切替、CORS/CSP、主要画面smoke test | UI logic変更なしで運用API接続 |
 | 以後7日 | 自動バッチ、費用、エラー、品質観察 | 7日連続運用記録 |
 
-### ホスティング契約後2週目以降 — Playテストとリリース
+### Android再開決定後の別日程 — Playテストとリリース
 
 | 段階 | 内容 | 完了基準 |
 |---|---|---|
@@ -903,10 +898,10 @@ v0.2.0 RepositoryとFastAPI
 v0.3.0 ニュース収集と整形
 v0.4.0 LLMイシュー抽出と集計
 v0.5.0 バッチレビューと障害レポート
-v0.6.0 Webデモ
-v0.7.0 Android主要UI
+v0.6.0 Web基盤と全体pipeline
+v0.7.0 Responsive Web主要UI
 v0.8.0 オフラインと安定化
-v0.9.0 VPSとPlay非公開テスト
+v0.9.0 公開Web配布と運用検証
 v1.0.0 初回公開リリース
 ```
 
@@ -920,12 +915,13 @@ v1.0.0 初回公開リリース
 - [ ] 一国失敗時に他国結果を維持
 - [ ] LLM結果に存在しない記事/表現なし
 - [ ] API 200/400/404/503検証
-- [ ] Androidオフライン・キャッシュ復旧検証
-- [ ] release AABが運用APIで動作
+- [ ] Web browser cache・復旧検証
+- [ ] 公開Web URLで主要画面とAPIが動作
 - [ ] プライバシー、問い合わせ、出典、公開日表示
 - [ ] GitHubに秘密鍵・運用データなし
-- [ ] VPS rollback検証
-- [ ] Play申告・テスト要件充足
+- [ ] Pages配布失敗時の既存正常artifact維持・rollback検証
+- [ ] VPS/EC2再開時のserver rollback検証
+- [ ] Android再開時にPlay申告・テスト要件充足
 - [ ] READMEでアプリ/Web/設計/テストを確認可能
 
 ---
@@ -940,8 +936,9 @@ v1.0.0 初回公開リリース
 | LLM費用増 | batch、cache、月額USD 10上限 |
 | 国別収集失敗 | 独立処理、部分成功、遅延案内 |
 | JSON破損 | 一時作成、検証、atomic置換 |
-| VPS障害 | health monitor、systemd、cache、rollback |
-| Play審査遅延 | ポリシー資料の先行準備とbuffer |
+| Actions予約遅延・無効化 | 定刻非依存、手動実行、最後の正常Pagesを維持 |
+| 後続VPS/EC2障害 | health monitor、systemd/container、cache、rollback |
+| Android再開後のPlay審査遅延 | 再開時にpolicy資料と日程bufferを再算定 |
 | 公開リポジトリ鍵漏洩 | `.gitignore`、secret scan、鍵rotation |
 
 ---
@@ -951,12 +948,14 @@ v1.0.0 初回公開リリース
 - [ ] 統合仕様、画面/機能/アーキテクチャ設計とADR
 - [ ] データ・出典ポリシーとAPI仕様
 - [ ] PythonバッチとFastAPI
-- [ ] AndroidアプリとWebデモ
+- [ ] Responsive Web application
+- [ ] Android後続track保留記録
 - [ ] 自動テストとCI/CD
-- [ ] 配布script、nginx、systemd
+- [ ] GitHub Actions batch・Pages配布workflow
+- [ ] 後続VPS/EC2用配布script、nginx、systemd/container template
 - [ ] 運用Runbookと障害レポート例
 - [ ] プライバシーポリシーと問い合わせページ
-- [ ] Google Play登録資料
+- [ ] Android再開時にGoogle Play登録資料
 - [ ] README、デモ画像、GitHub Release
 - [ ] 開発日ごとの韓国語・日本語併記日次report
 
@@ -964,4 +963,4 @@ v1.0.0 初回公開リリース
 
 ## 22. 最終定義
 
-> 国別イシュークラウドは、米国・日本・韓国の経済ニュースを国別に独立収集し、LLMで各国内の類似した記事表現をイシュー単位へまとめ、ユニーク記事数と媒体多様性に基づく国別TOP 5をタイルまたはクラウドで表示するAndroid/Webアプリケーションである。結果には実際の出典とサンプル数を提示し、バッチ失敗、オフライン、外部API費用などの運用課題を明示的に処理する。
+> 国別イシュークラウドは、米国・日本・韓国の経済ニュースを国別に独立収集し、LLMで各国内の類似した記事表現をイシュー単位へまとめ、ユニーク記事数と媒体多様性に基づく国別TOP 5をURLで表示するresponsive Web serviceである。結果には実際の出典とサンプル数を提示し、batch失敗、cache復旧、外部API費用などの運用課題を明示的に処理する。Androidアプリは公開Web安定化後に選択的に再開できるよう、API契約と設計記録を保全する。

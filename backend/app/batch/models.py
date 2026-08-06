@@ -1,0 +1,40 @@
+from datetime import datetime
+from enum import StrEnum
+
+from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, field_validator
+
+from app.schemas.issues import CountryCode
+
+
+class CollectorKind(StrEnum):
+    FIXTURE = "fixture"
+    LIVE = "live"
+
+
+class CollectedArticle(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    article_id: str = Field(min_length=1, max_length=128)
+    country: CountryCode
+    title: str = Field(min_length=1, max_length=500)
+    summary: str | None = Field(default=None, max_length=2_000)
+    url: str = Field(min_length=1, max_length=2_048)
+    publisher: str = Field(min_length=1, max_length=200)
+    published_at: AwareDatetime
+
+    @field_validator("url")
+    @classmethod
+    def validate_https_url(cls, value: str) -> str:
+        if not value.startswith("https://"):
+            raise ValueError("URL must use HTTPS")
+        return value
+
+
+class CountryCollectionResult(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    country: CountryCode
+    articles: tuple[CollectedArticle, ...] = ()
+    errors: tuple[str, ...] = ()
+    used_fixture_fallback: bool = False
+    collected_at: datetime

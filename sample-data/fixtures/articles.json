@@ -1,0 +1,29 @@
+[
+  {
+    "article_id": "us-fixture-001",
+    "country": "US",
+    "title": "Federal Reserve keeps policy rate unchanged",
+    "summary": "A sanitized local fixture for the United States collection path.",
+    "url": "https://example.com/us/federal-reserve-policy",
+    "publisher": "US Fixture News",
+    "published_at": "2026-08-05T23:00:00Z"
+  },
+  {
+    "article_id": "jp-fixture-001",
+    "country": "JP",
+    "title": "日本の製造業景況感が改善",
+    "summary": "日本向け収集経路を検証するための匿名化fixtureです。",
+    "url": "https://example.com/jp/manufacturing-outlook",
+    "publisher": "JP Fixture News",
+    "published_at": "2026-08-05T22:30:00Z"
+  },
+  {
+    "article_id": "kr-fixture-001",
+    "country": "KR",
+    "title": "한국 수출 지표 회복세",
+    "summary": "한국 수집 경로를 검증하기 위한 비식별 fixture입니다.",
+    "url": "https://example.com/kr/export-indicator",
+    "publisher": "KR Fixture News",
+    "published_at": "2026-08-05T22:00:00Z"
+  }
+]

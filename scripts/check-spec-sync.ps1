@@ -58,15 +58,10 @@ if (Compare-Object $koreanFeatures $japaneseFeatures) {
 $requiredTokens = @(
     '/api/v1',
     'USD 10',
-    'v0.8.0-local-mvp',
-    'feat: scaffold local environment',
-    'feat: implement local data API',
-    'feat: implement country news collection',
-    'feat: implement issue extraction and ranking',
-    'feat: complete pipeline and web demo',
-    'feat: connect Android to local API',
-    'feat: implement Android UI and offline cache',
-    'release: complete local MVP'
+    'v0.8.0-pages-mvp',
+    'feat: implement local data and collection',
+    'feat: complete issue pipeline and static publishing',
+    'release: publish GitHub Pages MVP'
 )
 
 $koreanText = Get-Content -Raw -Encoding UTF8 -LiteralPath $koreanSpec

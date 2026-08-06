@@ -2,6 +2,8 @@ sources:
   US:
     - id: federal_reserve
       type: rss
+      publisher: Federal Reserve
+      feed_url: null
       enabled: false
       terms_status: pending
       terms_checked_at: null
