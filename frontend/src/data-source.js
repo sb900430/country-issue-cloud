@@ -15,7 +15,7 @@ export class IssueDataSource {
 }
 
 export class StaticJsonDataSource extends IssueDataSource {
-  constructor(baseUrl = "./data/v1", fetcher = globalThis.fetch) {
+  constructor(baseUrl = "./data/v1", fetcher = globalThis.fetch.bind(globalThis)) {
     super();
     this.baseUrl = baseUrl.replace(/\/$/, "");
     this.fetcher = fetcher;
@@ -44,7 +44,7 @@ export class StaticJsonDataSource extends IssueDataSource {
 }
 
 export class ApiDataSource extends IssueDataSource {
-  constructor(baseUrl = "/api/v1", fetcher = globalThis.fetch) {
+  constructor(baseUrl = "/api/v1", fetcher = globalThis.fetch.bind(globalThis)) {
     super();
     this.baseUrl = baseUrl.replace(/\/$/, "");
     this.fetcher = fetcher;

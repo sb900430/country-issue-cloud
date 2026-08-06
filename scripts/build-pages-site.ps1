@@ -41,6 +41,7 @@ if (Test-Path -LiteralPath $outputPath) {
 New-Item -ItemType Directory -Path $outputPath | Out-Null
 Copy-Item -LiteralPath (Join-Path $frontendPath "index.html") -Destination $outputPath
 Copy-Item -LiteralPath (Join-Path $frontendPath "about.html") -Destination $outputPath
+Copy-Item -LiteralPath (Join-Path $frontendPath "favicon.svg") -Destination $outputPath
 Copy-Item -LiteralPath (Join-Path $frontendPath "styles.css") -Destination $outputPath
 Copy-Item -LiteralPath (Join-Path $frontendPath "src") -Destination $outputPath -Recurse
 New-Item -ItemType File -Path (Join-Path $outputPath ".nojekyll") | Out-Null

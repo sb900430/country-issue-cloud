@@ -3,12 +3,12 @@
 | 項目 | 現在状態 |
 |---|---|
 | 現在目標 | 3週目 — responsive Web・GitHub Pages MVP |
-| 状態 | 3週目merge完了 — 公開画面の初期loading error修正・検証完了 |
+| 状態 | 3週目merge完了 — browser fetch呼出error修正・検証完了 |
 | 基準branch | `main` |
-| 作業branch | `codex/post-merge-fix-week-03-ui` |
+| 作業branch | `codex/post-merge-fix-week-03-fetch` |
 | 最終完了commit | `6bee3b9` — 3週目PR #9 Rebase and merge |
-| 全体検証 | PASS — `dist/site` artifact・Python 62件・Web 7件・Ruff・mypy・Secret・仕様 |
-| 次作業 | PR #11更新後にCI再確認 |
+| 全体検証 | PASS — `dist/site` artifact・favicon・Python 62件・Web 8件・Ruff・mypy・Secret・仕様 |
+| 次作業 | fetch binding修正Draft PR作成とCI確認 |
 
 ## 3週目の進行結果
 
@@ -27,6 +27,7 @@
 - PR #9 merge後、GitHub Runnerの一時pathが安全検査で遮断されたため、repository内の`dist/site`をPages artifact出力pathとして使うmerge後修正を完了した。
 - 公開画面の初期data loading失敗状態で国buttonがnull結果をrenderしていた問題を防止し、再試行UIとDOM動作testを追加した。
 - PR #11初回CIで`jsdom`依存関係の未導入を確認し、標準CIにNode.jsと`npm ci`手順を追加した。
+- 実browserの`window.fetch`呼出contextを維持し、favicon 404を解消するmerge後修正を進める。
 
 ## 2週目の進行結果
 
