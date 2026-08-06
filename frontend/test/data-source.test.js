@@ -45,6 +45,23 @@ test("static and API adapters return the same issue schema", async () => {
   ]);
 });
 
+test("default fetch keeps the browser global invocation context", async () => {
+  const originalFetch = globalThis.fetch;
+  const payload = issueResult();
+  globalThis.fetch = async function () {
+    assert.equal(this, globalThis);
+    return { ok: true, status: 200, json: async () => payload };
+  };
+  try {
+    const staticSource = new StaticJsonDataSource("/data/v1");
+    const apiSource = new ApiDataSource("/api/v1");
+    assert.deepEqual(await staticSource.getLatest(), payload);
+    assert.deepEqual(await apiSource.getLatest(), payload);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("data source rejects an incomplete country schema", async () => {
   const payload = issueResult();
   delete payload.countries.KR;
