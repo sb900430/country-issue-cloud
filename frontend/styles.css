@@ -56,6 +56,8 @@ h2 { margin: 0; font-size: clamp(1.5rem, 4vw, 2.4rem); }
 .issues--cloud .issue strong { margin: 6px 0; font-family: Georgia, serif; font-size: clamp(1.4rem, calc(4vw * var(--weight)), 3.2rem); }
 .status { min-height: 1.2em; color: var(--muted); font-size: .8rem; }
 .status.is-error { color: #a62919; }
+.retry { padding: 10px 16px; border: 1px solid var(--ink); border-radius: 999px; background: var(--ink); color: white; font-weight: 800; cursor: pointer; }
+.retry[hidden] { display: none; }
 .empty { margin: auto; color: var(--muted); }
 footer { display: flex; justify-content: space-between; gap: 20px; padding: 28px 0 48px; color: var(--muted); font-size: .72rem; }
 footer a { color: inherit; }
