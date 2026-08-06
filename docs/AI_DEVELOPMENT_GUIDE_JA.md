@@ -15,6 +15,8 @@
 | 後続運用 | VPS/EC2 + FastAPI、DataSource設定だけ切替 |
 | Android（保留） | 再開時にRetrofit、Kotlinx Serialization、ViewModel、Flow、Room、DataStore、Hiltを再検証 |
 | 日時 | サーバーはUTC保存、`Asia/Tokyo`表示 |
+| ニュース収集目標 | GDELT主source、公共RSS/API補助、国別150件目標・250件上限 |
+| keyword分析 | 言語別名詞・複合名詞抽出 → stopword除外 → 制限付きLLM同義語統合 → code順位 |
 
 正確なversionはscaffold時点の公式安定版を確認して固定し、lockfileまたはversion catalogへ記録する。依存関係を無断追加せず、標準機能で解決困難な場合だけADRへ導入理由を残す。
 
@@ -95,12 +97,13 @@
 - 利用者変更、運用data、reviewファイルを上書き・Git追加しない。
 - 技術stackや主要構造変更にはADRと利用者確認が必要。
 - 非保護HTTP、アプリ内秘密鍵、本文全体保存を許可しない。
-- Web UIから静的JSONまたは`/api/v1` pathを分散直接参照せず、DataSource境界を使う。
+- Web UIから静的JSONまたは`/api/v1`・`/api/v2` pathを分散直接参照せず、DataSource境界を使う。
 - 実ニュース・LLM SecretはPR workflowで使わず、保護された運用workflowだけで使う。
+- v2実装前に既存v1の`top_issues`意味を変更せず、producer・DataSource・Webを一緒に移行する。
 
 ## 7. LLM回帰検証
 
-`sample-data/evaluation/{US,JP,KR}`に固定入力、`sample-data/evaluation/expected`に期待値を置く。文章完全一致ではなく、Schema、入力外ID/根拠禁止、国間混在禁止、決定的順位、TOP 5重複禁止、呼出量・費用上限を検査する。実model評価は明示的なlive/evaluation作業だけで実行し、標準CIはmockを使う。
+`sample-data/evaluation/{US,JP,KR}`に固定入力、`sample-data/evaluation/expected`に期待値を置く。文章完全一致ではなく、Schema、入力外ID/根拠禁止、国間混在禁止、決定的順位、TOP 5重複禁止、呼出量・費用上限を検査する。さらに国別100件以上の入力で一般語がTOP 5に含まれず、複合名詞と関連記事接続が維持されることを確認する。実model評価は明示的なlive/evaluation作業だけで実行し、標準CIはmockを使う。
 
 ## 8. UI回帰検証
 

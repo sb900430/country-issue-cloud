@@ -2,13 +2,22 @@
 
 | 항목 | 현재 상태 |
 |---|---|
-| 현재 목표 | 3주차 — 반응형 웹·GitHub Pages MVP |
-| 상태 | 3주차 병합 완료 — 새 SHA 기반 Pages 재배포 준비 |
+| 현재 목표 | 키워드 뉴스 v2 — 국가별 100건 이상 경제뉴스 기반 TOP 5 |
+| 상태 | 방향 전환 설계·관련 문서 갱신 진행 중, 구현 미착수 |
 | 기준 브랜치 | `main` |
-| 작업 브랜치 | `codex/post-merge-fix-week-03-pages-redeploy-sha` |
-| 마지막 완료 커밋 | `46574a8` — Pages 10분 상한 복구 PR #15 Rebase and merge |
+| 작업 브랜치 | `codex/keyword-news-redesign-docs` |
+| 마지막 완료 커밋 | `f278c52` — 새 SHA 재배포 준비 PR #16 Rebase and merge |
 | 전체 검증 | PASS — Python 62개·웹 8개·Ruff·mypy·Secret·명세 동기화 |
-| 다음 작업 | 운영 상태 문서 PR 병합으로 새 main SHA를 생성하고 Pages 자동 배포 확인 |
+| 다음 작업 | 문서 PR 병합 후 GDELT adapter·국가별 100건 이상 fixture 구현 브랜치 시작 |
+
+## 키워드 뉴스 v2 결정
+
+- GDELT DOC API를 국가별 주 소스로, 기존 공공 RSS/API를 보조 소스로 전환한다.
+- 중복 제거 후 국가별 150건을 목표로 하고 최대 250건, 정상 100건 이상, 부분 성공 50~99건으로 정한다.
+- 언어별 명사·복합명사 추출과 불용어 제거 후 LLM은 동의어·표시명 통합만 수행한다.
+- 문서 빈도와 매체 다양성으로 키워드 TOP 5를 정하고 키워드별 관련 기사 최대 20개를 제공한다.
+- 기존 v1 의미를 보존하고 Schema/API/정적 JSON을 v2로 함께 전환한다.
+- 상세 근거와 구현 순서는 `docs/adr/ADR-0001-keyword-news-pipeline.md`를 따른다.
 
 ## 3주차 진행 결과
 

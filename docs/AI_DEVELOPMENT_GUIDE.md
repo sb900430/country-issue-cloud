@@ -15,6 +15,8 @@
 | 후속 운영 | VPS/EC2 + FastAPI, DataSource 설정만 전환 |
 | Android(보류) | 재개 시 Retrofit, Kotlinx Serialization, ViewModel, Flow, Room, DataStore, Hilt 재검증 |
 | 날짜·시간 | 서버 UTC 저장, `Asia/Tokyo` 표시 |
+| 뉴스 수집 목표 | GDELT 주 소스, 공공 RSS/API 보조, 국가별 150건 목표·250건 상한 |
+| 키워드 분석 | 언어별 명사·복합명사 추출 → 불용어 제거 → 제한적 LLM 동의어 통합 → 코드 순위 |
 
 정확한 라이브러리 버전은 스캐폴드 시점의 공식 안정 버전을 확인해 고정하고 lockfile 또는 version catalog에 기록한다. 의존성을 임의로 추가하지 말고 표준 기능으로 해결하기 어려운 경우에만 도입 이유를 ADR에 남긴다.
 
@@ -97,8 +99,9 @@
 - 사용자 변경, 운영 데이터, 리뷰 파일을 덮어쓰거나 Git에 추가하지 않는다.
 - 기술 스택 또는 핵심 구조를 바꿀 때는 ADR과 사용자 확인이 필요하다.
 - 보호되지 않은 HTTP, 앱 내 비밀키, 원문 전체 저장을 허용하지 않는다.
-- 웹 UI에서 정적 JSON 또는 `/api/v1` 경로를 직접 분산 참조하지 않고 DataSource 경계를 사용한다.
+- 웹 UI에서 정적 JSON 또는 `/api/v1`·`/api/v2` 경로를 직접 분산 참조하지 않고 DataSource 경계를 사용한다.
 - 실제 뉴스·LLM Secret은 PR workflow에서 사용하지 않고 보호된 운영 workflow에서만 사용한다.
+- v2 구현 전 기존 v1의 `top_issues` 의미를 바꾸지 않고, producer·DataSource·Web을 함께 전환한다.
 
 ## 7. LLM 회귀 검증
 
@@ -109,6 +112,7 @@
 - 국가 간 기사와 이슈가 섞이지 않는다.
 - 동일 입력의 코드 순위가 결정적이다.
 - TOP 5에 중복 이슈가 없다.
+- 국가별 100건 이상 입력에서 일반어가 TOP 5에 포함되지 않고 복합명사와 관련 기사 연결이 보존된다.
 - 호출량과 비용 상한을 기록한다.
 
 실제 모델 평가는 명시적인 live/evaluation 작업에서만 실행하고 기본 CI에서는 mock을 사용한다.

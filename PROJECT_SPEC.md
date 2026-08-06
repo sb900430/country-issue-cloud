@@ -19,7 +19,7 @@
 
 ## 1. 프로젝트 개요
 
-매일 미국·일본·한국의 경제뉴스를 국가별로 독립 수집한다. 각 국가 안에서 의미가 유사한 기사와 표현을 하나의 이슈로 묶고, 고유 기사 수와 매체 다양성을 기준으로 국가별 TOP 5를 계산한다. 사용자는 같은 날짜에 각 나라가 무엇을 중요하게 다뤘는지 국가 탭을 전환하며 확인한다.
+매일 미국·일본·한국 언론사의 경제뉴스를 국가별로 150건 수집하는 것을 목표로 하고 최대 250건까지 독립 수집한다. 제목과 제공된 짧은 요약에서 반복 출현하는 명사·복합명사 후보를 추출하고, 같은 의미의 표현을 하나의 키워드로 묶어 고유 기사 수와 매체 다양성 기준의 국가별 키워드 TOP 5를 계산한다. 사용자는 키워드를 눌러 해당 키워드의 근거 기사 목록을 확인한다.
 
 이 프로젝트는 다음 목적을 가진 비상업적 포트폴리오다.
 
@@ -28,13 +28,13 @@
 3. 매일 데이터가 갱신되는 서비스를 실제 운영한다.
 4. 다국어 처리, LLM 구조화 출력, 배치/API 분리, 웹 접근성·캐시, CI/CD 역량을 증명한다.
 
-Android 앱은 폐기하지 않는다. 웹 MVP와 공개 URL의 안정화가 끝난 뒤 동일한 `/api/v1` 계약을 사용하는 후속 선택 트랙으로 보류한다. 현재 로컬 MVP와 1차 공개 범위에는 Android 구현·Google Play 배포를 포함하지 않는다.
+Android 앱은 폐기하지 않는다. 키워드 중심 웹과 공개 URL의 안정화가 끝난 뒤 `/api/v2` 계약을 사용하는 후속 선택 트랙으로 보류한다. 현재 로컬 MVP와 1차 공개 범위에는 Android 구현·Google Play 배포를 포함하지 않는다.
 
 ### 사용자 가치
 
 - 같은 날짜의 세 나라 경제 관심사를 빠르게 비교한다.
-- 단순 단어 빈도가 아니라 유사 표현을 묶은 의미 있는 이슈를 본다.
-- 기사 수, 매체 수, 대표 출처로 선정 근거를 확인한다.
+- 일반어를 제외하고 유사 표현을 묶은 의미 있는 단어·복합명사 키워드를 본다.
+- 기사 수, 매체 수와 최대 20개의 관련 기사로 선정 근거를 확인한다.
 - 오프라인에서도 마지막 정상 결과를 확인한다.
 
 ### 하지 않는 것
@@ -63,13 +63,14 @@ Android 앱은 폐기하지 않는다. 웹 MVP와 공개 URL의 안정화가 끝
 | Pages·게시 JSON 가용성 내부 목표 | 99% 이상 |
 | 정적 JSON 응답시간 목표 | 500ms 이내 |
 | 마지막 정상 데이터 | 48시간 이내 |
-| 국가별 정상 권장 표본 | 30개 이상 |
-| 국가별 게시 가능 표본 | 15개 이상 |
-| 이슈 추출 성공률 | 80% 이상 |
+| 국가별 수집 목표 | 중복 제거 후 150개 |
+| 국가별 정상 표본 | 100개 이상 |
+| 국가별 부분 성공 표본 | 50~99개 |
+| 키워드 처리 성공률 | 80% 이상 |
 
 ### 1차 출시 포함
 
-- 국가별 수집, 정제, 중복 제거, 이슈 클러스터링, TOP 5
+- GDELT 중심 국가별 뉴스 수집, 정제, 중복 제거, 언어별 키워드 추출·클러스터링, TOP 5
 - 최근 7일 JSON 게시, 로컬·후속용 FastAPI와 공통 Schema
 - 반응형 웹 타일/클라우드, 상세, 브라우저 캐시
 - 부분 성공, 지연, 점검, 오류 상태
@@ -88,9 +89,9 @@ Android 앱은 폐기하지 않는다. 웹 MVP와 공개 URL의 안정화가 끝
 ## 3. 핵심 원칙
 
 ```text
-미국 경제뉴스 전체 → 미국 이슈 TOP 5
-일본 경제뉴스 전체 → 일본 이슈 TOP 5
-한국 경제뉴스 전체 → 한국 이슈 TOP 5
+미국 경제뉴스 150건 목표 → 미국 키워드 TOP 5 → 키워드별 관련 기사
+일본 경제뉴스 150건 목표 → 일본 키워드 TOP 5 → 키워드별 관련 기사
+한국 경제뉴스 150건 목표 → 한국 키워드 TOP 5 → 키워드별 관련 기사
 ```
 
 - 특정 공통 주제를 먼저 정해 세 국가에서 검색하지 않는다.
@@ -98,7 +99,7 @@ Android 앱은 폐기하지 않는다. 웹 MVP와 공개 URL의 안정화가 끝
 - 이슈명은 원어를 기준으로 하고 미국·일본에는 한국어 보조명을 둘 수 있다.
 - 보조 번역은 집계와 순위에 사용하지 않는다.
 - 기사에 없는 표현을 근거로 생성하지 않는다.
-- LLM은 추출과 클러스터링만 담당한다.
+- 언어별 분석기는 명사·2~3단어 복합명사 후보를 추출하고, LLM은 후보 밖 표현을 만들지 않은 채 동의어 통합과 표시명 정리만 담당한다.
 - 순위는 고유 기사 수, 고유 매체 수, 최신 시각, `issue_id` 순으로 코드가 계산한다.
 - 공식 API 또는 공개 RSS만 사용하고 원문 전체와 이미지는 저장하지 않는다.
 - API와 배치는 서로의 실행 모듈을 import하지 않고 게시 JSON으로만 통신한다.
@@ -110,11 +111,11 @@ Android 앱은 폐기하지 않는다. 웹 MVP와 공개 URL의 안정화가 끝
 
 | ID | 기능 | 설명 |
 |---|---|---|
-| F-01 | 국가별 수집 | 국가별 최대 100개 경제뉴스 독립 수집 |
+| F-01 | 국가별 수집 | GDELT 주 소스에서 국가별 150개 목표·최대 250개 경제뉴스 독립 수집 |
 | F-02 | 정제·중복 제거 | URL, 제목, 유사도로 국가 내부 중복 제거 |
-| F-03 | 이슈 추출 | LLM으로 경제 이슈 후보 추출 |
-| F-04 | 클러스터링 | 국가 내부 유사 표현과 기사 병합 |
-| F-05 | TOP 5 | 기사 수와 매체 수로 순위 산출 |
+| F-03 | 키워드 추출 | 영어·일본어·한국어별 명사와 2~3단어 복합명사 후보 추출, 일반어 제외 |
+| F-04 | 키워드 통합 | 국가 내부 동의어·표기 변형을 근거 표현 안에서 통합 |
+| F-05 | TOP 5 | 키워드별 고유 기사 수와 매체 수로 결정적 순위 산출 |
 | F-06 | 결과 저장 | 날짜 JSON과 latest 원자적 저장 |
 | F-07 | 품질 리뷰 | 표본, 편중, 추출률, 라벨 점검 |
 | F-08 | 장애 보고서 | 원인, 영향, 개선안, 스택 기록 |
@@ -123,7 +124,7 @@ Android 앱은 폐기하지 않는다. 웹 MVP와 공개 URL의 안정화가 끝
 | F-11 | 날짜 조회 | 최근 7일 조회 가능 날짜 제공 |
 | F-12 | 국가 전환 | 같은 날짜의 국가별 결과 즉시 전환 |
 | F-13 | 이슈 시각화 | TOP 5를 기본 타일형 또는 클라우드형으로 전환 표시 |
-| F-14 | 상세 | 통계, 대표 기사, 원문 링크 |
+| F-14 | 상세 | 키워드 통계, 관련 기사 최대 20개, 원문 링크 |
 | F-15 | 오프라인 | 브라우저 캐시로 마지막 정상 결과 표시 |
 | F-16 | 서비스 설정 | 점검, 버전, 공지, 정책 URL |
 | F-17 | 상태 | 최신 데이터와 국가 상태 제공 |
@@ -140,32 +141,35 @@ Android 앱은 폐기하지 않는다. 웹 MVP와 공개 URL의 안정화가 끝
 
 | 구분 | 기준 |
 |---|---:|
-| 국가별 목표 | 최대 100개 |
-| 정상 권장량 | 30개 이상 |
-| 게시 최소량 | 15개 이상 |
-| 단일 매체 최대 반영 | 20개 권장 |
-| 매체 편중 경고 | 40% 초과 |
-| 심각한 편중 | 60% 초과 |
+| 국가별 목표 | 중복 제거 후 150개 |
+| 국가별 최대량 | 250개 |
+| 정상 | 100개 이상, 키워드 3개 이상 |
+| 부분 성공 | 50~99개, 키워드 1개 이상 |
+| 단일 매체 최대 반영 | 수집 결과의 20% 또는 30개 중 작은 값 |
+| 매체 편중 경고 | 30% 초과 |
+| 심각한 편중 | 50% 초과 |
 
-정확히 100개보다 적법성과 투명성을 우선하며 실제 기사 수를 앱에 표시한다.
+100건 이상을 정상 목표로 하되 적법성과 투명성을 우선하며 실제 수집·중복 제거 후 기사 수를 화면에 표시한다. 24시간 범위를 임의로 늘려 100건을 채우지 않는다.
 
 ### 출처 정책
 
-- NewsAPI 무료 플랜은 로컬 개발·테스트에서만 사용한다.
-- 운영은 공식 RSS 또는 운영 사용이 허용된 공개 API만 사용한다.
-- 국가별 최소 2개 출처를 목표로 한다.
-- 일일 공식 발표량을 고려해 국가별 5건 이상은 부분 성공, 15건 이상은 완전 성공의 수집 기준으로 사용한다.
-- 등록 소스는 공식 RSS·공공 API만 사용하며 민간 뉴스 HTML과 정책브리핑의 중단된 RSS는 사용하지 않는다.
+- 주 소스는 GDELT Project DOC API의 Article List이며 `sourcecountry`, `sourcelang`, 직전 24시간, `maxrecords=250`을 국가별로 독립 적용한다.
+- 경제 범위는 버전 관리되는 국가별 경제 주제 query 묶음으로 제한하고 query별 수집량과 편향을 기록한다. 특정 기업·사건 이름을 미리 넣어 결과를 유도하지 않는다.
+- 기존 중앙은행·정부기관 RSS와 조건부 공공 API는 보조 소스로 유지하며 주 소스 결과와 함께 중복 제거한다.
+- NewsAPI 무료 플랜은 로컬 개발·비교 평가에서만 사용하며 운영 의존성으로 두지 않는다.
+- 언론사 페이지 HTML과 기사 본문은 직접 크롤링하지 않고, 제공 API/RSS의 제목·짧은 요약·URL·매체·발행 시각만 사용한다.
+- GDELT 이용 결과에는 GDELT Project 명칭과 공식 사이트 링크를 표시한다.
 - 소스별 이용조건 확인일과 허용 필드를 설정에 기록한다.
 - 이용조건은 90일마다 재확인하고 승인·등록·앱 ID가 필요한 소스는 확인 전 비활성으로 둔다.
 
 ```yaml
-US: Federal Reserve RSS; BLS RSS는 자동 요청 403으로 비활성, BEA API는 등록 후 활성화
-JP: BOJ RSS; METI Atom은 갱신 중단으로 비활성, e-Stat API는 app ID 등록 후 활성화
-KR: 한국은행 RSS, 금융위원회 보도자료·보도설명 RSS, 중소벤처기업부 보도자료 RSS
+ALL: GDELT DOC API Article List를 국가별 주 소스로 사용
+US supplementary: Federal Reserve RSS; BLS RSS 비활성, BEA API 조건부
+JP supplementary: BOJ RSS; METI Atom 비활성, e-Stat API 조건부
+KR supplementary: 한국은행·금융위원회·중소벤처기업부 RSS
 ```
 
-기본 허용 필드는 RSS가 직접 제공한 제목·짧은 요약·원문 URL·매체·발행 시각이다. BOJ·BOK·금융위원회·중소벤처기업부는 보수적으로 제목·URL·매체·발행 시각만 사용한다. 금융위원회 보도설명 RSS는 일반 보도자료를 보완하는 보조 소스로 사용한다. 기사 본문, PDF·첨부파일, 이미지와 HTML을 파싱한 요약은 수집·재배포하지 않는다. 실제 URL과 승인 상태는 `config/sources.example.yml`을 기준으로 하며, 조건부 비활성 소스의 등록·승인·Secret·검증 절차는 `docs/SOURCE_REGISTRATION_GUIDE.md`를 따른다.
+GDELT와 RSS가 직접 제공한 제목·짧은 요약·원문 URL·매체·발행 시각만 허용한다. 기사 본문, PDF·첨부파일, 이미지와 HTML을 파싱한 요약은 수집·재배포하지 않는다. GDELT 데이터는 파생 키워드와 최소 기사 metadata만 최근 7일 보관하고 공식 attribution을 제공한다. 실제 endpoint, query version, 승인 상태는 `config/sources.example.yml`을 기준으로 하며 세부 절차는 `docs/SOURCE_REGISTRATION_GUIDE.md`를 따른다.
 
 ### 중복 제거
 
@@ -173,20 +177,24 @@ KR: 한국은행 RSS, 금융위원회 보도자료·보도설명 RSS, 중소벤�
 2. HTML·공백·문장부호·대소문자를 정규화한 제목 일치
 3. 제목 유사도 0.92 이상, 발행 시각 차이 6시간 이내
 
-대표 기사는 제목·요약 존재, 유효 시각, HTTPS 링크, 이른 발행 시각 순으로 선택한다.
+관련 기사 목록은 키워드 근거가 제목·제공 요약에 실제 존재하는 기사만 포함하고, 고유 매체 다양성·최신성·HTTPS 링크 순으로 최대 20개를 선택한다.
 
 ---
 
-## 6. LLM과 집계
+## 6. 키워드 분석, LLM과 집계
 
-LLM은 번역 워드클라우드를 만드는 도구가 아니라 한 국가 안의 유사 사건을 의미 단위로 묶는 도구다.
+언어별 분석기는 제목과 제공 요약에서 명사·고유명사·2~3단어 복합명사를 추출한다. 한국어는 Kiwi 계열, 일본어는 SudachiPy, 영어는 명사구 분석기를 기본 후보로 검증하며 최종 라이브러리는 구현 시 ADR로 확정한다. `경제`, `시장`, `정부`처럼 변별력이 낮은 일반어와 국가별 불용어를 버전 관리한다.
+
+동일 기사에서 한 키워드가 여러 번 등장해도 문서 빈도는 1건으로 계산한다. 원시 출현 횟수만으로 순위를 정하지 않으며, 재전송·유사 기사와 단일 매체 집중을 먼저 제거한다.
+
+LLM은 번역 워드클라우드를 만드는 도구가 아니라 분석기가 추출한 후보 안에서 한 국가의 동의어와 표기 변형을 통합하고 1~3단어 표시명을 정리하는 제한적 도구다.
 
 ```text
 기준금리 동결 / 금통위 금리 결정 / 한국은행 통화정책
 → 기준금리 동결
 ```
 
-LLM은 이슈 후보, 국가 내부 클러스터, 원어 라벨, 한국어 보조명, 구조화 JSON을 생성한다. 국가 간 병합, 순위 결정, 투자 판단은 하지 않는다.
+LLM은 국가 내부 후보 클러스터, 원어 키워드, 한국어 보조명과 구조화 JSON을 생성한다. 입력 후보에 없는 표현 생성, 국가 간 병합, 순위 결정, 투자 판단은 하지 않는다.
 
 ```json
 {
@@ -208,14 +216,15 @@ LLM은 이슈 후보, 국가 내부 클러스터, 원어 라벨, 한국어 보�
 - 월 USD 10 상한, USD 5 상당에서 경고
 
 ```text
-article_count   = 이슈 고유 기사 수
-publisher_count = 이슈 고유 매체 수
-article_ratio   = 이슈 기사 수 / 국가 유효 기사 수
+document_frequency = 키워드가 1회 이상 등장한 고유 기사 수
+publisher_count    = 키워드 관련 고유 매체 수
+article_ratio      = document_frequency / 국가 유효 기사 수
+keyword_score      = document_frequency 우선, publisher_count·최신 시각·keyword_id 순 동률 해소
 ```
 
-`success`: 기사 30개 이상, LLM 성공률 80% 이상, 이슈 3개 이상.
+`success`: 기사 100개 이상, 키워드 처리 성공률 80% 이상, 키워드 3개 이상.
 
-`partial_success`: 기사 15개 이상, LLM 성공률 70% 이상, 이슈 1개 이상.
+`partial_success`: 기사 50~99개, 키워드 처리 성공률 70% 이상, 키워드 1개 이상.
 
 최소 2개국이 게시 가능할 때 날짜 결과를 저장하며 실패 실행은 `latest.json`을 바꾸지 않는다.
 
@@ -225,24 +234,25 @@ article_ratio   = 이슈 기사 수 / 국가 유효 기사 수
 
 ```json
 {
-  "schema_version": "1.0",
+  "schema_version": "2.0",
   "date": "2026-07-29",
   "generated_at": "2026-07-29T08:10:00+09:00",
   "status": "success",
   "countries": {
     "US": {
       "status": "success",
-      "article_count": 72,
+      "article_count": 137,
       "extraction_success_rate": 0.95,
-      "top_issues": [{
+      "top_keywords": [{
         "rank": 1,
-        "issue_id": "us_fed_rate_outlook",
-        "issue_label": "Fed interest rate outlook",
-        "display_label_ko": "연준 기준금리 전망",
-        "article_count": 18,
-        "publisher_count": 8,
-        "article_ratio": 0.25,
-        "representative_articles": [{
+        "keyword_id": "us_semiconductor",
+        "keyword_label": "semiconductor",
+        "display_label_ko": "반도체",
+        "document_frequency": 31,
+        "publisher_count": 14,
+        "article_ratio": 0.226,
+        "evidence_expressions": ["semiconductor", "chip industry"],
+        "related_articles": [{
           "title": "Example title",
           "publisher": "Example Publisher",
           "published_at": "2026-07-28T21:20:00Z",
@@ -283,7 +293,7 @@ reports/
 
 ## 8. API 설계
 
-논리적 API 계약의 기본 경로는 `/api/v1`이다. 로컬과 후속 VPS/EC2에서는 FastAPI endpoint로 제공하고, GitHub Pages 1차 운영에서는 같은 응답 Schema를 `data/v1/.../*.json` 정적 경로로 게시한다. 웹 UI는 경로를 직접 참조하지 않고 DataSource 인터페이스를 사용한다.
+키워드 중심 계약은 기존 이슈 중심 `/api/v1`의 필드 의미를 변경하지 않고 `/api/v2`와 `data/v2`로 추가한다. 구현 전까지 v1을 계속 제공하고, producer·Static/API DataSource·웹을 같은 PR에서 v2로 전환한 뒤 호환 기간 동안 v1을 유지한다. 웹 UI는 경로를 직접 참조하지 않고 DataSource 인터페이스를 사용한다.
 
 | Method | Path | 설명 |
 |---|---|---|
@@ -325,7 +335,7 @@ reports/
 | 저장 | localStorage(보기 설정), Cache API 또는 IndexedDB(최근 정상 응답) |
 | 지원 환경 | 최신 Chrome, Edge, Safari, Firefox의 모바일·데스크톱 |
 | 1차 배포 | GitHub Pages가 정적 웹과 생성된 JSON을 같은 HTTPS origin에서 제공 |
-| 후속 배포 | 설정으로 VPS/EC2 FastAPI `/api/v1`을 선택하고 필요 시 CORS 적용 |
+| 후속 배포 | 설정으로 VPS/EC2 FastAPI `/api/v2`를 선택하고 필요 시 CORS 적용 |
 | Android | 공개 웹 안정화 이후 재검토하는 보류 트랙 |
 
 ### 코드 주석 언어
@@ -340,7 +350,7 @@ reports/
 
 1. 초기 로딩
 2. 이슈 클라우드 홈
-3. 이슈 상세와 대표 기사
+3. 키워드 상세와 관련 기사
 4. 프로젝트 정보
 5. 개인정보처리방침/문의
 6. 오픈소스 라이선스
@@ -363,11 +373,11 @@ reports/
 | 공통 제목 | `오늘의 이슈 TOP 5` |
 | 공통 정보 | 분석 기사 수와 데이터 생성/업데이트 시각 |
 | 하단 영역 | 마지막 업데이트 시각과 새로고침 버튼만 표시 |
-| 상세 진입 | 타일 또는 클라우드 키워드를 누르면 동일한 이슈 상세 화면으로 이동 |
+| 상세 진입 | 타일 또는 클라우드 키워드를 누르면 동일한 키워드 상세와 관련 기사 목록으로 이동 |
 
-타일형은 순위, 이슈명, 기사 수를 각 타일에 표시한다. 1위 타일을 가장 크게 표현하고 나머지는 중요도에 따라 크기와 명도를 조절한다. 타일 전체를 터치 영역으로 사용한다.
+타일형은 순위, 키워드, 관련 고유 기사 수를 각 타일에 표시한다. 1위 타일을 가장 크게 표현하고 나머지는 중요도에 따라 크기와 명도를 조절한다. 타일 전체를 터치 영역으로 사용한다.
 
-클라우드형은 같은 TOP 5를 가로쓰기 텍스트로 배치하고 `article_ratio`에 따라 글자 크기와 명도를 조절한다. 텍스트를 회전하거나 겹치지 않으며, `키워드를 누르면 관련 기사를 볼 수 있어요` 안내를 표시한다. 순위와 정확한 기사 수는 키워드 접근성 설명과 상세 화면에서 확인할 수 있게 한다.
+클라우드형은 같은 키워드 TOP 5를 가로쓰기 텍스트로 배치하고 `article_ratio`에 따라 글자 크기와 명도를 조절한다. 텍스트를 회전하거나 겹치지 않으며, `키워드를 누르면 관련 기사를 볼 수 있어요` 안내를 표시한다. 상세 화면은 키워드 근거 표현, 고유 기사·매체 수와 최신순 관련 기사 최대 20개를 제공한다.
 
 보기 전환은 데이터 재요청이나 재집계를 발생시키지 않고 동일한 웹 상태를 다른 DOM 컴포넌트로 렌더링한다. 국가·날짜·로딩·오류 상태와 스크롤 위치는 전환 과정에서 유지한다.
 
@@ -392,7 +402,7 @@ IssueHomePage
 
 - `android/` 디렉터리와 Android 설계 기록은 삭제하지 않고 보류 상태로 유지한다.
 - 현재 웹 MVP에서는 Android 구현, SDK 설치, Emulator 검증, AAB 생성, Google Play 제출을 완료 조건으로 삼지 않는다.
-- 공개 URL과 웹 API가 안정화된 뒤 사용자가 재개를 결정하면 동일한 `/api/v1` 계약과 UI 동작을 재사용한다.
+- 공개 URL과 웹 API가 안정화된 뒤 사용자가 재개를 결정하면 동일한 `/api/v2` 계약과 UI 동작을 재사용한다.
 - 재개 시점에 Kotlin, Compose, Retrofit, Room, DataStore 후보를 다시 검증하고 별도 ADR·일정·비용·Play 정책을 확정한다.
 
 ### 클라우드 규칙
@@ -453,7 +463,7 @@ country-issue-cloud/
 │   │   ├── issue-data-source.js
 │   │   ├── static-json-data-source.js
 │   │   └── api-data-source.js
-│   └── public/data/v1/
+│   └── public/data/v2/
 ├── config/
 ├── deploy/
 ├── docs/
@@ -500,7 +510,7 @@ delete_expired(retention_days)
 
 JSON을 SQLite/PostgreSQL로 바꿔도 Router, Service, 웹 API 계약과 보류된 Android API 계약은 유지한다.
 
-정식 웹 UI는 정적 HTML/CSS/Vanilla JS로 만들고 DataSource에 관계없이 같은 응답 Schema와 상태 정의를 사용한다. 기본 설정은 `DATA_MODE=static`, `DATA_BASE_URL=./data/v1`이며 후속 서버에서는 `DATA_MODE=api`, `API_BASE_URL=https://.../api/v1`로 교체한다. 모바일 우선 반응형 레이아웃, 포인트 컬러 하나, 단순한 클라우드 디자인을 적용한다. 생성된 운영 JSON은 Pages 배포 artifact에는 포함하지만 소스 브랜치에는 커밋하지 않는다.
+정식 웹 UI는 정적 HTML/CSS/Vanilla JS로 만들고 DataSource에 관계없이 같은 응답 Schema와 상태 정의를 사용한다. 키워드 전환 후 기본 설정은 `DATA_MODE=static`, `DATA_BASE_URL=./data/v2`이며 후속 서버에서는 `DATA_MODE=api`, `API_BASE_URL=https://.../api/v2`로 교체한다. 모바일 우선 반응형 레이아웃, 포인트 컬러 하나, 단순한 클라우드 디자인을 적용한다. 생성된 운영 JSON은 Pages 배포 artifact에는 포함하지만 소스 브랜치에는 커밋하지 않는다.
 
 ---
 
@@ -511,16 +521,17 @@ JSON을 SQLite/PostgreSQL로 바꿔도 Router, Service, 웹 API 계약과 보류
 2. 설정과 소스 확인
 3. US/JP/KR 병렬 수집
 4. 국가별 정제·중복 제거
-5. 국가별 LLM 이슈 추출
-6. 국가별 클러스터링
-7. 국가별 TOP 5 집계
-8. 품질 리뷰
-9. 게시 조건 판정
-10. 임시 JSON 작성·검증
-11. 날짜 파일 원자적 교체
-12. latest.json 갱신
-13. 만료 데이터 삭제
-14. 실행 요약과 lock 해제
+5. 국가별 언어 분석기 키워드 후보 추출·불용어 제거
+6. 제한적 LLM 동의어·표시명 통합
+7. 키워드 근거 기사 검증
+8. 국가별 TOP 5 집계
+9. 품질 리뷰
+10. 게시 조건 판정
+11. 임시 JSON 작성·검증
+12. 날짜 파일 원자적 교체
+13. latest.json 갱신
+14. 만료 데이터 삭제
+15. 실행 요약과 lock 해제
 ```
 
 | 시각 | 작업 |
@@ -667,7 +678,7 @@ python -m app.batch.pipeline_entry --countries US,JP
 
 필수 검사는 명세 동기화, diff 형식, secret·보안, 의존성 취약점, `scripts/verify-all.ps1`, coverage, 정확성·성능·유지보수성·아키텍처 순으로 수행한다. LLM 또는 UI 변경 시 해당 회귀 검사를 추가한다. 성능은 동일 로컬 환경 3회 중앙값으로 캐시 API p95 500ms, fixture 비캐시 API p95 1초, mock 3개국 pipeline 60초를 기준으로 한다.
 
-LLM 변경 시 Schema 100%, 입력 밖 기사 ID·근거 0건, 국가 혼합 0건, TOP 5 중복 0건, 순위 결정성 100%, 추출 성공률 80% 이상을 요구한다. label은 국가별 최대 5개 표본에서 80% 이상 수용 가능해야 한다.
+키워드 분석기·불용어·LLM 변경 시 Schema 100%, 입력 밖 기사 ID·근거·후보 0건, 국가 혼합 0건, TOP 5 중복 0건, 순위 결정성 100%, 처리 성공률 80% 이상을 요구한다. 국가별 100건 이상 fixture에서 일반어 제외, 복합명사 보존, 관련 기사 연결 정확도를 검증하고 label은 국가별 최대 5개 표본에서 80% 이상 수용 가능해야 한다.
 
 심각도 처리 정책:
 
@@ -690,7 +701,7 @@ LLM 변경 시 Schema 100%, 입력 밖 기사 ID·근거 0건, 국가 혼합 0�
 1차 운영
 GitHub Actions schedule/workflow_dispatch
   → 수집·LLM·집계·Schema 검증
-  → 정적 웹 + data/v1 JSON artifact
+  → 정적 웹 + data/v2 JSON artifact
   → GitHub Pages HTTPS
 
 후속 운영
@@ -771,7 +782,7 @@ logs/
 | Android `BuildConfig`, `strings.xml`, Kotlin 소스 | 백엔드 URL, 실수로 입력한 provider key | 공개 가능한 URL만 포함 | AAB/APK에 포함 | 외부 API/LLM key와 Client Secret 금지 |
 | `google-services.json`, 서비스 계정 JSON | Firebase client 설정 또는 관리자 credential | 필요 시 별도 전달 | 호스팅 Secret | 기본 커밋 금지, 서비스 계정은 절대 금지 |
 | `.github/workflows/*.yml` | 뉴스·LLM·Pages·후속 배포 credential | `${{ secrets.NAME }}` 참조 | GitHub Environment Secrets | 평문 값·PR Secret 노출 금지 |
-| Pages 배포 artifact `data/v1/` | 공개 이슈 결과와 기사 metadata | CI 임시 workspace | GitHub Pages | 공개 가능 필드만 포함, Secret·원문·raw log 금지 |
+| Pages 배포 artifact `data/v2/` | 공개 키워드 결과와 관련 기사 metadata | CI 임시 workspace | GitHub Pages | 공개 가능 필드만 포함, Secret·원문·raw log 금지 |
 | `deploy/`, Docker, systemd 설정 | DB 비밀번호, API key, SSH key | 변수 참조만 저장 | 서버 환경변수·Secret 저장소 | 평문 값 금지 |
 | `tests/fixtures/`, `sample-data/` | 실제 응답의 token, header, 작성자 개인정보 | 비식별 mock/fixture | 해당 없음 | 가공 데이터만 허용 |
 | `logs/`, `data/`, `*.db`, 일일보고서·리뷰 | 인증 header, IP, 기기정보, 원문 응답 | 로컬 전용·마스킹 | 접근 제한 저장소 | raw 민감정보 커밋 금지 |
@@ -911,6 +922,18 @@ v* 태그 → Pages URL 검증 → GitHub Release. Android 재개 후에만 AAB�
 
 각 주차는 브랜치 하나, 최종 커밋 하나, Draft PR 하나를 사용한다. 주차 범위가 완료되는 즉시 후보 커밋을 만들고 자동 리뷰를 실행한다. Critical/High 수정은 같은 커밋을 amend한 뒤 `--force-with-lease`로 갱신한다. Medium/Low는 로컬 리뷰 이력만 남긴다. CI·리뷰 통과 후 **Rebase and merge**하며, 병합 직후 최신 `main`에서 전체 검증과 smoke test가 통과해야 주차를 완료 처리한다.
 
+### 방향 전환 후 추가 구현 일정 — 키워드 뉴스 v2
+
+기존 3주 일정과 완료 이력은 기준선으로 보존하고 다음 세 PR을 순서대로 진행한다. 각 PR은 앞 PR의 Rebase and merge와 병합 후 검증이 끝난 최신 `main`에서 시작한다.
+
+| 순서 | 브랜치·PR 단위 | 구현 내용 | 완료 기준 |
+|---|---|---|---|
+| 1 | `codex/v2-gdelt-collection` | GDELT adapter, 국가별 query config, 100건 이상 fixture, 150/250 수집·편중 기준 | mock·fixture 기본 CI, 제한적 live에서 국가별 100건 이상 또는 원인 있는 partial |
+| 2 | `codex/v2-keyword-pipeline` | 언어별 명사·복합명사, 불용어, 동의어 통합, 결정적 TOP 5, 관련 기사 연결 | 국가별 100건 fixture에서 일반어 제외·복합명사·근거·순위 회귀 통과 |
+| 3 | `codex/v2-schema-pages-ui` | Schema/API/data v2, DataSource migration, 키워드 상세·관련 기사 최대 20건, Pages artifact | v1 보존, v2 producer/client 동시 전환, UI·전체·Pages smoke test 통과 |
+
+배포 오류 대응은 위 기능 PR과 섞지 않는다. GDELT 이용조건·query 편향·형태소 분석 library 선택이 구현 중 바뀌면 ADR을 갱신한다.
+
 ### 후속 선택 일정 — VPS/EC2 전환
 
 | 영업일 | 개발·운영 내용 | 완료 기준 |
@@ -954,6 +977,10 @@ v0.6.0 웹 기반과 전체 파이프라인
 v0.7.0 반응형 웹 핵심 UI
 v0.8.0 오프라인과 안정화
 v0.9.0 공개 웹 배포와 운영 검증
+v0.9.1 키워드 뉴스 v2 설계 확정
+v0.10.0 GDELT 대량 수집과 100건 이상 fixture
+v0.11.0 언어별 키워드 TOP 5 파이프라인
+v0.12.0 Schema v2와 관련 기사 웹 전환
 v1.0.0 첫 공개 릴리스
 ```
 
