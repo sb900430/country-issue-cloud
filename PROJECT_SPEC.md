@@ -711,7 +711,7 @@ deploy/
 - 1차 Pages 배포는 공식 Pages artifact 방식으로 수행하며 생성 JSON을 `main`에 자동 커밋하지 않는다.
 - PR은 mock·fixture로만 검증하고, 실제 뉴스·LLM Secret은 보호된 예약/수동 운영 workflow에서만 사용한다.
 - 생성과 Schema 검증이 실패하면 기존 Pages 배포를 유지하고 실패한 artifact를 게시하지 않는다.
-- GitHub Pages 내부 대기열 지연을 고려해 deploy job은 최대 25분, `deploy-pages` 내부 대기는 최대 20분으로 제한한다. 같은 배포의 수동 중복 실행은 피하고 제한 종료 후 원인을 확인한 뒤 한 번만 재시도한다.
+- 공식 `actions/deploy-pages@v4`의 내부 대기 상한인 10분에 맞춰 deploy job도 최대 10분으로 제한한다. `deployment_queued` 상태로 제한이 끝나면 기존 정상 Pages 배포를 유지하고, GitHub Pages 상태와 실행 로그를 확인한 뒤 시간을 두고 수동으로 한 번만 재시도한다. 같은 commit의 즉시 중복 실행과 대체 배포 방식 전환은 하지 않는다.
 - Pages artifact에는 최근 7일의 공개 가능 JSON, 정적 웹, 정책 페이지만 포함한다.
 - VPS/EC2 후속 배포는 최초 설정과 반복 배포를 분리하고 `/health`, `/ready`, 롤백과 최근 2개 릴리스 보관을 적용한다.
 
