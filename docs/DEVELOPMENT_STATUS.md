@@ -3,12 +3,12 @@
 | 항목 | 현재 상태 |
 |---|---|
 | 현재 목표 | 3주차 — 반응형 웹·GitHub Pages MVP |
-| 상태 | 3주차 구현·전체 검증 완료 — 후보 커밋·완료 리뷰 대기 |
+| 상태 | 3주차 병합 완료 — Pages 출력 경로 수정·검증 완료 |
 | 기준 브랜치 | `main` |
-| 작업 브랜치 | `codex/week-03-pages-mvp` |
-| 마지막 완료 커밋 | `be4af98` — 2주차 PR #8 Rebase and merge |
-| 전체 검증 | PASS — Python 62개·웹 6개·Ruff·mypy·Secret·명세·Pages artifact |
-| 다음 작업 | 주차 완료 후보 커밋과 즉시 완료 리뷰 |
+| 작업 브랜치 | `codex/post-merge-fix-week-03` |
+| 마지막 완료 커밋 | `6bee3b9` — 3주차 PR #9 Rebase and merge |
+| 전체 검증 | PASS — `dist/site` artifact·Python 62개·웹 6개·Ruff·mypy·Secret·명세 |
+| 다음 작업 | 병합 후 수정 Draft PR 생성과 CI 확인 |
 
 ## 3주차 진행 결과
 
@@ -24,6 +24,7 @@
 - 매일 16:00 JST/KST 실제 RSS를 검증·게시하는 Pages workflow와 실패 시 기존 배포 유지 구조를 구현했다.
 - 출처·보관·개인정보·문의 페이지와 로컬 fixture preview 절차를 추가했다.
 - 완료 리뷰 High 두 건인 Pages 출력 경로 보호와 보조 RSS 순위 가중치를 수정·재검증했다.
+- PR #9 병합 후 GitHub Runner 임시 경로가 안전 검사에서 차단되어, 저장소 내부 `dist/site`를 Pages artifact 출력 경로로 사용하도록 병합 후 수정을 완료했다.
 
 ## 2주차 진행 결과
 

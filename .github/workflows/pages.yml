@@ -75,12 +75,12 @@ jobs:
 
       - name: Build validated Pages artifact
         shell: pwsh
-        run: .\scripts\build-pages-site.ps1 -Mode "${{ steps.mode.outputs.value }}" -OutputDirectory "${{ runner.temp }}\site"
+        run: .\scripts\build-pages-site.ps1 -Mode "${{ steps.mode.outputs.value }}" -OutputDirectory "${{ github.workspace }}\dist\site"
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4
         with:
-          path: ${{ runner.temp }}\site
+          path: ${{ github.workspace }}\dist\site
 
   deploy:
     needs: build

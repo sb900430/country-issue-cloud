@@ -3,12 +3,12 @@
 | 項目 | 現在状態 |
 |---|---|
 | 現在目標 | 3週目 — responsive Web・GitHub Pages MVP |
-| 状態 | 3週目実装・全検証完了 — 候補commit・完了review待ち |
+| 状態 | 3週目merge完了 — Pages出力path修正・検証完了 |
 | 基準branch | `main` |
-| 作業branch | `codex/week-03-pages-mvp` |
-| 最終完了commit | `be4af98` — 2週目PR #8 Rebase and merge |
-| 全体検証 | PASS — Python 62件・Web 6件・Ruff・mypy・Secret・仕様・Pages artifact |
-| 次作業 | 週完了候補commitと即時完了review |
+| 作業branch | `codex/post-merge-fix-week-03` |
+| 最終完了commit | `6bee3b9` — 3週目PR #9 Rebase and merge |
+| 全体検証 | PASS — `dist/site` artifact・Python 62件・Web 6件・Ruff・mypy・Secret・仕様 |
+| 次作業 | merge後修正Draft PR作成とCI確認 |
 
 ## 3週目の進行結果
 
@@ -24,6 +24,7 @@
 - 毎日16:00 JST/KSTに実RSSを検証・公開するPages workflowと、失敗時に既存配布を維持する構造を実装した。
 - 出典・保存・privacy・問い合わせpageとlocal fixture preview手順を追加した。
 - 完了review High 2件であるPages出力path保護と補助RSS順位weightを修正・再検証した。
+- PR #9 merge後、GitHub Runnerの一時pathが安全検査で遮断されたため、repository内の`dist/site`をPages artifact出力pathとして使うmerge後修正を完了した。
 
 ## 2週目の進行結果
 
