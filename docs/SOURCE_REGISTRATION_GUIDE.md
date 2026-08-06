@@ -1,19 +1,44 @@
 # 조건부 소스 등록·활성화 설명서 / 条件付きソース登録・有効化ガイド
 
-이 문서는 `config/sources.example.yml`에서 기본 비활성인 BEA API와 e-Stat API를 안전하게 활성화하기 위한 운영 절차다. 등록이 끝났다는 이유만으로 즉시 `enabled: true`로 바꾸지 않는다. 자격정보 보관, 어댑터 구현, 제한된 실연동 검증까지 모두 통과한 뒤 활성화한다.
+이 문서는 키워드 중심 뉴스 파이프라인의 주 소스인 GDELT DOC API 운영 기준과 `config/sources.example.yml`에서 기본 비활성인 BEA API·e-Stat API의 안전한 활성화 절차를 정의한다. GDELT는 별도 Secret 없이 사용하지만 adapter·query·attribution 검증 전에는 운영 소스로 전환하지 않는다. 등록형 API도 자격정보 보관, adapter 구현, 제한된 실연동 검증까지 모두 통과한 뒤 활성화한다.
 
-本書は、`config/sources.example.yml`で標準無効となっているBEA APIとe-Stat APIを安全に有効化するための運用手順である。登録完了だけで直ちに`enabled: true`へ変更しない。認証情報の保管、adapter実装、制限付き実接続検証まで全て通過した後に有効化する。
+本書は、keyword中心news pipelineの主sourceであるGDELT DOC APIの運用基準と、`config/sources.example.yml`で標準無効のBEA API・e-Stat APIを安全に有効化する手順を定義する。GDELTはSecret不要だが、adapter・query・attribution検証前に本番sourceへ切り替えない。登録型APIも資格情報保管、adapter実装、制限付き実接続検証を全て通過した後に有効化する。
 
 ## 1. 한눈에 보는 준비 상태 / 準備状態一覧
 
 | Source | 사용자가 해야 할 일 / 利用者が行うこと | 저장할 값 / 保存値 | 현재 코드 상태 / 現在のコード状態 | 활성화 조건 / 有効化条件 |
 |---|---|---|---|---|
+| GDELT DOC API (US/JP/KR) | 별도 등록 없음, attribution·이용조건 확인 / 登録不要、attribution・利用条件確認 | 없음 / なし | 전용 adapter 미구현 / 専用adapter未実装 | 국가 filter·fixture·100건 이상 실연동·출처표시 검증 / 国filter・fixture・100件以上実接続・出典表示検証 |
 | BEA API (US) | 이메일로 API key 신청, 약관 동의 / emailでAPI key申請、規約同意 | `BEA_API_KEY` | 전용 API adapter 미구현 / 専用API adapter未実装 | key 등록 + adapter·fixture·실연동 검증 / key登録 + adapter・fixture・実接続検証 |
 | e-Stat API (JP) | 이용자 등록 후 Application ID 발급 / 利用者登録後Application ID発行 | `E_STAT_APP_ID` | 전용 API adapter 미구현 / 専用API adapter未実装 | app ID 등록 + 출처표시 + adapter·검증 / app ID登録 + 出典表示 + adapter・検証 |
 
 등록과 승인은 사용자 명의·이메일·약관 동의가 필요하므로 Codex가 대신 수행하지 않는다. 비용 정책과 약관은 바뀔 수 있으므로 실제 등록일에 공식 페이지를 다시 확인한다.
 
 登録と承認には利用者本人の氏名・email・規約同意が必要なため、Codexは代理で実施しない。料金方針と規約は変更される可能性があるため、実際の登録日に公式pageを再確認する。
+
+## 1.1 GDELT 주 소스 전환 / GDELT主source移行
+
+공식 자료: [GDELT Project](https://www.gdeltproject.org/), [DOC 2.0 API](https://blog.gdeltproject.org/gdelt-doc-2-0-api-debuts/)
+
+- 국가별로 `sourcecountry`와 `sourcelang`을 함께 적용하고 직전 24시간 Article List를 최대 250건 요청한다.
+- 경제 범위 query는 설정 파일에서 version 관리하며, 동일한 기준일에는 결정적으로 재현할 수 있어야 한다.
+- 특정 기업·사건을 미리 검색어로 넣어 TOP 5를 유도하지 않고, 넓은 경제 주제 묶음과 제외어를 사용한다.
+- 응답의 title, URL, domain/publisher, source country, language, publication time 등 공개 metadata만 수집한다.
+- 기사 본문과 이미지를 대상 언론사에서 추가 crawl하지 않는다.
+- URL·정규화 title·유사도 순으로 GDELT 내부 및 보조 RSS와 중복 제거한다.
+- 국가별 중복 제거 후 150건을 목표로 하며 100건 이상을 정상, 50~99건을 부분 성공으로 처리한다.
+- 공개 화면과 프로젝트 정보에 `Data source: GDELT Project`와 공식 site link를 표시한다.
+- 호출 timeout, 제한된 1회 retry, query별 기사 수, 응답 지연과 HTTP 상태를 기록하되 원문 응답 전체는 log에 남기지 않는다.
+
+- 国別に`sourcecountry`と`sourcelang`を同時適用し、直前24時間のArticle Listを最大250件要求する。
+- 経済範囲queryは設定fileでversion管理し、同じ基準日には決定的に再現可能とする。
+- 特定企業・事件を事前に検索語へ入れてTOP 5を誘導せず、広い経済topic群と除外語を使う。
+- responseのtitle、URL、domain/publisher、source country、language、publication timeなど公開metadataだけを収集する。
+- 記事本文と画像を対象報道機関から追加crawlしない。
+- URL・正規化title・類似度順でGDELT内部および補助RSSと重複排除する。
+- 国別重複排除後150件を目標とし、100件以上を正常、50～99件を部分成功として扱う。
+- 公開画面とproject情報に`Data source: GDELT Project`と公式site linkを表示する。
+- request timeout、制限付き1回retry、query別記事数、response遅延、HTTP statusを記録し、raw response全体はlogへ残さない。
 
 ## 2. 공통 Secret 보관 절차 / 共通Secret保管手順
 

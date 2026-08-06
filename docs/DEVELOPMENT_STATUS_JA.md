@@ -2,13 +2,22 @@
 
 | 項目 | 現在状態 |
 |---|---|
-| 現在目標 | 3週目 — responsive Web・GitHub Pages MVP |
-| 状態 | 3週目merge完了 — 新SHAによるPages再配布準備 |
+| 現在目標 | keyword news v2 — 国別100件以上の経済newsに基づくTOP 5 |
+| 状態 | 方針変更設計・関連文書更新中、実装未着手 |
 | 基準branch | `main` |
-| 作業branch | `codex/post-merge-fix-week-03-pages-redeploy-sha` |
-| 最終完了commit | `46574a8` — Pages 10分上限復旧PR #15 Rebase and merge |
+| 作業branch | `codex/keyword-news-redesign-docs` |
+| 最終完了commit | `f278c52` — 新SHA再配布準備PR #16 Rebase and merge |
 | 全体検証 | PASS — Python 62件・Web 8件・Ruff・mypy・Secret・仕様同期 |
-| 次作業 | 運用状態文書PRのmergeで新しいmain SHAを生成し、Pages自動配布を確認 |
+| 次作業 | 文書PR merge後、GDELT adapter・国別100件以上fixture実装branchを開始 |
+
+## keyword news v2決定
+
+- GDELT DOC APIを国別主source、既存公共RSS/APIを補助sourceへ変更する。
+- 重複排除後の国別150件を目標、最大250件、正常100件以上、部分成功50～99件とする。
+- 言語別名詞・複合名詞抽出とstopword除外後、LLMは同義語・表示名統合だけを行う。
+- document frequencyと媒体多様性でkeyword TOP 5を決め、keyword別関連記事を最大20件提供する。
+- 既存v1の意味を維持し、Schema/API/静的JSONをv2として一緒に移行する。
+- 詳細根拠と実装順序は`docs/adr/ADR-0001-keyword-news-pipeline.md`に従う。
 
 ## 3週目の進行結果
 

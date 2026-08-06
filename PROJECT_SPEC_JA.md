@@ -19,7 +19,7 @@
 
 ## 1. プロジェクト概要
 
-毎日、米国・日本・韓国の経済ニュースを国別に独立収集する。各国内で意味の近い記事や表現を一つのイシューにまとめ、ユニーク記事数と媒体の多様性を基準に国別TOP 5を計算する。利用者は同じ日付に各国が何を重要視したかを国タブで切り替えて確認する。
+毎日、米国・日本・韓国の報道機関の経済ニュースを国別に150件収集することを目標とし、最大250件まで独立収集する。titleと提供された短いsummaryから反復出現する名詞・複合名詞候補を抽出し、同義表現を一つのkeywordへまとめて、ユニーク記事数と媒体多様性に基づく国別keyword TOP 5を計算する。利用者はkeywordから該当keywordの根拠記事一覧を確認する。
 
 本プロジェクトは、次を目的とする非商用ポートフォリオである。
 
@@ -28,13 +28,13 @@
 3. データが毎日更新されるサービスを実運用する。
 4. 多言語処理、LLM構造化出力、バッチ/API分離、Webアクセシビリティ・キャッシュ、CI/CDの能力を示す。
 
-Androidアプリは廃止しない。Web MVPと公開URLの安定化後に、同じ`/api/v1`契約を利用する後続の選択トラックとして保留する。現在のローカルMVPと初回公開範囲にはAndroid実装・Google Play配布を含めない。
+Androidアプリは廃止しない。keyword中心Webと公開URLの安定化後に、`/api/v2`契約を利用する後続の選択トラックとして保留する。現在のローカルMVPと初回公開範囲にはAndroid実装・Google Play配布を含めない。
 
 ### 利用者価値
 
 - 同じ日付の3か国の経済的関心を素早く比較できる。
-- 単語頻度ではなく、類似表現を意味単位にまとめたイシューを確認できる。
-- 記事数、媒体数、代表出典から選定根拠を確認できる。
+- 一般語を除外し、類似表現をまとめた意味ある単語・複合名詞keywordを確認できる。
+- 記事数、媒体数、最大20件の関連記事から選定根拠を確認できる。
 - オフラインでも最後に正常取得した結果を確認できる。
 
 ### 対象外
@@ -63,13 +63,14 @@ Androidアプリは廃止しない。Web MVPと公開URLの安定化後に、同
 | Pages・公開JSON可用性の内部目標 | 99%以上 |
 | 静的JSON応答時間目標 | 500ms以内 |
 | 最終正常データ | 48時間以内 |
-| 国別の正常推奨サンプル | 30件以上 |
-| 国別の公開可能サンプル | 15件以上 |
-| イシュー抽出成功率 | 80%以上 |
+| 国別収集目標 | 重複排除後150件 |
+| 国別正常サンプル | 100件以上 |
+| 国別部分成功サンプル | 50～99件 |
+| keyword処理成功率 | 80%以上 |
 
 ### 初回リリースに含むもの
 
-- 国別収集、整形、重複排除、イシュークラスタリング、TOP 5
+- GDELT中心の国別ニュース収集、整形、重複排除、言語別keyword抽出・clustering、TOP 5
 - 直近7日分のJSON公開、ローカル・後続用FastAPIと共通Schema
 - レスポンシブWebのタイル/クラウド、詳細、ブラウザキャッシュ
 - 部分成功、遅延、メンテナンス、エラー状態
@@ -88,9 +89,9 @@ Androidアプリは廃止しない。Web MVPと公開URLの安定化後に、同
 ## 3. 基本原則
 
 ```text
-米国の経済ニュース全体 → 米国イシューTOP 5
-日本の経済ニュース全体 → 日本イシューTOP 5
-韓国の経済ニュース全体 → 韓国イシューTOP 5
+米国経済ニュース150件目標 → 米国keyword TOP 5 → keyword別関連記事
+日本経済ニュース150件目標 → 日本keyword TOP 5 → keyword別関連記事
+韓国経済ニュース150件目標 → 韓国keyword TOP 5 → keyword別関連記事
 ```
 
 - 共通テーマを先に決めて3か国で検索しない。
@@ -98,7 +99,7 @@ Androidアプリは廃止しない。Web MVPと公開URLの安定化後に、同
 - イシュー名は原語を基準とし、米国・日本には韓国語補助名を付けられる。
 - 補助翻訳は集計・順位に使わない。
 - 記事にない表現を根拠として生成しない。
-- LLMは抽出とクラスタリングのみを担当する。
+- 言語別分析器が名詞・2～3語の複合名詞候補を抽出し、LLMは候補外表現を作らず同義語統合と表示名整理だけを担当する。
 - 順位はユニーク記事数、ユニーク媒体数、最新時刻、`issue_id`の順でコードが計算する。
 - 公式APIまたは公開RSSのみを使用し、本文全体と画像を保存しない。
 - APIとバッチは相互の実行モジュールをimportせず、公開JSONだけで通信する。
@@ -110,11 +111,11 @@ Androidアプリは廃止しない。Web MVPと公開URLの安定化後に、同
 
 | ID | 機能 | 説明 |
 |---|---|---|
-| F-01 | 国別収集 | 国別に最大100件の経済ニュースを独立収集 |
+| F-01 | 国別収集 | GDELT主sourceから国別150件目標・最大250件の経済ニュースを独立収集 |
 | F-02 | 整形・重複排除 | URL、タイトル、類似度で国内重複を排除 |
-| F-03 | イシュー抽出 | LLMで経済イシュー候補を抽出 |
-| F-04 | クラスタリング | 国内の類似表現と記事を統合 |
-| F-05 | TOP 5 | 記事数と媒体数で順位算出 |
+| F-03 | keyword抽出 | 英語・日本語・韓国語別の名詞と2～3語複合名詞候補を抽出し、一般語を除外 |
+| F-04 | keyword統合 | 国内の同義語・表記揺れを根拠表現内で統合 |
+| F-05 | TOP 5 | keyword別ユニーク記事数と媒体数で決定的順位を算出 |
 | F-06 | 結果保存 | 日付JSONとlatestをアトミック保存 |
 | F-07 | 品質レビュー | サンプル、偏り、抽出率、ラベルを点検 |
 | F-08 | 障害レポート | 原因、影響、改善案、スタックを記録 |
@@ -123,7 +124,7 @@ Androidアプリは廃止しない。Web MVPと公開URLの安定化後に、同
 | F-11 | 日付照会 | 直近7日間の利用可能日を提供 |
 | F-12 | 国切替 | 同一日付の国別結果を即時切替 |
 | F-13 | イシュー可視化 | TOP 5を基本タイル型またはクラウド型で切替表示 |
-| F-14 | 詳細 | 統計、代表記事、原文リンク |
+| F-14 | 詳細 | keyword統計、関連記事最大20件、原文リンク |
 | F-15 | オフライン | ブラウザキャッシュで最後の正常結果を表示 |
 | F-16 | サービス設定 | メンテナンス、バージョン、告知、ポリシーURL |
 | F-17 | 状態 | 最新データと国別状態を提供 |
@@ -140,32 +141,35 @@ Androidアプリは廃止しない。Web MVPと公開URLの安定化後に、同
 
 | 区分 | 基準 |
 |---|---:|
-| 国別目標 | 最大100件 |
-| 正常推奨数 | 30件以上 |
-| 公開最小数 | 15件以上 |
-| 単一媒体の最大反映 | 20件推奨 |
-| 媒体偏重警告 | 40%超 |
-| 重大な偏重 | 60%超 |
+| 国別目標 | 重複排除後150件 |
+| 国別最大数 | 250件 |
+| 正常 | 100件以上、keyword 3件以上 |
+| 部分成功 | 50～99件、keyword 1件以上 |
+| 単一媒体の最大反映 | 収集結果の20%または30件の小さい方 |
+| 媒体偏重警告 | 30%超 |
+| 重大な偏重 | 50%超 |
 
-100件への到達より適法性と透明性を優先し、実際の記事数をアプリに表示する。
+100件以上を正常目標とするが適法性と透明性を優先し、実際の収集・重複排除後の記事数を画面に表示する。100件を満たすため24時間範囲を任意に延長しない。
 
 ### 出典ポリシー
 
-- NewsAPI無料プランはローカル開発・テストにのみ使う。
-- 運用では公式RSSまたは運用利用が許可された公開APIのみ使う。
-- 国別に最低2つの出典を目標とする。
-- 日次公式発表量を考慮し、国別5件以上を部分成功、15件以上を完全成功の収集基準として使う。
-- 登録sourceは公式RSS・公共APIのみを使用し、民間news HTMLと政策ブリーフィングの終了済みRSSは使用しない。
+- 主sourceはGDELT Project DOC APIのArticle Listとし、`sourcecountry`、`sourcelang`、直前24時間、`maxrecords=250`を国別に独立適用する。
+- 経済範囲はversion管理された国別経済topic query群で制限し、query別収集量と偏りを記録する。特定企業・事件名を事前投入して結果を誘導しない。
+- 既存の中央銀行・政府機関RSSと条件付き公共APIは補助sourceとして維持し、主source結果とまとめて重複排除する。
+- NewsAPI無料planはlocal開発・比較評価だけで使い、本番依存にしない。
+- 報道機関pageのHTMLと記事本文は直接crawlせず、提供API/RSSのtitle・短いsummary・URL・媒体・公開時刻だけを使う。
+- GDELT利用結果にはGDELT Project名と公式site linkを表示する。
 - ソースごとの利用条件確認日と許可フィールドを設定へ記録する。
 - 利用条件は90日ごとに再確認し、承認・登録・app IDが必要なsourceは確認前に無効とする。
 
 ```yaml
-US: Federal Reserve RSS；BLS RSSは自動request 403のため無効、BEA APIは登録後に有効化
-JP: BOJ RSS；METI Atomは更新停止のため無効、e-Stat APIはapp ID登録後に有効化
-KR: 韓国銀行RSS、金融委員会の報道資料・報道説明RSS、中小ベンチャー企業部の報道資料RSS
+ALL: GDELT DOC API Article Listを国別主sourceとして使用
+US supplementary: Federal Reserve RSS；BLS RSS無効、BEA API条件付き
+JP supplementary: BOJ RSS；METI Atom無効、e-Stat API条件付き
+KR supplementary: 韓国銀行・金融委員会・中小ベンチャー企業部RSS
 ```
 
-基本許可fieldはRSSが直接提供するtitle・短いsummary・原文URL・媒体・公開時刻とする。BOJ・BOK・金融委員会・中小ベンチャー企業部は保守的にtitle・URL・媒体・公開時刻だけを使う。金融委員会の報道説明RSSは一般報道資料を補完する補助sourceとして使う。記事本文、PDF・添付file、画像、HTMLを解析したsummaryは収集・再配布しない。実URLと承認状態は`config/sources.example.yml`を基準とし、条件付き無効sourceの登録・承認・Secret・検証手順は`docs/SOURCE_REGISTRATION_GUIDE.md`に従う。
+GDELTとRSSが直接提供するtitle・短いsummary・原文URL・媒体・公開時刻だけを許可する。記事本文、PDF・添付file、画像、HTMLを解析したsummaryは収集・再配布しない。GDELT dataは派生keywordと最小記事metadataだけを直近7日保管し、公式attributionを提供する。実endpoint、query version、承認状態は`config/sources.example.yml`を基準とし、詳細手順は`docs/SOURCE_REGISTRATION_GUIDE.md`に従う。
 
 ### 重複排除
 
@@ -173,20 +177,24 @@ KR: 韓国銀行RSS、金融委員会の報道資料・報道説明RSS、中小�
 2. HTML・空白・句読点・大小文字を正規化したタイトルの一致
 3. タイトル類似度0.92以上、公開時刻差6時間以内
 
-代表記事は、タイトル・要約の存在、有効時刻、HTTPSリンク、早い公開時刻の順で選ぶ。
+関連記事一覧はkeyword根拠がtitle・提供summaryに実在する記事だけを含め、ユニーク媒体多様性・新しさ・HTTPS link順で最大20件を選ぶ。
 
 ---
 
-## 6. LLMと集計
+## 6. keyword分析、LLMと集計
 
-LLMは翻訳ワードクラウドを作るためではなく、一国内の類似した出来事を意味単位でまとめるために使う。
+言語別分析器はtitleと提供summaryから名詞・固有名詞・2～3語の複合名詞を抽出する。韓国語はKiwi系、日本語はSudachiPy、英語は名詞句分析器を基本候補として検証し、最終libraryは実装時のADRで確定する。`経済`、`市場`、`政府`のような識別力の低い一般語と国別stopwordをversion管理する。
+
+同一記事で一つのkeywordが複数回出現してもdocument frequencyは1件と数える。生の出現回数だけで順位を決めず、転載・類似記事と単一媒体集中を先に除外する。
+
+LLMは翻訳word cloudを作るものではなく、分析器が抽出した候補内で一国内の同義語・表記揺れを統合し、1～3語の表示名を整理する限定的なtoolである。
 
 ```text
 基準金利据え置き / 金融通貨委員会の金利決定 / 韓国銀行の金融政策
 → 基準金利据え置き
 ```
 
-LLMはイシュー候補、国内クラスタ、原語ラベル、韓国語補助名、構造化JSONを生成する。国をまたぐ統合、順位決定、投資判断は行わない。
+LLMは国内候補cluster、原語keyword、韓国語補助名、構造化JSONを生成する。入力候補外の表現生成、国をまたぐ統合、順位決定、投資判断は行わない。
 
 ```json
 {
@@ -208,14 +216,15 @@ LLMはイシュー候補、国内クラスタ、原語ラベル、韓国語補�
 - 月額USD 10上限、USD 5相当で警告
 
 ```text
-article_count   = イシューのユニーク記事数
-publisher_count = イシューのユニーク媒体数
-article_ratio   = イシュー記事数 / 国の有効記事数
+document_frequency = keywordが1回以上出現したユニーク記事数
+publisher_count    = keyword関連のユニーク媒体数
+article_ratio      = document_frequency / 国の有効記事数
+keyword_score      = document_frequency優先、publisher_count・最新時刻・keyword_id順で同順位解消
 ```
 
-`success`：記事30件以上、LLM成功率80%以上、イシュー3件以上。
+`success`：記事100件以上、keyword処理成功率80%以上、keyword 3件以上。
 
-`partial_success`：記事15件以上、LLM成功率70%以上、イシュー1件以上。
+`partial_success`：記事50～99件、keyword処理成功率70%以上、keyword 1件以上。
 
 最低2か国が公開可能な場合に日付結果を保存し、失敗実行では`latest.json`を変更しない。
 
@@ -225,24 +234,25 @@ article_ratio   = イシュー記事数 / 国の有効記事数
 
 ```json
 {
-  "schema_version": "1.0",
+  "schema_version": "2.0",
   "date": "2026-07-29",
   "generated_at": "2026-07-29T08:10:00+09:00",
   "status": "success",
   "countries": {
     "US": {
       "status": "success",
-      "article_count": 72,
+      "article_count": 137,
       "extraction_success_rate": 0.95,
-      "top_issues": [{
+      "top_keywords": [{
         "rank": 1,
-        "issue_id": "us_fed_rate_outlook",
-        "issue_label": "Fed interest rate outlook",
-        "display_label_ko": "연준 기준금리 전망",
-        "article_count": 18,
-        "publisher_count": 8,
-        "article_ratio": 0.25,
-        "representative_articles": [{
+        "keyword_id": "us_semiconductor",
+        "keyword_label": "semiconductor",
+        "display_label_ko": "반도체",
+        "document_frequency": 31,
+        "publisher_count": 14,
+        "article_ratio": 0.226,
+        "evidence_expressions": ["semiconductor", "chip industry"],
+        "related_articles": [{
           "title": "Example title",
           "publisher": "Example Publisher",
           "published_at": "2026-07-28T21:20:00Z",
@@ -283,7 +293,7 @@ reports/
 
 ## 8. API設計
 
-論理API契約の基本pathは`/api/v1`とする。ローカルと後続VPS/EC2ではFastAPI endpointとして提供し、GitHub Pagesの初回運用では同じresponse Schemaを`data/v1/.../*.json`静的pathへ公開する。Web UIはpathを直接参照せずDataSource interfaceを使う。
+keyword中心契約は既存イシュー中心`/api/v1`のfield意味を変更せず、`/api/v2`と`data/v2`として追加する。実装前はv1を継続提供し、producer・Static/API DataSource・Webを同一PRでv2へ切り替え、互換期間中はv1を維持する。Web UIはpathを直接参照せずDataSource interfaceを使う。
 
 | Method | Path | 説明 |
 |---|---|---|
@@ -325,7 +335,7 @@ reports/
 | 保存 | localStorage（表示設定）、Cache APIまたはIndexedDB（直近の正常応答） |
 | 対応環境 | 最新Chrome、Edge、Safari、Firefoxのmobile・desktop |
 | 初回配布 | GitHub Pagesが静的Webと生成JSONを同じHTTPS originで提供 |
-| 後続配布 | 設定でVPS/EC2 FastAPI `/api/v1`を選択し、必要時にCORS適用 |
+| 後続配布 | 設定でVPS/EC2 FastAPI `/api/v2`を選択し、必要時にCORS適用 |
 | Android | 公開Web安定化後に再検討する保留track |
 
 ### コードコメントの言語
@@ -340,7 +350,7 @@ reports/
 
 1. 初期ローディング
 2. イシュークラウドホーム
-3. イシュー詳細と代表記事
+3. keyword詳細と関連記事
 4. プロジェクト情報
 5. プライバシーポリシー/問い合わせ
 6. オープンソースライセンス
@@ -363,11 +373,11 @@ TOP 5は一つの可視化領域だけで提供し、同じ5件を下部リス�
 | 共通タイトル | `今日のイシューTOP 5` |
 | 共通情報 | 分析記事数とデータ生成/更新時刻 |
 | 下部領域 | 最終更新時刻と更新ボタンのみ |
-| 詳細遷移 | タイルまたはクラウドのキーワードから同一の詳細画面へ遷移 |
+| 詳細遷移 | タイルまたはクラウドのkeywordから同一keyword詳細と関連記事一覧へ遷移 |
 
-タイル型は順位、イシュー名、記事数を各タイルに表示する。1位を最大とし、残りは重要度でサイズと明度を変える。タイル全体をタッチ領域とする。
+タイル型は順位、keyword、関連ユニーク記事数を各タイルに表示する。1位を最大とし、残りは重要度でサイズと明度を変える。タイル全体をタッチ領域とする。
 
-クラウド型は同じTOP 5を横書きで配置し、`article_ratio`で文字サイズと明度を変える。回転・重なりを避け、キーワードから関連記事を開ける案内を表示する。順位と正確な記事数はアクセシビリティ説明と詳細画面で確認できるようにする。
+クラウド型は同じkeyword TOP 5を横書きで配置し、`article_ratio`で文字サイズと明度を変える。回転・重なりを避け、keywordから関連記事を開ける案内を表示する。詳細画面はkeyword根拠表現、ユニーク記事・媒体数、最新順の関連記事最大20件を提供する。
 
 表示切替ではデータ再取得・再集計を行わず、同一Web状態を別DOMコンポーネントで描画する。国・日付・ロード・エラー状態とスクロール位置を維持する。
 
@@ -390,7 +400,7 @@ IssueHomePage
 
 - `android/` directoryとAndroid設計記録は削除せず、保留状態で維持する。
 - 現在のWeb MVPではAndroid実装、SDK導入、Emulator検証、AAB生成、Google Play提出を完了条件にしない。
-- 公開URLとWeb APIの安定化後、ユーザーが再開を決定した場合は同じ`/api/v1`契約とUI動作を再利用する。
+- 公開URLとWeb APIの安定化後、ユーザーが再開を決定した場合は同じ`/api/v2`契約とUI動作を再利用する。
 - 再開時にKotlin、Compose、Retrofit、Room、DataStore候補を再検証し、別途ADR・日程・費用・Play policyを確定する。
 
 ### クラウドルール
@@ -440,7 +450,7 @@ country-issue-cloud/
 │   │   ├── issue-data-source.js
 │   │   ├── static-json-data-source.js
 │   │   └── api-data-source.js
-│   └── public/data/v1/
+│   └── public/data/v2/
 ├── config/
 ├── deploy/
 ├── docs/
@@ -476,7 +486,7 @@ save(result)
 delete_expired(retention_days)
 ```
 
-JSONをSQLite/PostgreSQLへ変更してもRouter、Service、Web API契約、保留中のAndroid API契約を維持する。正式Web UIは静的HTML/CSS/Vanilla JSで作り、DataSourceに関係なく同じresponse Schemaと状態定義を使う。標準設定は`DATA_MODE=static`、`DATA_BASE_URL=./data/v1`で、後続serverでは`DATA_MODE=api`、`API_BASE_URL=https://.../api/v1`へ切り替える。mobile-first responsive layout、アクセントカラー一色、簡潔なクラウドデザインを適用する。生成した運用JSONはPages配布artifactへ含めるがsource branchへcommitしない。
+JSONをSQLite/PostgreSQLへ変更してもRouter、Service、Web API契約、保留中のAndroid API契約を維持する。正式Web UIは静的HTML/CSS/Vanilla JSで作り、DataSourceに関係なく同じresponse Schemaと状態定義を使う。keyword移行後の標準設定は`DATA_MODE=static`、`DATA_BASE_URL=./data/v2`で、後続serverでは`DATA_MODE=api`、`API_BASE_URL=https://.../api/v2`へ切り替える。mobile-first responsive layout、アクセントカラー一色、簡潔なクラウドデザインを適用する。生成した運用JSONはPages配布artifactへ含めるがsource branchへcommitしない。
 
 ---
 
@@ -487,16 +497,17 @@ JSONをSQLite/PostgreSQLへ変更してもRouter、Service、Web API契約、保
 2. 設定とソース確認
 3. US/JP/KR並列収集
 4. 国別整形・重複排除
-5. 国別LLMイシュー抽出
-6. 国別クラスタリング
-7. 国別TOP 5集計
-8. 品質レビュー
-9. 公開条件判定
-10. 一時JSON作成・検証
-11. 日付ファイルをアトミック置換
-12. latest.json更新
-13. 期限切れデータ削除
-14. 実行要約とlock解除
+5. 国別言語分析器によるkeyword候補抽出・stopword除外
+6. 制限付きLLMによる同義語・表示名統合
+7. keyword根拠記事検証
+8. 国別TOP 5集計
+9. 品質レビュー
+10. 公開条件判定
+11. 一時JSON作成・検証
+12. 日付ファイルをアトミック置換
+13. latest.json更新
+14. 期限切れデータ削除
+15. 実行要約とlock解除
 ```
 
 | 時刻 | 処理 |
@@ -637,7 +648,7 @@ review範囲はローカル`reviews/.last-reviewed-sha`から現在`HEAD`まで�
 
 必須検査は仕様同期、diff形式、secret・security、依存関係脆弱性、`scripts/verify-all.ps1`、coverage、正確性・性能・保守性・architectureの順に行う。LLMまたはUI変更時は対応する回帰検査を追加する。性能は同一ローカル環境3回の中央値で、cache API p95 500ms、fixture非cache API p95 1秒、mock 3か国pipeline 60秒を基準とする。
 
-LLM変更時はSchema 100%、入力外article ID・根拠0件、国間混在0件、TOP 5重複0件、順位決定性100%、抽出成功率80%以上を要求する。labelは国別最大5件のsampleで80%以上が受容可能であること。
+keyword分析器・stopword・LLM変更時はSchema 100%、入力外article ID・根拠・候補0件、国間混在0件、TOP 5重複0件、順位決定性100%、処理成功率80%以上を要求する。国別100件以上のfixtureで一般語除外、複合名詞保持、関連記事接続精度を検証し、labelは国別最大5件のsampleで80%以上が受容可能であること。
 
 | 重大度 | 対応 |
 |---|---|
@@ -658,7 +669,7 @@ review最終状態は`PASS`、`PASS_WITH_FINDINGS`、`FAIL`、`BLOCKED`のいず
 初回運用
 GitHub Actions schedule/workflow_dispatch
   → 収集・LLM・集計・Schema検証
-  → 静的Web + data/v1 JSON artifact
+  → 静的Web + data/v2 JSON artifact
   → GitHub Pages HTTPS
 
 後続運用
@@ -720,7 +731,7 @@ logs/
 | Android `BuildConfig`、`strings.xml`、Kotlin source | backend URL、誤入力されたprovider key | 公開可能なURLのみ含める | AAB/APKに含まれる | 外部API/LLM keyとClient Secret禁止 |
 | `google-services.json`、service account JSON | Firebase client設定または管理者credential | 必要時に別経路で共有 | hosting Secret | 原則commit禁止、service accountは絶対禁止 |
 | `.github/workflows/*.yml` | ニュース・LLM・Pages・後続配布credential | `${{ secrets.NAME }}`参照 | GitHub Environment Secrets | 平文値・PR Secret露出禁止 |
-| Pages配布artifact `data/v1/` | 公開issue resultと記事metadata | CI一時workspace | GitHub Pages | 公開可能fieldのみ、Secret・本文・raw log禁止 |
+| Pages配布artifact `data/v2/` | 公開keyword resultと関連記事metadata | CI一時workspace | GitHub Pages | 公開可能fieldのみ、Secret・本文・raw log禁止 |
 | `deploy/`、Docker、systemd設定 | DB password、API key、SSH key | 変数参照のみ保存 | server環境変数・Secret保存先 | 平文値禁止 |
 | `tests/fixtures/`、`sample-data/` | 実responseのtoken、header、執筆者の個人情報 | 匿名化したmock/fixture | 対象外 | 加工dataのみ可 |
 | `logs/`、`data/`、`*.db`、日報・review | 認証header、IP、device情報、raw response | ローカル専用・mask処理 | access制限付き保存先 | raw機密情報のcommit禁止 |
@@ -860,6 +871,18 @@ v* tag → Pages URL検証 → GitHub Release。Android再開後のみAABとPlay
 
 各週はbranch一つ、最終commit一つ、Draft PR一つを使う。週の範囲が完了した直後に候補commitを作り、自動reviewを実行する。Critical/High修正は同じcommitへamendして`--force-with-lease`で更新する。Medium/Lowはローカルreview履歴だけを残す。CI・review通過後に**Rebase and merge**し、merge直後の最新`main`で全検証とsmoke testが成功した場合だけ対象週を完了とする。
 
+### 方針変更後の追加実装日程 — keyword news v2
+
+既存3週日程と完了履歴はbaselineとして維持し、次の3 PRを順番に進める。各PRは前PRのRebase and mergeとmerge後検証が終わった最新`main`から開始する。
+
+| 順序 | branch・PR単位 | 実装内容 | 完了基準 |
+|---|---|---|---|
+| 1 | `codex/v2-gdelt-collection` | GDELT adapter、国別query config、100件以上fixture、150/250収集・偏重基準 | mock・fixture標準CI、制限付きliveで国別100件以上または理由付きpartial |
+| 2 | `codex/v2-keyword-pipeline` | 言語別名詞・複合名詞、stopword、同義語統合、決定的TOP 5、関連記事接続 | 国別100件fixtureで一般語除外・複合名詞・根拠・順位regression通過 |
+| 3 | `codex/v2-schema-pages-ui` | Schema/API/data v2、DataSource migration、keyword詳細・関連記事最大20件、Pages artifact | v1維持、v2 producer/client同時移行、UI・全体・Pages smoke test通過 |
+
+配布障害対応は上記機能PRへ混在させない。GDELT利用条件・query偏り・形態素分析library選定が実装中に変わる場合はADRを更新する。
+
 ### 後続選択日程 — VPS/EC2移行
 
 | 営業日 | 内容 | 完了基準 |
@@ -903,6 +926,10 @@ v0.6.0 Web基盤と全体pipeline
 v0.7.0 Responsive Web主要UI
 v0.8.0 オフラインと安定化
 v0.9.0 公開Web配布と運用検証
+v0.9.1 keyword news v2設計確定
+v0.10.0 GDELT大量収集と100件以上fixture
+v0.11.0 言語別keyword TOP 5 pipeline
+v0.12.0 Schema v2と関連記事Web移行
 v1.0.0 初回公開リリース
 ```
 
