@@ -1,14 +1,19 @@
 # 국가별 이슈 클라우드 / 国別イシュークラウド
 
-미국·일본·한국의 경제뉴스를 국가별로 독립 분석하여 그날의 주요 이슈 TOP 5를 보여주는 Android 및 웹 프로젝트입니다.
+미국·일본·한국의 경제뉴스를 국가별로 독립 분석하여 그날의 주요 이슈 TOP 5를 URL로 보여주는 반응형 웹 프로젝트입니다. Android 앱은 공개 웹 안정화 이후 선택적으로 재개할 수 있도록 보류합니다.
 
-米国・日本・韓国の経済ニュースを国別に独立分析し、その日の主要イシューTOP 5を表示するAndroid・Webプロジェクトです。
+1차 운영은 GitHub Actions가 정적 JSON을 생성하고 GitHub Pages가 웹과 데이터를 제공하는 방식입니다. FastAPI와 동일 Schema의 API adapter를 유지하여 향후 VPS/EC2로 전환할 때 UI 로직을 바꾸지 않습니다.
+
+米国・日本・韓国の経済ニュースを国別に独立分析し、その日の主要イシューTOP 5をURLで表示するresponsive Webプロジェクトです。Androidアプリは公開Web安定化後に選択的に再開できる保留trackです。
+
+初回運用はGitHub Actionsが静的JSONを生成し、GitHub PagesがWebとdataを提供する。FastAPIと同じSchemaのAPI adapterを維持し、将来VPS/EC2へ移行してもUI logicを変更しない。
 
 ## Repository layout
 
 - `backend/`: FastAPI, batch processing, and local JSON repository
-- `android/`: Kotlin and Jetpack Compose application
-- `frontend/`: static web demonstration client
+- `android/`: deferred Android application track; preserved for a later decision
+- `frontend/`: responsive Pages client with static/API DataSource adapters
+- `deploy/`: GitHub Pages workflow support and deferred VPS/EC2 templates
 - `config/`: non-secret source and runtime configuration examples
 - `sample-data/`: sanitized fixtures used without external API calls
 - `scripts/`: unified local verification commands
