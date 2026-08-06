@@ -3,12 +3,12 @@
 | 항목 | 현재 상태 |
 |---|---|
 | 현재 목표 | 3주차 — 반응형 웹·GitHub Pages MVP |
-| 상태 | 3주차 병합 완료 — Pages 배포 대기 timeout 수정·검증 완료 |
+| 상태 | 3주차 병합 완료 — Pages 공식 10분 상한 정정·검증 완료 |
 | 기준 브랜치 | `main` |
-| 작업 브랜치 | `codex/post-merge-fix-week-03-pages-timeout` |
-| 마지막 완료 커밋 | `6bee3b9` — 3주차 PR #9 Rebase and merge |
-| 전체 검증 | PASS — `dist/site` artifact·favicon·Python 62개·웹 8개·Ruff·mypy·Secret·명세 |
-| 다음 작업 | Pages timeout 수정 Draft PR 생성과 CI 확인 |
+| 작업 브랜치 | `codex/post-merge-fix-week-03-pages-timeout-cap` |
+| 마지막 완료 커밋 | `8a543bf` — Pages timeout 연장 PR #14 Rebase and merge |
+| 전체 검증 | PASS — Python 62개·웹 8개·Ruff·mypy·Secret·명세 동기화 |
+| 다음 작업 | 수정 커밋·push 후 Draft PR 생성, 병합 뒤 지연 수동 재배포 1회 |
 
 ## 3주차 진행 결과
 
@@ -29,7 +29,7 @@
 - PR #11 최초 CI에서 `jsdom` 의존성 미설치를 확인해 기본 CI에 Node.js와 `npm ci` 단계를 추가했다.
 - 실제 브라우저의 `window.fetch` 호출 컨텍스트를 보존하고 favicon 404를 제거하는 병합 후 수정을 진행한다.
 - 확정 앱 샘플의 흰색·블루 시각 체계와 정보 구조를 반응형 웹에 적용한다.
-- Pages 내부 대기열이 기존 10분을 초과하는 환경을 확인해 deploy job 25분·action 내부 대기 20분으로 조정한다.
+- `deploy-pages`가 설정값과 무관하게 10분으로 제한됨을 실행 로그에서 확인해 deploy job을 10분으로 복구하고, 대기열 timeout 후 지연 수동 재시도 1회 정책으로 정정한다.
 
 ## 2주차 진행 결과
 
