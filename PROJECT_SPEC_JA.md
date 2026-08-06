@@ -669,6 +669,7 @@ VPS/EC2 systemdまたはcontainer scheduler → 同じbatch entry
 - 初回Pages配布は公式Pages artifact方式で行い、生成JSONを`main`へ自動commitしない。
 - PRはmock・fixtureだけで検証し、実ニュース・LLM Secretは保護された予約/手動運用workflowだけで利用する。
 - 生成またはSchema検証に失敗した場合は既存Pages配布を維持し、失敗artifactを公開しない。
+- GitHub Pages内部queue遅延を考慮し、deploy jobは最大25分、`deploy-pages`内部待機は最大20分に制限する。同一配布の手動重複実行を避け、制限終了後に原因を確認してから一度だけ再試行する。
 - Pages artifactには直近7日の公開可能JSON、静的Web、policy pageだけを含める。
 - VPS/EC2後続配布は初回設定と反復配布を分離し、`/health`、`/ready`、rollback、直近2 release保管を適用する。
 

@@ -3,12 +3,12 @@
 | 항목 | 현재 상태 |
 |---|---|
 | 현재 목표 | 3주차 — 반응형 웹·GitHub Pages MVP |
-| 상태 | 3주차 병합 완료 — 앱 샘플 기반 웹 디자인 전환·검증 완료 |
+| 상태 | 3주차 병합 완료 — Pages 배포 대기 timeout 수정·검증 완료 |
 | 기준 브랜치 | `main` |
-| 작업 브랜치 | `codex/post-merge-fix-week-03-visual-refresh` |
+| 작업 브랜치 | `codex/post-merge-fix-week-03-pages-timeout` |
 | 마지막 완료 커밋 | `6bee3b9` — 3주차 PR #9 Rebase and merge |
 | 전체 검증 | PASS — `dist/site` artifact·favicon·Python 62개·웹 8개·Ruff·mypy·Secret·명세 |
-| 다음 작업 | 디자인 전환 Draft PR 생성과 CI 확인 |
+| 다음 작업 | Pages timeout 수정 Draft PR 생성과 CI 확인 |
 
 ## 3주차 진행 결과
 
@@ -29,6 +29,7 @@
 - PR #11 최초 CI에서 `jsdom` 의존성 미설치를 확인해 기본 CI에 Node.js와 `npm ci` 단계를 추가했다.
 - 실제 브라우저의 `window.fetch` 호출 컨텍스트를 보존하고 favicon 404를 제거하는 병합 후 수정을 진행한다.
 - 확정 앱 샘플의 흰색·블루 시각 체계와 정보 구조를 반응형 웹에 적용한다.
+- Pages 내부 대기열이 기존 10분을 초과하는 환경을 확인해 deploy job 25분·action 내부 대기 20분으로 조정한다.
 
 ## 2주차 진행 결과
 
