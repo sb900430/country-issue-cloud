@@ -3,12 +3,12 @@
 | 항목 | 현재 상태 |
 |---|---|
 | 현재 목표 | 키워드 뉴스 v2 — 국가별 100건 이상 경제뉴스 기반 TOP 5 |
-| 상태 | v2 GDELT 수집 주차 구현·전체 검증 완료, 완료 리뷰 준비 |
+| 상태 | Pages 병합 push mode 수정·전체 검증 완료, Draft PR 준비 |
 | 기준 브랜치 | `main` |
-| 작업 브랜치 | `codex/v2-gdelt-collection` |
+| 작업 브랜치 | `codex/post-merge-fix-week-03-push-mode` |
 | 마지막 완료 커밋 | `f278c52` — 새 SHA 재배포 준비 PR #16 Rebase and merge |
 | 전체 검증 | PASS — Python 84개·line+branch coverage 89%·웹 8개·Ruff·mypy·Secret·명세 동기화 |
-| 다음 작업 | 후보 커밋·주차 완료 리뷰 후 Draft PR 생성 |
+| 다음 작업 | 수정 커밋·Draft PR 생성 후 Actions fixture 배포 확인 |
 
 ## 키워드 뉴스 v2 결정
 
@@ -40,7 +40,8 @@
 - RSS 2.0과 Atom을 같은 Collector로 처리하고 잘못된 날짜 항목만 격리하도록 보완했다.
 - C안 타일 기본·A안 클라우드 전환, 국가·날짜 선택, 상세 원문, 캐시 복구와 반응형 접근성 화면을 구현했다.
 - 매일 09:00 JST/KST 실제 RSS를 검증·게시하는 Pages workflow와 실패 시 기존 배포 유지 구조를 구현했다.
-- 10:00·12:00 JST/KST 보충 schedule과 날짜별 live-attempt cache marker를 추가했다. 외부 수집 단계에 진입한 날은 성공·실패와 무관하게 자동 보충·push 재실행을 차단하고, 수집 전 단계 실패만 보충한다.
+- 10:00·12:00 JST/KST 보충 schedule과 날짜별 live-attempt cache marker를 추가했다. 외부 수집 단계에 진입한 날은 성공·실패와 무관하게 자동 live 재실행을 차단하고, 수집 전 단계 실패만 보충한다.
+- 병합 push가 부족한 live RSS를 실행해 빌드에 실패하고 당일 시도권을 소비하던 문제를 수정했다. `main` push는 fixture를 배포하고 예약·명시적 수동 실행만 live mode를 사용한다.
 - 출처·보관·개인정보·문의 페이지와 로컬 fixture preview 절차를 추가했다.
 - 완료 리뷰 High 두 건인 Pages 출력 경로 보호와 보조 RSS 순위 가중치를 수정·재검증했다.
 - PR #9 병합 후 GitHub Runner 임시 경로가 안전 검사에서 차단되어, 저장소 내부 `dist/site`를 Pages artifact 출력 경로로 사용하도록 병합 후 수정을 완료했다.
