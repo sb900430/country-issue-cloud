@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from app.batch.source_config import load_rss_sources
+from app.batch.source_config import load_gdelt_sources, load_naver_sources, load_rss_sources
 from app.schemas.issues import CountryCode
 
 
@@ -71,3 +71,23 @@ def test_project_source_registry_has_feeds_for_every_country() -> None:
 
     assert {source.country for source in sources} == set(CountryCode)
     assert all(source.feed_url.startswith("https://") for source in sources)
+
+
+def test_project_source_registry_has_gdelt_for_every_country() -> None:
+    project_root = Path(__file__).parents[2]
+
+    sources = load_gdelt_sources(project_root / "config" / "sources.example.yml")
+
+    assert {source.country for source in sources} == set(CountryCode)
+    assert all(source.endpoint.startswith("https://") for source in sources)
+    assert all(source.allowed_domains for source in sources)
+
+
+def test_project_source_registry_has_naver_supplement_for_korea() -> None:
+    project_root = Path(__file__).parents[2]
+
+    sources = load_naver_sources(project_root / "config" / "sources.example.yml")
+
+    assert len(sources) == 1
+    assert sources[0].queries[:2] == ("경제", "금융")
+    assert sources[0].allowed_domains

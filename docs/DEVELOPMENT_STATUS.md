@@ -3,12 +3,12 @@
 | 항목 | 현재 상태 |
 |---|---|
 | 현재 목표 | 키워드 뉴스 v2 — 국가별 100건 이상 경제뉴스 기반 TOP 5 |
-| 상태 | 방향 전환 설계·관련 문서 갱신 진행 중, 구현 미착수 |
+| 상태 | v2 GDELT 수집 주차 구현·전체 검증 완료, 완료 리뷰 준비 |
 | 기준 브랜치 | `main` |
-| 작업 브랜치 | `codex/keyword-news-redesign-docs` |
+| 작업 브랜치 | `codex/v2-gdelt-collection` |
 | 마지막 완료 커밋 | `f278c52` — 새 SHA 재배포 준비 PR #16 Rebase and merge |
-| 전체 검증 | PASS — Python 62개·웹 8개·Ruff·mypy·Secret·명세 동기화 |
-| 다음 작업 | 문서 PR 병합 후 GDELT adapter·국가별 100건 이상 fixture 구현 브랜치 시작 |
+| 전체 검증 | PASS — Python 84개·line+branch coverage 89%·웹 8개·Ruff·mypy·Secret·명세 동기화 |
+| 다음 작업 | 후보 커밋·주차 완료 리뷰 후 Draft PR 생성 |
 
 ## 키워드 뉴스 v2 결정
 
@@ -18,6 +18,15 @@
 - 문서 빈도와 매체 다양성으로 키워드 TOP 5를 정하고 키워드별 관련 기사 최대 20개를 제공한다.
 - 기존 v1 의미를 보존하고 Schema/API/정적 JSON을 v2로 함께 전환한다.
 - 상세 근거와 구현 순서는 `docs/adr/ADR-0001-keyword-news-pipeline.md`를 따른다.
+- 1차 운영은 GDELT·NAVER 무료 한도·공식 RSS/API만 사용하며 유료 뉴스 API와 외부 유료 LLM 자격정보는 등록하지 않는다.
+- GDELT와 공식 RSS에는 Secret이 필요 없고, 한국 뉴스 보강 시에만 `NAVER_CLIENT_ID`, `NAVER_CLIENT_SECRET`이 필요하다.
+- NAVER 사용 정책은 일 300회·월 9,000회 hard stop, 50%·80% 알림, 유료 초과 사용 비활성으로 확정했으며 코드 설정과 차단 가드를 추가했다. 계정 전체 차단과 알림은 Console에서 같은 값으로 설정해야 한다.
+- NAVER 뉴스 수집 adapter, 한국 경제 검색어 순환, 승인 언론사 원문 domain filter, 인증 header, HTML title 정리와 영속 사용량 ledger를 구현했다. v1 보호를 위해 `--enable-naver` 명시 실행에서만 활성화한다.
+- NAVER 제한 실연동은 `경제` 1회에서 승인 domain 5곳·6건, 5개 query에서 승인 domain 7곳·중복 제거 31건을 확보했다. NAVER 단독 100건에는 미달하므로 GDELT·RSS 합산과 근거 있는 query·allowlist 보강이 필요하다.
+- 완료 리뷰 High에서 무료 정책 재검토일 이후에도 호출 가능한 위험을 발견해, 재검토 기한 만료 시 인증 요청 전에 자동 중단하도록 수정했다.
+- GDELT JSON adapter, query version, 국가별 120건 fixture, 250건 상한과 매체별 20%/30건 제한을 구현했다.
+- 제한적 live 검증은 무료 endpoint 429와 실제 매체 coverage로 US 43건·JP/KR 오류가 발생해 원인 있는 partial로 기록했다. 앞선 호출에서는 KR 원본 250건·4매체를 확인했다.
+- 기존 v1 Pages를 보호하기 위해 `publish-live --enable-gdelt`를 명시한 평가에서만 GDELT를 사용하고 v2 전환 전 예약 배치는 RSS를 유지한다.
 
 ## 3주차 진행 결과
 

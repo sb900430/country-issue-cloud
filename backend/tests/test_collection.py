@@ -6,7 +6,12 @@ from pathlib import Path
 from app.batch.collection import CollectionRunner
 from app.batch.collectors.fixture import FixtureCollector
 from app.batch.collectors.rss import RssCollector, RssSource
-from app.batch.deduplication import deduplicate_articles, normalize_title, normalize_url
+from app.batch.deduplication import (
+    deduplicate_articles,
+    normalize_title,
+    normalize_url,
+    select_diverse_articles,
+)
 from app.batch.models import CollectedArticle, CollectorKind
 from app.core.settings import AppMode
 from app.schemas.issues import CountryCode
@@ -112,6 +117,30 @@ def test_deduplication_applies_url_title_and_similarity_rules() -> None:
     assert result[0].article_id == "b"
     assert normalize_url(articles[0].url) == "https://example.com/story?id=1"
     assert normalize_title(articles[2].title) == "market rises today"
+
+
+def test_diversity_limit_caps_each_publisher_at_twenty_percent() -> None:
+    articles = [
+        article(
+            f"publisher-a-{index}",
+            title=f"Publisher A headline {index}",
+            url=f"https://a.example/{index}",
+        ).model_copy(update={"publisher": "Publisher A"})
+        for index in range(40)
+    ] + [
+        article(
+            f"publisher-{publisher}-{index}",
+            title=f"Publisher {publisher} headline {index}",
+            url=f"https://{publisher}.example/{index}",
+        ).model_copy(update={"publisher": f"Publisher {publisher}"})
+        for publisher in "BCDE"
+        for index in range(15)
+    ]
+
+    selected = select_diverse_articles(articles, 100)
+
+    assert len(selected) == 80
+    assert sum(item.publisher == "Publisher A" for item in selected) == 20
 
 
 class StubCollector:

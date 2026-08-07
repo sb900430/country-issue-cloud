@@ -1,5 +1,20 @@
 sources:
   US:
+    - id: gdelt_us_economic_news
+      type: api
+      provider: gdelt
+      publisher: GDELT Project
+      endpoint: https://api.gdeltproject.org/api/v2/doc/doc
+      query: domain:wsj.com OR domain:bloomberg.com OR domain:cnbc.com OR domain:marketwatch.com OR domain:nytimes.com OR domain:fortune.com OR domain:businessinsider.com OR domain:reuters.com
+      query_version: 2026-08-07.v1
+      source_country: UnitedStates
+      source_language: English
+      allowed_domains: [wsj.com, bloomberg.com, cnbc.com, marketwatch.com, nytimes.com, fortune.com, businessinsider.com, reuters.com]
+      enabled: true
+      terms_status: approved_free_attribution_required
+      terms_checked_at: 2026-08-07
+      terms_review_due_at: 2026-11-05
+      allowed_fields: [title, url, publisher, published_at]
     - id: federal_reserve_all_releases
       type: rss
       publisher: Federal Reserve
@@ -36,6 +51,21 @@ sources:
       terms_review_due_at: 2026-11-04
       allowed_fields: *public_rss_fields
   JP:
+    - id: gdelt_jp_economic_news
+      type: api
+      provider: gdelt
+      publisher: GDELT Project
+      endpoint: https://api.gdeltproject.org/api/v2/doc/doc
+      query: domain:nikkei.com OR domain:toyokeizai.net OR domain:diamond.jp OR domain:businessinsider.jp OR domain:jiji.com OR domain:newswitch.jp
+      query_version: 2026-08-07.v1
+      source_country: Japan
+      source_language: Japanese
+      allowed_domains: [nikkei.com, toyokeizai.net, diamond.jp, businessinsider.jp, jiji.com, newswitch.jp]
+      enabled: true
+      terms_status: approved_free_attribution_required
+      terms_checked_at: 2026-08-07
+      terms_review_due_at: 2026-11-05
+      allowed_fields: [title, url, publisher, published_at]
     - id: meti_news_releases
       type: atom
       publisher: Ministry of Economy, Trade and Industry
@@ -72,6 +102,34 @@ sources:
       terms_review_due_at: 2026-11-04
       allowed_fields: *public_rss_fields
   KR:
+    - id: naver_kr_economic_news
+      type: api
+      provider: naver
+      publisher: NAVER API HUB
+      endpoint: https://naverapihub.apigw.ntruss.com/search/v1/news
+      queries: [경제, 금융, 산업, 증권, 부동산]
+      query_version: 2026-08-07.v1
+      allowed_domains: [hankyung.com, mk.co.kr, sedaily.com, edaily.co.kr, fnnews.com, heraldcorp.com, mt.co.kr, asiae.co.kr]
+      enabled: true
+      terms_status: approved_free_period
+      terms_checked_at: 2026-08-07
+      terms_review_due_at: 2026-09-15
+      allowed_fields: [title, url, publisher, published_at]
+    - id: gdelt_kr_economic_news
+      type: api
+      provider: gdelt
+      publisher: GDELT Project
+      endpoint: https://api.gdeltproject.org/api/v2/doc/doc
+      query: domain:hankyung.com OR domain:mk.co.kr OR domain:sedaily.com OR domain:edaily.co.kr OR domain:fnnews.com OR domain:heraldcorp.com OR domain:mt.co.kr OR domain:asiae.co.kr
+      query_version: 2026-08-07.v1
+      source_country: SouthKorea
+      source_language: Korean
+      allowed_domains: [hankyung.com, mk.co.kr, sedaily.com, edaily.co.kr, fnnews.com, heraldcorp.com, mt.co.kr, asiae.co.kr]
+      enabled: true
+      terms_status: approved_free_attribution_required
+      terms_checked_at: 2026-08-07
+      terms_review_due_at: 2026-11-05
+      allowed_fields: [title, url, publisher, published_at]
     - id: bok_all_releases
       type: rss
       publisher: Bank of Korea

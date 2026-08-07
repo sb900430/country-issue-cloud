@@ -1,6 +1,7 @@
 import html
 import re
 import unicodedata
+from collections import Counter
 from datetime import timedelta
 from difflib import SequenceMatcher
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
@@ -8,6 +9,8 @@ from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 from app.batch.models import CollectedArticle
 
 TRACKING_PARAMETERS = {"fbclid", "gclid", "mc_cid", "mc_eid"}
+MAX_PUBLISHER_ARTICLES = 30
+MAX_PUBLISHER_SHARE = 0.2
 
 
 def normalize_url(url: str) -> str:
@@ -45,6 +48,28 @@ def deduplicate_articles(articles: list[CollectedArticle]) -> list[CollectedArti
             selected.append(normalized_candidate)
         else:
             selected[duplicate_index] = _preferred(selected[duplicate_index], normalized_candidate)
+    return selected
+
+
+def select_diverse_articles(
+    articles: list[CollectedArticle], limit: int
+) -> list[CollectedArticle]:
+    if not articles or limit <= 0:
+        return []
+    pool_size = min(len(articles), limit)
+    publisher_limit = max(
+        1, min(MAX_PUBLISHER_ARTICLES, int(pool_size * MAX_PUBLISHER_SHARE))
+    )
+    selected: list[CollectedArticle] = []
+    publisher_counts: Counter[str] = Counter()
+    for article in articles:
+        publisher_key = article.publisher.casefold().strip()
+        if publisher_counts[publisher_key] >= publisher_limit:
+            continue
+        selected.append(article)
+        publisher_counts[publisher_key] += 1
+        if len(selected) >= limit:
+            break
     return selected
 
 

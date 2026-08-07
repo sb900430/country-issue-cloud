@@ -154,9 +154,11 @@ Android 앱은 폐기하지 않는다. 키워드 중심 웹과 공개 URL의 안
 ### 출처 정책
 
 - 주 소스는 GDELT Project DOC API의 Article List이며 `sourcecountry`, `sourcelang`, 직전 24시간, `maxrecords=250`을 국가별로 독립 적용한다.
+- 1차 운영 뉴스 소스는 무료 구성으로 고정한다. 한국은 NAVER API HUB 뉴스 검색의 무료 호출 한도 안에서 보강하며, 유료 전환·종량제 확장은 사용자 승인 전에는 사용하지 않는다.
+- NAVER 호출은 애플리케이션과 NAVER Console 양쪽에서 일 300회·월 9,000회로 제한하고, 어느 한도든 도달하면 추가 호출을 자동 중단한다. 사용량 50%·80%에서 알림을 보내며 무료 정책 변경 전에는 유료 초과 사용이나 자동 한도 증설을 허용하지 않는다.
 - 경제 범위는 버전 관리되는 국가별 경제 주제 query 묶음으로 제한하고 query별 수집량과 편향을 기록한다. 특정 기업·사건 이름을 미리 넣어 결과를 유도하지 않는다.
 - 기존 중앙은행·정부기관 RSS와 조건부 공공 API는 보조 소스로 유지하며 주 소스 결과와 함께 중복 제거한다.
-- NewsAPI 무료 플랜은 로컬 개발·비교 평가에서만 사용하며 운영 의존성으로 두지 않는다.
+- NewsAPI, GNews, Mediastack, World News API 등 개발 전용 또는 유료 전환이 필요한 집계 API는 운영 의존성으로 두지 않는다.
 - 언론사 페이지 HTML과 기사 본문은 직접 크롤링하지 않고, 제공 API/RSS의 제목·짧은 요약·URL·매체·발행 시각만 사용한다.
 - GDELT 이용 결과에는 GDELT Project 명칭과 공식 사이트 링크를 표시한다.
 - 소스별 이용조건 확인일과 허용 필드를 설정에 기록한다.
@@ -167,6 +169,7 @@ ALL: GDELT DOC API Article List를 국가별 주 소스로 사용
 US supplementary: Federal Reserve RSS; BLS RSS 비활성, BEA API 조건부
 JP supplementary: BOJ RSS; METI Atom 비활성, e-Stat API 조건부
 KR supplementary: 한국은행·금융위원회·중소벤처기업부 RSS
+KR news supplement: NAVER API HUB 무료 호출 한도 내 사용
 ```
 
 GDELT와 RSS가 직접 제공한 제목·짧은 요약·원문 URL·매체·발행 시각만 허용한다. 기사 본문, PDF·첨부파일, 이미지와 HTML을 파싱한 요약은 수집·재배포하지 않는다. GDELT 데이터는 파생 키워드와 최소 기사 metadata만 최근 7일 보관하고 공식 attribution을 제공한다. 실제 endpoint, query version, 승인 상태는 `config/sources.example.yml`을 기준으로 하며 세부 절차는 `docs/SOURCE_REGISTRATION_GUIDE.md`를 따른다.
@@ -846,8 +849,8 @@ v* 태그 → Pages URL 검증 → GitHub Release. Android 재개 후에만 AAB�
 | GitHub Pages | 공개 포트폴리오 용도와 무료 제공량 내 운영 |
 | VPS/EC2·도메인 | 후속 전환 시에만 저가 월 고정비와 예산을 사전 확정 |
 | NewsAPI | 운영 사용 안 함, 로컬 개발만 |
-| 운영 뉴스 소스 | 무료·허용 소스 우선 |
-| LLM | 월 USD 10 상한 |
+| 운영 뉴스 소스 | GDELT·NAVER 무료 한도·허용된 공식 RSS/API만 사용, NAVER 일 300회·월 9,000회 hard stop과 50%·80% 알림, 유료 자동 전환 금지 |
+| LLM | 1차 운영은 `mock` 또는 로컬 코드 분석만 사용해 0원, 외부 유료 LLM은 별도 승인 전 비활성 |
 | HTTPS | 1차 Pages 기본 HTTPS, 후속 무료 인증서 또는 cloud 인증서 |
 | GitHub Actions | 공개 저장소 표준 runner와 무료 제공량 내 목표, larger runner 금지 |
 
@@ -928,9 +931,11 @@ v* 태그 → Pages URL 검증 → GitHub Release. Android 재개 후에만 AAB�
 
 | 순서 | 브랜치·PR 단위 | 구현 내용 | 완료 기준 |
 |---|---|---|---|
-| 1 | `codex/v2-gdelt-collection` | GDELT adapter, 국가별 query config, 100건 이상 fixture, 150/250 수집·편중 기준 | mock·fixture 기본 CI, 제한적 live에서 국가별 100건 이상 또는 원인 있는 partial |
+| 1 | `codex/v2-gdelt-collection` | GDELT·NAVER adapter, 국가별 query config, 100건 이상 fixture, 150/250 수집·편중·NAVER 사용량 차단 기준 | mock·fixture 기본 CI, 제한적 live에서 국가별 100건 이상 또는 원인 있는 partial |
 | 2 | `codex/v2-keyword-pipeline` | 언어별 명사·복합명사, 불용어, 동의어 통합, 결정적 TOP 5, 관련 기사 연결 | 국가별 100건 fixture에서 일반어 제외·복합명사·근거·순위 회귀 통과 |
 | 3 | `codex/v2-schema-pages-ui` | Schema/API/data v2, DataSource migration, 키워드 상세·관련 기사 최대 20건, Pages artifact | v1 보존, v2 producer/client 동시 전환, UI·전체·Pages smoke test 통과 |
+
+2026-08-07 기준 순서 1의 GDELT·NAVER adapter, versioned query, 국가별 120건 GDELT fixture, 250건 상한·매체 20%/30건 제한, NAVER 승인 domain과 일 300회·월 9,000회 차단 ledger를 구현했다. 제한적 GDELT live 검증은 무료 endpoint의 429와 매체 coverage로 국가별 100건에 미달해 원인 있는 partial로 기록하며, v1 예약 실행에서는 `--enable-gdelt`·`--enable-naver` 명시 전까지 활성화하지 않는다.
 
 배포 오류 대응은 위 기능 PR과 섞지 않는다. GDELT 이용조건·query 편향·형태소 분석 library 선택이 구현 중 바뀌면 ADR을 갱신한다.
 

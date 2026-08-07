@@ -6,7 +6,8 @@ from zoneinfo import ZoneInfo
 from app.batch.http_client import HttpsFeedClient
 from app.batch.live import run_live_batch
 from app.batch.publishing import StaticJsonPublisher
-from app.batch.source_config import load_rss_sources
+from app.batch.source_config import load_gdelt_sources, load_naver_sources, load_rss_sources
+from app.core.settings import get_settings
 from app.repositories.json_issue_repository import JsonIssueRepository
 from app.schemas.issues import IssueResult
 
@@ -24,6 +25,8 @@ def main() -> int:
     live.add_argument("--site-data-dir", type=Path, required=True)
     live.add_argument("--target-date", type=date.fromisoformat)
     live.add_argument("--lookback-hours", type=int, default=48)
+    live.add_argument("--enable-gdelt", action="store_true")
+    live.add_argument("--enable-naver", action="store_true")
     arguments = parser.parse_args()
 
     if arguments.command == "publish-fixture":
@@ -47,9 +50,23 @@ def main() -> int:
         window_end = min(now, target_end)
         window_start = window_end - timedelta(hours=arguments.lookback_hours)
         client = HttpsFeedClient()
+        settings = get_settings()
         result = run_live_batch(
             load_rss_sources(arguments.sources_config),
+            (
+                load_gdelt_sources(arguments.sources_config)
+                if arguments.enable_gdelt
+                else []
+            ),
+            (
+                load_naver_sources(arguments.sources_config)
+                if arguments.enable_naver
+                else []
+            ),
             client.fetch,
+            client.fetch_with_headers,
+            settings.naver_client_id,
+            settings.naver_client_secret,
             window_start,
             window_end,
             target_date,

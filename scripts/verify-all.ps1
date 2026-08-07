@@ -40,7 +40,9 @@ try {
         }
         Invoke-VerificationStep "Python Ruff" { & $uvCommand run --project backend ruff check backend }
         Invoke-VerificationStep "Python mypy" { & $uvCommand run --project backend mypy backend/app }
-        Invoke-VerificationStep "Python pytest" { & $uvCommand run --project backend pytest backend/tests }
+        Invoke-VerificationStep "Python pytest with coverage" {
+            & $uvCommand run --project backend pytest backend/tests --cov=app --cov-branch --cov-report=term-missing
+        }
     } else {
         Write-Host "SKIP: backend scaffold is not present yet." -ForegroundColor Yellow
     }

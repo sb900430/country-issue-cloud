@@ -3,12 +3,12 @@
 | 項目 | 現在状態 |
 |---|---|
 | 現在目標 | keyword news v2 — 国別100件以上の経済newsに基づくTOP 5 |
-| 状態 | 方針変更設計・関連文書更新中、実装未着手 |
+| 状態 | v2 GDELT収集週の実装・全検証完了、完了review準備 |
 | 基準branch | `main` |
-| 作業branch | `codex/keyword-news-redesign-docs` |
+| 作業branch | `codex/v2-gdelt-collection` |
 | 最終完了commit | `f278c52` — 新SHA再配布準備PR #16 Rebase and merge |
-| 全体検証 | PASS — Python 62件・Web 8件・Ruff・mypy・Secret・仕様同期 |
-| 次作業 | 文書PR merge後、GDELT adapter・国別100件以上fixture実装branchを開始 |
+| 全体検証 | PASS — Python 84件・line+branch coverage 89%・Web 8件・Ruff・mypy・Secret・仕様同期 |
+| 次作業 | 候補commit・週完了review後Draft PR作成 |
 
 ## keyword news v2決定
 
@@ -18,6 +18,15 @@
 - document frequencyと媒体多様性でkeyword TOP 5を決め、keyword別関連記事を最大20件提供する。
 - 既存v1の意味を維持し、Schema/API/静的JSONをv2として一緒に移行する。
 - 詳細根拠と実装順序は`docs/adr/ADR-0001-keyword-news-pipeline.md`に従う。
+- 初回運用はGDELT・NAVER無料枠・公式RSS/APIだけを使い、有料news APIと外部有料LLM資格情報は登録しない。
+- GDELTと公式RSSにSecretは不要で、韓国news補完時だけ`NAVER_CLIENT_ID`、`NAVER_CLIENT_SECRET`が必要となる。
+- NAVER利用policyは日300回・月9,000回hard stop、50%・80%通知、有料超過利用無効で確定し、code設定と停止guardを追加した。account全体の停止と通知はConsoleで同じ値を設定する必要がある。
+- NAVER news収集adapter、韓国経済query巡回、承認済み媒体の原文domain filter、認証header、HTML title整形、永続利用量ledgerを実装した。v1保護のため`--enable-naver`明示実行時だけ有効化する。
+- NAVER制限付き実接続では`経済`1回で承認domain 5件・6記事、5 queryで承認domain 7件・重複排除後31記事を確保した。NAVER単独100件には未達のため、GDELT・RSS合算と根拠あるquery・allowlist補完が必要となる。
+- 完了review Highで無料policy再確認日後も呼出可能なriskを検出し、再確認期限切れ時は認証request前に自動停止するよう修正した。
+- GDELT JSON adapter、query version、国別120件fixture、250件上限、媒体別20%/30件制限を実装した。
+- 制限付きlive検証は無料endpointの429と実媒体coverageによりUS 43件・JP/KR errorとなり、理由付きpartialとして記録した。先行呼出ではKR raw 250件・4媒体を確認した。
+- 既存v1 Pagesを保護するため`publish-live --enable-gdelt`を明示した評価時だけGDELTを使い、v2移行前の予約batchはRSSを維持する。
 
 ## 3週目の進行結果
 
