@@ -3,12 +3,12 @@
 | 項目 | 現在状態 |
 |---|---|
 | 現在目標 | keyword news v2 — 国別100件以上の経済newsに基づくTOP 5 |
-| 状態 | v2 GDELT収集週の実装・全検証完了、完了review準備 |
+| 状態 | Pages merge push mode修正・全検証完了、Draft PR準備 |
 | 基準branch | `main` |
-| 作業branch | `codex/v2-gdelt-collection` |
+| 作業branch | `codex/post-merge-fix-week-03-push-mode` |
 | 最終完了commit | `f278c52` — 新SHA再配布準備PR #16 Rebase and merge |
 | 全体検証 | PASS — Python 84件・line+branch coverage 89%・Web 8件・Ruff・mypy・Secret・仕様同期 |
-| 次作業 | 候補commit・週完了review後Draft PR作成 |
+| 次作業 | 修正commit・Draft PR作成後にActions fixture配布確認 |
 
 ## keyword news v2決定
 
@@ -40,7 +40,8 @@
 - RSS 2.0とAtomを同じCollectorで処理し、不正な日付entryだけを分離するよう補完した。
 - C案tile標準・A案cloud切替、国・日付選択、原文詳細、cache復旧とresponsive accessibility画面を実装した。
 - 毎日09:00 JST/KSTに実RSSを検証・公開するPages workflowと、失敗時に既存配布を維持する構造を実装した。
-- 10:00・12:00 JST/KST補完scheduleと日付別live-attempt cache markerを追加した。外部収集段階へ入った日は成否に関係なく自動補完・push再実行を停止し、収集前段階の失敗だけを補完する。
+- 10:00・12:00 JST/KST補完scheduleと日付別live-attempt cache markerを追加した。外部収集段階へ入った日は成否に関係なく自動live再実行を停止し、収集前段階の失敗だけを補完する。
+- merge pushが不足したlive RSSを実行してbuild失敗と当日試行権消費を起こす問題を修正した。`main` pushはfixtureを配布し、予約・明示的な手動実行だけがlive modeを使う。
 - 出典・保存・privacy・問い合わせpageとlocal fixture preview手順を追加した。
 - 完了review High 2件であるPages出力path保護と補助RSS順位weightを修正・再検証した。
 - PR #9 merge後、GitHub Runnerの一時pathが安全検査で遮断されたため、repository内の`dist/site`をPages artifact出力pathとして使うmerge後修正を完了した。

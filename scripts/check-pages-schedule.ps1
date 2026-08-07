@@ -17,11 +17,16 @@ foreach ($required in @(
     'actions/cache/save@v4',
     "Persist today's live-attempt marker before collection",
     'force_live_retry',
+    'if [[ "${{ github.event_name }}" == "schedule" ]]',
+    'mode="fixture"',
     "needs.gate.outputs.should-run == 'true'"
 )) {
     if (-not $workflow.Contains($required)) {
         throw "Missing Pages duplicate-run safeguard: $required"
     }
+}
+if (-not $workflow.Contains('mode="live"')) {
+    throw "Scheduled Pages runs must select live data mode."
 }
 $claimIndex = $workflow.IndexOf("Claim today's live attempt")
 $saveIndex = $workflow.IndexOf("Persist today's live-attempt marker before collection")

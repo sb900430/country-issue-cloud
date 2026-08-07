@@ -37,7 +37,7 @@ Set-Location .\preview-site
 python -m http.server 8080
 ```
 
-The GDELT DOC API and NAVER API HUB collectors, versioned queries, 250-article cap, publisher allowlists, and NAVER usage hard stops are implemented. To preserve the existing v1 contract, scheduled `publish-live` still uses RSS only; GDELT and NAVER are enabled explicitly with `--enable-gdelt` and `--enable-naver` during bounded evaluation and will become defaults when the v2 producer and client migrate together. The Pages workflow attempts live publishing at 00:00 UTC (09:00 JST/KST), with 10:00 and 12:00 JST/KST catch-up schedules. A date-keyed attempt marker prevents any automatic second external collection after the live stage has been claimed; only an explicit manual `force_live_retry` can override it.
+The GDELT DOC API and NAVER API HUB collectors, versioned queries, 250-article cap, publisher allowlists, and NAVER usage hard stops are implemented. To preserve the existing v1 contract, scheduled `publish-live` still uses RSS only; GDELT and NAVER are enabled explicitly with `--enable-gdelt` and `--enable-naver` during bounded evaluation and will become defaults when the v2 producer and client migrate together. A push to `main` builds and deploys the fixture artifact without calling external sources. The Pages workflow attempts live publishing at 00:00 UTC (09:00 JST/KST), with 10:00 and 12:00 JST/KST catch-up schedules. A date-keyed attempt marker prevents any automatic second external collection after the live stage has been claimed; only an explicit manual `force_live_retry` can override it.
 
 ## Documentation
 
