@@ -34,6 +34,10 @@ try {
         & (Join-Path $PSScriptRoot "check-secrets.ps1")
     }
 
+    Invoke-VerificationStep "Pages schedule safety" {
+        & (Join-Path $PSScriptRoot "check-pages-schedule.ps1")
+    }
+
     if (Test-Path -LiteralPath "backend/pyproject.toml") {
         if (-not $uvCommand) {
             throw "The backend exists, but uv is unavailable."

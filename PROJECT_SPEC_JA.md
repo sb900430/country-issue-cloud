@@ -520,7 +520,7 @@ JSONをSQLite/PostgreSQLへ変更してもRouter、Service、Web API契約、保
 | 09:30 | 最終再試行 |
 | 10:00 | 状態確認と連続失敗通知候補 |
 
-初回運用はGitHub ActionsのJST timezone scheduleで実行し、workflow concurrencyで重複実行を防ぐ。予約実行は遅延し得るため定刻依存logicを置かず、手動`workflow_dispatch`復旧経路を提供する。公開repositoryの長期非activityによるschedule停止可能性を運用点検へ含める。後続VPS/EC2では同じpipeline entryをsystemd timerの`Persistent=true`とOS file lockで実行する。両modeとも公開済み日付は原則skipする。
+初回運用は毎日09:00 JST/KST（UTC `0 0 * * *`）を標準とし、10:00・12:00 JST/KSTを補完scheduleとする。日付別live-attempt markerをGitHub Actions cacheへ保存し、同じJST日付のmarkerがある場合はpush・標準・補完実行のすべてで外部収集と配布をskipする。markerは依存導入と全検証の完了後に生成し、cache永続化が成功した後だけ`publish-live`を開始する。cache保存に失敗するかmarkerが存在しない場合は外部収集を開始しない。これにより外部呼出段階前の失敗だけを補完し、外部呼出試行権を永続化した実行は成功・失敗・runner中断に関係なく自動再呼出しない。利用者判断による手動`force_live_retry=true`だけを重複防止の例外として許可する。workflow concurrencyで同時実行を防ぎ、予約遅延・公開repositoryの長期非activityによる停止可能性を運用点検へ含める。後続VPS/EC2では同じpipeline entryをsystemd timerの`Persistent=true`とOS file lockで実行する。
 
 ```text
 python -m app.batch.pipeline_entry

@@ -39,7 +39,8 @@
 - source別許可field、利用条件確認日、90日後の再確認日を設定へ反映した。
 - RSS 2.0とAtomを同じCollectorで処理し、不正な日付entryだけを分離するよう補完した。
 - C案tile標準・A案cloud切替、国・日付選択、原文詳細、cache復旧とresponsive accessibility画面を実装した。
-- 毎日16:00 JST/KSTに実RSSを検証・公開するPages workflowと、失敗時に既存配布を維持する構造を実装した。
+- 毎日09:00 JST/KSTに実RSSを検証・公開するPages workflowと、失敗時に既存配布を維持する構造を実装した。
+- 10:00・12:00 JST/KST補完scheduleと日付別live-attempt cache markerを追加した。外部収集段階へ入った日は成否に関係なく自動補完・push再実行を停止し、収集前段階の失敗だけを補完する。
 - 出典・保存・privacy・問い合わせpageとlocal fixture preview手順を追加した。
 - 完了review High 2件であるPages出力path保護と補助RSS順位weightを修正・再検証した。
 - PR #9 merge後、GitHub Runnerの一時pathが安全検査で遮断されたため、repository内の`dist/site`をPages artifact出力pathとして使うmerge後修正を完了した。
