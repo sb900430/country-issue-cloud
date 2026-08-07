@@ -1,7 +1,8 @@
 [CmdletBinding()]
 param(
     [ValidateSet("fixture", "live")][string]$Mode = "fixture",
-    [Parameter(Mandatory = $true)][string]$OutputDirectory
+    [Parameter(Mandatory = $true)][string]$OutputDirectory,
+    [string]$AttemptMarkerPath
 )
 
 $ErrorActionPreference = "Stop"
@@ -52,6 +53,22 @@ if ($Mode -eq "fixture") {
         --data-dir $runtimePath `
         --site-data-dir $dataPath
 } else {
+    if ([string]::IsNullOrWhiteSpace($AttemptMarkerPath)) {
+        throw "Live mode requires an attempt marker path."
+    }
+    $markerPath = [System.IO.Path]::GetFullPath($AttemptMarkerPath)
+    $markerRoot = [System.IO.Path]::GetFullPath(
+        (Join-Path $projectRoot ".runtime/pages-run-marker")
+    )
+    if (-not $markerPath.StartsWith(
+        $markerRoot.TrimEnd('\') + '\',
+        [System.StringComparison]::OrdinalIgnoreCase
+    )) {
+        throw "Attempt marker must be stored under .runtime/pages-run-marker."
+    }
+    if (-not (Test-Path -LiteralPath $markerPath)) {
+        throw "Live attempt marker must be persisted before collection starts."
+    }
     & $uvCommand run --project (Join-Path $projectRoot "backend") python -m app.batch.cli publish-live `
         --sources-config (Join-Path $projectRoot "config/sources.example.yml") `
         --data-dir $runtimePath `

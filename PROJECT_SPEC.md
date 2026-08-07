@@ -544,7 +544,7 @@ JSON을 SQLite/PostgreSQL로 바꿔도 Router, Service, 웹 API 계약과 보류
 | 09:30 | 여전히 없을 때 마지막 재시도 |
 | 10:00 | 상태 점검과 연속 실패 알림 후보 |
 
-1차 운영은 GitHub Actions의 JST timezone schedule로 실행하고 workflow concurrency로 중복 실행을 막는다. 예약 실행은 지연될 수 있으므로 정각 의존 로직을 두지 않고 수동 `workflow_dispatch` 복구 경로를 제공한다. 공개 저장소의 장기 비활동으로 schedule이 중단될 가능성을 운영 점검에 포함한다. 후속 VPS/EC2에서는 동일한 pipeline entry를 systemd timer의 `Persistent=true`와 OS 파일 잠금으로 실행한다. 두 모드 모두 이미 게시된 날짜는 기본적으로 건너뛴다.
+1차 운영은 매일 09:00 JST/KST(`0 0 * * *` UTC)를 기본으로 하고 10:00·12:00 JST/KST를 보충 schedule로 둔다. 날짜별 live-attempt marker를 GitHub Actions cache에 저장하고, 같은 JST 날짜 marker가 있으면 push·기본·보충 실행 모두 외부 수집과 배포를 건너뛴다. marker는 의존성 설치와 전체 검증이 끝난 뒤 생성하며, cache 영속화가 성공한 다음에만 `publish-live`를 시작한다. cache 저장이 실패하거나 marker가 없으면 외부 수집을 시작하지 않는다. 따라서 외부 호출 단계 전 실패만 보충하고, 외부 호출 시도권을 영속화한 실행은 성공·실패·runner 중단과 무관하게 자동 재호출하지 않는다. 사용자 판단에 따른 수동 `force_live_retry=true`만 중복 방지 예외로 허용한다. workflow concurrency로 동시 실행을 막고, 예약 실행 지연·공개 저장소 장기 비활동 중단 가능성을 운영 점검에 포함한다. 후속 VPS/EC2에서는 같은 pipeline entry를 systemd timer의 `Persistent=true`와 OS 파일 잠금으로 실행한다.
 
 ```text
 python -m app.batch.pipeline_entry

@@ -5,7 +5,11 @@ on:
     branches:
       - main
   schedule:
-    - cron: "0 7 * * *"
+    # 毎日09:00 JST/KST（00:00 UTC）に実行する。
+    - cron: "0 0 * * *"
+    # 10:00と12:00 JST/KSTは未実行日の補完候補とする。
+    - cron: "0 1 * * *"
+    - cron: "0 3 * * *"
   workflow_dispatch:
     inputs:
       data_mode:
@@ -16,6 +20,11 @@ on:
         options:
           - live
           - fixture
+      force_live_retry:
+        description: Allow one deliberate live retry after today's attempt marker exists
+        required: true
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -27,7 +36,55 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  gate:
+    runs-on: ubuntu-latest
+    outputs:
+      data-mode: ${{ steps.context.outputs.data-mode }}
+      date-key: ${{ steps.context.outputs.date-key }}
+      marker-key: ${{ steps.context.outputs.marker-key }}
+      should-run: ${{ steps.decision.outputs.should-run }}
+    steps:
+      - name: Resolve execution context
+        id: context
+        shell: bash
+        run: |
+          mode="live"
+          force="false"
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            mode="${{ inputs.data_mode }}"
+            force="${{ inputs.force_live_retry }}"
+          fi
+          date_key="$(TZ=Asia/Tokyo date +%F)"
+          echo "data-mode=$mode" >> "$GITHUB_OUTPUT"
+          echo "force=$force" >> "$GITHUB_OUTPUT"
+          echo "date-key=$date_key" >> "$GITHUB_OUTPUT"
+          echo "marker-key=pages-live-attempt-$date_key" >> "$GITHUB_OUTPUT"
+
+      - name: Restore today's live-attempt marker
+        if: steps.context.outputs.data-mode == 'live' && steps.context.outputs.force != 'true'
+        id: marker-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: .runtime/pages-run-marker
+          key: ${{ steps.context.outputs.marker-key }}
+          lookup-only: true
+
+      - name: Decide whether collection may run
+        id: decision
+        shell: bash
+        run: |
+          should_run="true"
+          if [[ "${{ steps.context.outputs.data-mode }}" == "live" \
+             && "${{ steps.context.outputs.force }}" != "true" \
+             && "${{ steps.marker-cache.outputs.cache-hit }}" == "true" ]]; then
+            should_run="false"
+          fi
+          echo "should-run=$should_run" >> "$GITHUB_OUTPUT"
+          echo "date=${{ steps.context.outputs.date-key }} mode=${{ steps.context.outputs.data-mode }} cache-hit=${{ steps.marker-cache.outputs.cache-hit }} force=${{ steps.context.outputs.force }} should-run=$should_run"
+
   build:
+    needs: gate
+    if: needs.gate.outputs.should-run == 'true'
     runs-on: windows-latest
     timeout-minutes: 20
     outputs:
@@ -63,19 +120,29 @@ jobs:
         shell: pwsh
         run: .\scripts\verify-all.ps1
 
-      - name: Select data mode
-        id: mode
+      - name: Claim today's live attempt
+        if: needs.gate.outputs.data-mode == 'live'
         shell: pwsh
         run: |
-          $mode = "live"
-          if ("${{ github.event_name }}" -eq "workflow_dispatch") {
-            $mode = "${{ inputs.data_mode }}"
-          }
-          "value=$mode" >> $env:GITHUB_OUTPUT
+          $marker = "${{ github.workspace }}\.runtime\pages-run-marker\${{ needs.gate.outputs.date-key }}.json"
+          New-Item -ItemType Directory -Path (Split-Path -Parent $marker) -Force | Out-Null
+          [ordered]@{
+            date_jst = "${{ needs.gate.outputs.date-key }}"
+            run_id = "${{ github.run_id }}"
+            claimed_at_utc = [datetime]::UtcNow.ToString("o")
+            state = "external_collection_claimed"
+          } | ConvertTo-Json | Set-Content -LiteralPath $marker -Encoding utf8
+
+      - name: Persist today's live-attempt marker before collection
+        if: needs.gate.outputs.data-mode == 'live'
+        uses: actions/cache/save@v4
+        with:
+          path: .runtime/pages-run-marker
+          key: ${{ needs.gate.outputs.marker-key }}
 
       - name: Build validated Pages artifact
         shell: pwsh
-        run: .\scripts\build-pages-site.ps1 -Mode "${{ steps.mode.outputs.value }}" -OutputDirectory "${{ github.workspace }}\dist\site"
+        run: .\scripts\build-pages-site.ps1 -Mode "${{ needs.gate.outputs.data-mode }}" -OutputDirectory "${{ github.workspace }}\dist\site" -AttemptMarkerPath "${{ github.workspace }}\.runtime\pages-run-marker\${{ needs.gate.outputs.date-key }}.json"
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4
