@@ -75,5 +75,52 @@ def test_https_feed_client_retries_one_transient_failure() -> None:
 
     client = httpx.Client(transport=httpx.MockTransport(handler))
 
-    assert HttpsFeedClient(client=client).fetch("https://example.com/feed") == b"<rss/>"
+    assert HttpsFeedClient(client=client, sleeper=lambda _: None).fetch(
+        "https://example.com/feed"
+    ) == b"<rss/>"
     assert attempts == 2
+
+
+def test_https_feed_client_accepts_json_for_news_api() -> None:
+    client = httpx.Client(
+        transport=httpx.MockTransport(
+            lambda _request: httpx.Response(
+                200, headers={"content-type": "application/json"}, content=b'{"articles":[]}'
+            )
+        )
+    )
+
+    assert HttpsFeedClient(client=client).fetch("https://example.com/news") == b'{"articles":[]}'
+
+
+def test_https_feed_client_adds_per_request_authentication_headers() -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert request.headers["x-api-id"] == "id"
+        assert request.headers["x-api-secret"] == "secret"
+        return httpx.Response(200, headers={"content-type": "application/json"}, json={})
+
+    client = httpx.Client(transport=httpx.MockTransport(handler))
+
+    assert HttpsFeedClient(client=client).fetch_with_headers(
+        "https://example.com/news",
+        {"x-api-id": "id", "x-api-secret": "secret"},
+    ) == b"{}"
+
+
+def test_https_feed_client_does_not_forward_authentication_across_redirects() -> None:
+    calls = 0
+
+    def handler(_request: httpx.Request) -> httpx.Response:
+        nonlocal calls
+        calls += 1
+        return httpx.Response(302, headers={"location": "https://attacker.example/news"})
+
+    client = httpx.Client(transport=httpx.MockTransport(handler), follow_redirects=True)
+
+    with pytest.raises(FeedFetchError, match="redirect"):
+        HttpsFeedClient(client=client).fetch_with_headers(
+            "https://example.com/news",
+            {"x-api-secret": "secret"},
+        )
+
+    assert calls == 1

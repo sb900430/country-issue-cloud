@@ -154,9 +154,11 @@ Androidアプリは廃止しない。keyword中心Webと公開URLの安定化後
 ### 出典ポリシー
 
 - 主sourceはGDELT Project DOC APIのArticle Listとし、`sourcecountry`、`sourcelang`、直前24時間、`maxrecords=250`を国別に独立適用する。
+- 初回運用のnews sourceは無料構成に固定する。韓国はNAVER API HUB news検索の無料呼出上限内で補完し、有料移行・従量課金拡張は利用者承認前に使わない。
+- NAVER呼出はapplicationとNAVER Consoleの両方で日300回・月9,000回に制限し、いずれかの上限到達時に追加呼出を自動停止する。使用量50%・80%で通知し、無料policy変更前は有料超過利用や自動上限拡張を許可しない。
 - 経済範囲はversion管理された国別経済topic query群で制限し、query別収集量と偏りを記録する。特定企業・事件名を事前投入して結果を誘導しない。
 - 既存の中央銀行・政府機関RSSと条件付き公共APIは補助sourceとして維持し、主source結果とまとめて重複排除する。
-- NewsAPI無料planはlocal開発・比較評価だけで使い、本番依存にしない。
+- NewsAPI、GNews、Mediastack、World News APIなど開発専用または有料移行が必要な集約APIは本番依存にしない。
 - 報道機関pageのHTMLと記事本文は直接crawlせず、提供API/RSSのtitle・短いsummary・URL・媒体・公開時刻だけを使う。
 - GDELT利用結果にはGDELT Project名と公式site linkを表示する。
 - ソースごとの利用条件確認日と許可フィールドを設定へ記録する。
@@ -167,6 +169,7 @@ ALL: GDELT DOC API Article Listを国別主sourceとして使用
 US supplementary: Federal Reserve RSS；BLS RSS無効、BEA API条件付き
 JP supplementary: BOJ RSS；METI Atom無効、e-Stat API条件付き
 KR supplementary: 韓国銀行・金融委員会・中小ベンチャー企業部RSS
+KR news supplement: NAVER API HUBを無料呼出上限内で使用
 ```
 
 GDELTとRSSが直接提供するtitle・短いsummary・原文URL・媒体・公開時刻だけを許可する。記事本文、PDF・添付file、画像、HTMLを解析したsummaryは収集・再配布しない。GDELT dataは派生keywordと最小記事metadataだけを直近7日保管し、公式attributionを提供する。実endpoint、query version、承認状態は`config/sources.example.yml`を基準とし、詳細手順は`docs/SOURCE_REGISTRATION_GUIDE.md`に従う。
@@ -795,8 +798,8 @@ v* tag → Pages URL検証 → GitHub Release。Android再開後のみAABとPlay
 | GitHub Pages | 公開portfolio用途と無料提供量内で運用 |
 | VPS/EC2・ドメイン | 後続移行時のみ低価格の月額固定費と予算を事前確定 |
 | NewsAPI | 運用利用せず、ローカル開発のみ |
-| 運用ニュースソース | 無料・利用可能なソース優先 |
-| LLM | 月額USD 10上限 |
+| 運用ニュースソース | GDELT・NAVER無料枠・許可済み公式RSS/APIだけを使用し、NAVER日300回・月9,000回hard stopと50%・80%通知、有料自動移行は禁止 |
+| LLM | 初回運用は`mock`またはlocal code分析だけで0円、外部有料LLMは別途承認まで無効 |
 | HTTPS | 初回Pages標準HTTPS、後続は無料証明書またはcloud証明書 |
 | GitHub Actions | 公開repositoryの標準runnerと無料提供量内、larger runner禁止 |
 
@@ -877,9 +880,11 @@ v* tag → Pages URL検証 → GitHub Release。Android再開後のみAABとPlay
 
 | 順序 | branch・PR単位 | 実装内容 | 完了基準 |
 |---|---|---|---|
-| 1 | `codex/v2-gdelt-collection` | GDELT adapter、国別query config、100件以上fixture、150/250収集・偏重基準 | mock・fixture標準CI、制限付きliveで国別100件以上または理由付きpartial |
+| 1 | `codex/v2-gdelt-collection` | GDELT・NAVER adapter、国別query config、100件以上fixture、150/250収集・偏重・NAVER利用量停止基準 | mock・fixture標準CI、制限付きliveで国別100件以上または理由付きpartial |
 | 2 | `codex/v2-keyword-pipeline` | 言語別名詞・複合名詞、stopword、同義語統合、決定的TOP 5、関連記事接続 | 国別100件fixtureで一般語除外・複合名詞・根拠・順位regression通過 |
 | 3 | `codex/v2-schema-pages-ui` | Schema/API/data v2、DataSource migration、keyword詳細・関連記事最大20件、Pages artifact | v1維持、v2 producer/client同時移行、UI・全体・Pages smoke test通過 |
+
+2026-08-07時点で順序1のGDELT・NAVER adapter、versioned query、国別120件GDELT fixture、250件上限・媒体20%/30件制限、NAVER承認domainと日300回・月9,000回停止ledgerを実装した。制限付きGDELT live検証は無料endpointの429と媒体coverageにより国別100件未満となったため理由付きpartialとして記録し、v1予約実行では`--enable-gdelt`・`--enable-naver`明示前に有効化しない。
 
 配布障害対応は上記機能PRへ混在させない。GDELT利用条件・query偏り・形態素分析library選定が実装中に変わる場合はADRを更新する。
 

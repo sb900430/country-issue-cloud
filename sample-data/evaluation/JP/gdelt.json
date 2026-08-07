@@ -1,0 +1,964 @@
+{
+  "articles": [
+    {
+      "url": "https://nikkei.com/fixture/jp/000",
+      "title": "半導体投資が拡大 000",
+      "seendate": "20260806T000000Z",
+      "domain": "nikkei.com",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://toyokeizai.net/fixture/jp/001",
+      "title": "政策金利の見通し変化 001",
+      "seendate": "20260806T010100Z",
+      "domain": "toyokeizai.net",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://diamond.jp/fixture/jp/002",
+      "title": "円相場の変動性が上昇 002",
+      "seendate": "20260806T020200Z",
+      "domain": "diamond.jp",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://jiji.com/fixture/jp/003",
+      "title": "気候政策が市場に影響 003",
+      "seendate": "20260806T030300Z",
+      "domain": "jiji.com",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://newswitch.jp/fixture/jp/004",
+      "title": "住宅需要が減速 004",
+      "seendate": "20260806T040400Z",
+      "domain": "newswitch.jp",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://nikkei.com/fixture/jp/005",
+      "title": "半導体投資が拡大 005",
+      "seendate": "20260806T050500Z",
+      "domain": "nikkei.com",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://toyokeizai.net/fixture/jp/006",
+      "title": "政策金利の見通し変化 006",
+      "seendate": "20260806T060600Z",
+      "domain": "toyokeizai.net",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://diamond.jp/fixture/jp/007",
+      "title": "円相場の変動性が上昇 007",
+      "seendate": "20260806T070700Z",
+      "domain": "diamond.jp",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://jiji.com/fixture/jp/008",
+      "title": "気候政策が市場に影響 008",
+      "seendate": "20260806T080800Z",
+      "domain": "jiji.com",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://newswitch.jp/fixture/jp/009",
+      "title": "住宅需要が減速 009",
+      "seendate": "20260806T090900Z",
+      "domain": "newswitch.jp",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://nikkei.com/fixture/jp/010",
+      "title": "半導体投資が拡大 010",
+      "seendate": "20260806T101000Z",
+      "domain": "nikkei.com",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://toyokeizai.net/fixture/jp/011",
+      "title": "政策金利の見通し変化 011",
+      "seendate": "20260806T111100Z",
+      "domain": "toyokeizai.net",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://diamond.jp/fixture/jp/012",
+      "title": "円相場の変動性が上昇 012",
+      "seendate": "20260806T121200Z",
+      "domain": "diamond.jp",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://jiji.com/fixture/jp/013",
+      "title": "気候政策が市場に影響 013",
+      "seendate": "20260806T131300Z",
+      "domain": "jiji.com",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://newswitch.jp/fixture/jp/014",
+      "title": "住宅需要が減速 014",
+      "seendate": "20260806T141400Z",
+      "domain": "newswitch.jp",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://nikkei.com/fixture/jp/015",
+      "title": "半導体投資が拡大 015",
+      "seendate": "20260806T151500Z",
+      "domain": "nikkei.com",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://toyokeizai.net/fixture/jp/016",
+      "title": "政策金利の見通し変化 016",
+      "seendate": "20260806T161600Z",
+      "domain": "toyokeizai.net",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://diamond.jp/fixture/jp/017",
+      "title": "円相場の変動性が上昇 017",
+      "seendate": "20260806T171700Z",
+      "domain": "diamond.jp",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://jiji.com/fixture/jp/018",
+      "title": "気候政策が市場に影響 018",
+      "seendate": "20260806T181800Z",
+      "domain": "jiji.com",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://newswitch.jp/fixture/jp/019",
+      "title": "住宅需要が減速 019",
+      "seendate": "20260806T191900Z",
+      "domain": "newswitch.jp",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://nikkei.com/fixture/jp/020",
+      "title": "半導体投資が拡大 020",
+      "seendate": "20260806T202000Z",
+      "domain": "nikkei.com",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://toyokeizai.net/fixture/jp/021",
+      "title": "政策金利の見通し変化 021",
+      "seendate": "20260806T212100Z",
+      "domain": "toyokeizai.net",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://diamond.jp/fixture/jp/022",
+      "title": "円相場の変動性が上昇 022",
+      "seendate": "20260806T222200Z",
+      "domain": "diamond.jp",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://jiji.com/fixture/jp/023",
+      "title": "気候政策が市場に影響 023",
+      "seendate": "20260806T232300Z",
+      "domain": "jiji.com",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://newswitch.jp/fixture/jp/024",
+      "title": "住宅需要が減速 024",
+      "seendate": "20260806T002400Z",
+      "domain": "newswitch.jp",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://nikkei.com/fixture/jp/025",
+      "title": "半導体投資が拡大 025",
+      "seendate": "20260806T012500Z",
+      "domain": "nikkei.com",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://toyokeizai.net/fixture/jp/026",
+      "title": "政策金利の見通し変化 026",
+      "seendate": "20260806T022600Z",
+      "domain": "toyokeizai.net",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://diamond.jp/fixture/jp/027",
+      "title": "円相場の変動性が上昇 027",
+      "seendate": "20260806T032700Z",
+      "domain": "diamond.jp",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://jiji.com/fixture/jp/028",
+      "title": "気候政策が市場に影響 028",
+      "seendate": "20260806T042800Z",
+      "domain": "jiji.com",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://newswitch.jp/fixture/jp/029",
+      "title": "住宅需要が減速 029",
+      "seendate": "20260806T052900Z",
+      "domain": "newswitch.jp",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://nikkei.com/fixture/jp/030",
+      "title": "半導体投資が拡大 030",
+      "seendate": "20260806T063000Z",
+      "domain": "nikkei.com",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://toyokeizai.net/fixture/jp/031",
+      "title": "政策金利の見通し変化 031",
+      "seendate": "20260806T073100Z",
+      "domain": "toyokeizai.net",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://diamond.jp/fixture/jp/032",
+      "title": "円相場の変動性が上昇 032",
+      "seendate": "20260806T083200Z",
+      "domain": "diamond.jp",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://jiji.com/fixture/jp/033",
+      "title": "気候政策が市場に影響 033",
+      "seendate": "20260806T093300Z",
+      "domain": "jiji.com",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://newswitch.jp/fixture/jp/034",
+      "title": "住宅需要が減速 034",
+      "seendate": "20260806T103400Z",
+      "domain": "newswitch.jp",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://nikkei.com/fixture/jp/035",
+      "title": "半導体投資が拡大 035",
+      "seendate": "20260806T113500Z",
+      "domain": "nikkei.com",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://toyokeizai.net/fixture/jp/036",
+      "title": "政策金利の見通し変化 036",
+      "seendate": "20260806T123600Z",
+      "domain": "toyokeizai.net",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://diamond.jp/fixture/jp/037",
+      "title": "円相場の変動性が上昇 037",
+      "seendate": "20260806T133700Z",
+      "domain": "diamond.jp",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://jiji.com/fixture/jp/038",
+      "title": "気候政策が市場に影響 038",
+      "seendate": "20260806T143800Z",
+      "domain": "jiji.com",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://newswitch.jp/fixture/jp/039",
+      "title": "住宅需要が減速 039",
+      "seendate": "20260806T153900Z",
+      "domain": "newswitch.jp",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://nikkei.com/fixture/jp/040",
+      "title": "半導体投資が拡大 040",
+      "seendate": "20260806T164000Z",
+      "domain": "nikkei.com",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://toyokeizai.net/fixture/jp/041",
+      "title": "政策金利の見通し変化 041",
+      "seendate": "20260806T174100Z",
+      "domain": "toyokeizai.net",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://diamond.jp/fixture/jp/042",
+      "title": "円相場の変動性が上昇 042",
+      "seendate": "20260806T184200Z",
+      "domain": "diamond.jp",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://jiji.com/fixture/jp/043",
+      "title": "気候政策が市場に影響 043",
+      "seendate": "20260806T194300Z",
+      "domain": "jiji.com",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://newswitch.jp/fixture/jp/044",
+      "title": "住宅需要が減速 044",
+      "seendate": "20260806T204400Z",
+      "domain": "newswitch.jp",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://nikkei.com/fixture/jp/045",
+      "title": "半導体投資が拡大 045",
+      "seendate": "20260806T214500Z",
+      "domain": "nikkei.com",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://toyokeizai.net/fixture/jp/046",
+      "title": "政策金利の見通し変化 046",
+      "seendate": "20260806T224600Z",
+      "domain": "toyokeizai.net",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://diamond.jp/fixture/jp/047",
+      "title": "円相場の変動性が上昇 047",
+      "seendate": "20260806T234700Z",
+      "domain": "diamond.jp",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://jiji.com/fixture/jp/048",
+      "title": "気候政策が市場に影響 048",
+      "seendate": "20260806T004800Z",
+      "domain": "jiji.com",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://newswitch.jp/fixture/jp/049",
+      "title": "住宅需要が減速 049",
+      "seendate": "20260806T014900Z",
+      "domain": "newswitch.jp",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://nikkei.com/fixture/jp/050",
+      "title": "半導体投資が拡大 050",
+      "seendate": "20260806T025000Z",
+      "domain": "nikkei.com",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://toyokeizai.net/fixture/jp/051",
+      "title": "政策金利の見通し変化 051",
+      "seendate": "20260806T035100Z",
+      "domain": "toyokeizai.net",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://diamond.jp/fixture/jp/052",
+      "title": "円相場の変動性が上昇 052",
+      "seendate": "20260806T045200Z",
+      "domain": "diamond.jp",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://jiji.com/fixture/jp/053",
+      "title": "気候政策が市場に影響 053",
+      "seendate": "20260806T055300Z",
+      "domain": "jiji.com",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://newswitch.jp/fixture/jp/054",
+      "title": "住宅需要が減速 054",
+      "seendate": "20260806T065400Z",
+      "domain": "newswitch.jp",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://nikkei.com/fixture/jp/055",
+      "title": "半導体投資が拡大 055",
+      "seendate": "20260806T075500Z",
+      "domain": "nikkei.com",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://toyokeizai.net/fixture/jp/056",
+      "title": "政策金利の見通し変化 056",
+      "seendate": "20260806T085600Z",
+      "domain": "toyokeizai.net",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://diamond.jp/fixture/jp/057",
+      "title": "円相場の変動性が上昇 057",
+      "seendate": "20260806T095700Z",
+      "domain": "diamond.jp",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://jiji.com/fixture/jp/058",
+      "title": "気候政策が市場に影響 058",
+      "seendate": "20260806T105800Z",
+      "domain": "jiji.com",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://newswitch.jp/fixture/jp/059",
+      "title": "住宅需要が減速 059",
+      "seendate": "20260806T115900Z",
+      "domain": "newswitch.jp",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://nikkei.com/fixture/jp/060",
+      "title": "半導体投資が拡大 060",
+      "seendate": "20260806T120000Z",
+      "domain": "nikkei.com",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://toyokeizai.net/fixture/jp/061",
+      "title": "政策金利の見通し変化 061",
+      "seendate": "20260806T130100Z",
+      "domain": "toyokeizai.net",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://diamond.jp/fixture/jp/062",
+      "title": "円相場の変動性が上昇 062",
+      "seendate": "20260806T140200Z",
+      "domain": "diamond.jp",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://jiji.com/fixture/jp/063",
+      "title": "気候政策が市場に影響 063",
+      "seendate": "20260806T150300Z",
+      "domain": "jiji.com",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://newswitch.jp/fixture/jp/064",
+      "title": "住宅需要が減速 064",
+      "seendate": "20260806T160400Z",
+      "domain": "newswitch.jp",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://nikkei.com/fixture/jp/065",
+      "title": "半導体投資が拡大 065",
+      "seendate": "20260806T170500Z",
+      "domain": "nikkei.com",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://toyokeizai.net/fixture/jp/066",
+      "title": "政策金利の見通し変化 066",
+      "seendate": "20260806T180600Z",
+      "domain": "toyokeizai.net",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://diamond.jp/fixture/jp/067",
+      "title": "円相場の変動性が上昇 067",
+      "seendate": "20260806T190700Z",
+      "domain": "diamond.jp",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://jiji.com/fixture/jp/068",
+      "title": "気候政策が市場に影響 068",
+      "seendate": "20260806T200800Z",
+      "domain": "jiji.com",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://newswitch.jp/fixture/jp/069",
+      "title": "住宅需要が減速 069",
+      "seendate": "20260806T210900Z",
+      "domain": "newswitch.jp",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://nikkei.com/fixture/jp/070",
+      "title": "半導体投資が拡大 070",
+      "seendate": "20260806T221000Z",
+      "domain": "nikkei.com",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://toyokeizai.net/fixture/jp/071",
+      "title": "政策金利の見通し変化 071",
+      "seendate": "20260806T231100Z",
+      "domain": "toyokeizai.net",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://diamond.jp/fixture/jp/072",
+      "title": "円相場の変動性が上昇 072",
+      "seendate": "20260806T001200Z",
+      "domain": "diamond.jp",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://jiji.com/fixture/jp/073",
+      "title": "気候政策が市場に影響 073",
+      "seendate": "20260806T011300Z",
+      "domain": "jiji.com",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://newswitch.jp/fixture/jp/074",
+      "title": "住宅需要が減速 074",
+      "seendate": "20260806T021400Z",
+      "domain": "newswitch.jp",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://nikkei.com/fixture/jp/075",
+      "title": "半導体投資が拡大 075",
+      "seendate": "20260806T031500Z",
+      "domain": "nikkei.com",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://toyokeizai.net/fixture/jp/076",
+      "title": "政策金利の見通し変化 076",
+      "seendate": "20260806T041600Z",
+      "domain": "toyokeizai.net",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://diamond.jp/fixture/jp/077",
+      "title": "円相場の変動性が上昇 077",
+      "seendate": "20260806T051700Z",
+      "domain": "diamond.jp",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://jiji.com/fixture/jp/078",
+      "title": "気候政策が市場に影響 078",
+      "seendate": "20260806T061800Z",
+      "domain": "jiji.com",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://newswitch.jp/fixture/jp/079",
+      "title": "住宅需要が減速 079",
+      "seendate": "20260806T071900Z",
+      "domain": "newswitch.jp",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://nikkei.com/fixture/jp/080",
+      "title": "半導体投資が拡大 080",
+      "seendate": "20260806T082000Z",
+      "domain": "nikkei.com",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://toyokeizai.net/fixture/jp/081",
+      "title": "政策金利の見通し変化 081",
+      "seendate": "20260806T092100Z",
+      "domain": "toyokeizai.net",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://diamond.jp/fixture/jp/082",
+      "title": "円相場の変動性が上昇 082",
+      "seendate": "20260806T102200Z",
+      "domain": "diamond.jp",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://jiji.com/fixture/jp/083",
+      "title": "気候政策が市場に影響 083",
+      "seendate": "20260806T112300Z",
+      "domain": "jiji.com",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://newswitch.jp/fixture/jp/084",
+      "title": "住宅需要が減速 084",
+      "seendate": "20260806T122400Z",
+      "domain": "newswitch.jp",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://nikkei.com/fixture/jp/085",
+      "title": "半導体投資が拡大 085",
+      "seendate": "20260806T132500Z",
+      "domain": "nikkei.com",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://toyokeizai.net/fixture/jp/086",
+      "title": "政策金利の見通し変化 086",
+      "seendate": "20260806T142600Z",
+      "domain": "toyokeizai.net",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://diamond.jp/fixture/jp/087",
+      "title": "円相場の変動性が上昇 087",
+      "seendate": "20260806T152700Z",
+      "domain": "diamond.jp",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://jiji.com/fixture/jp/088",
+      "title": "気候政策が市場に影響 088",
+      "seendate": "20260806T162800Z",
+      "domain": "jiji.com",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://newswitch.jp/fixture/jp/089",
+      "title": "住宅需要が減速 089",
+      "seendate": "20260806T172900Z",
+      "domain": "newswitch.jp",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://nikkei.com/fixture/jp/090",
+      "title": "半導体投資が拡大 090",
+      "seendate": "20260806T183000Z",
+      "domain": "nikkei.com",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://toyokeizai.net/fixture/jp/091",
+      "title": "政策金利の見通し変化 091",
+      "seendate": "20260806T193100Z",
+      "domain": "toyokeizai.net",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://diamond.jp/fixture/jp/092",
+      "title": "円相場の変動性が上昇 092",
+      "seendate": "20260806T203200Z",
+      "domain": "diamond.jp",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://jiji.com/fixture/jp/093",
+      "title": "気候政策が市場に影響 093",
+      "seendate": "20260806T213300Z",
+      "domain": "jiji.com",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://newswitch.jp/fixture/jp/094",
+      "title": "住宅需要が減速 094",
+      "seendate": "20260806T223400Z",
+      "domain": "newswitch.jp",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://nikkei.com/fixture/jp/095",
+      "title": "半導体投資が拡大 095",
+      "seendate": "20260806T233500Z",
+      "domain": "nikkei.com",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://toyokeizai.net/fixture/jp/096",
+      "title": "政策金利の見通し変化 096",
+      "seendate": "20260806T003600Z",
+      "domain": "toyokeizai.net",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://diamond.jp/fixture/jp/097",
+      "title": "円相場の変動性が上昇 097",
+      "seendate": "20260806T013700Z",
+      "domain": "diamond.jp",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://jiji.com/fixture/jp/098",
+      "title": "気候政策が市場に影響 098",
+      "seendate": "20260806T023800Z",
+      "domain": "jiji.com",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://newswitch.jp/fixture/jp/099",
+      "title": "住宅需要が減速 099",
+      "seendate": "20260806T033900Z",
+      "domain": "newswitch.jp",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://nikkei.com/fixture/jp/100",
+      "title": "半導体投資が拡大 100",
+      "seendate": "20260806T044000Z",
+      "domain": "nikkei.com",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://toyokeizai.net/fixture/jp/101",
+      "title": "政策金利の見通し変化 101",
+      "seendate": "20260806T054100Z",
+      "domain": "toyokeizai.net",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://diamond.jp/fixture/jp/102",
+      "title": "円相場の変動性が上昇 102",
+      "seendate": "20260806T064200Z",
+      "domain": "diamond.jp",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://jiji.com/fixture/jp/103",
+      "title": "気候政策が市場に影響 103",
+      "seendate": "20260806T074300Z",
+      "domain": "jiji.com",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://newswitch.jp/fixture/jp/104",
+      "title": "住宅需要が減速 104",
+      "seendate": "20260806T084400Z",
+      "domain": "newswitch.jp",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://nikkei.com/fixture/jp/105",
+      "title": "半導体投資が拡大 105",
+      "seendate": "20260806T094500Z",
+      "domain": "nikkei.com",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://toyokeizai.net/fixture/jp/106",
+      "title": "政策金利の見通し変化 106",
+      "seendate": "20260806T104600Z",
+      "domain": "toyokeizai.net",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://diamond.jp/fixture/jp/107",
+      "title": "円相場の変動性が上昇 107",
+      "seendate": "20260806T114700Z",
+      "domain": "diamond.jp",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://jiji.com/fixture/jp/108",
+      "title": "気候政策が市場に影響 108",
+      "seendate": "20260806T124800Z",
+      "domain": "jiji.com",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://newswitch.jp/fixture/jp/109",
+      "title": "住宅需要が減速 109",
+      "seendate": "20260806T134900Z",
+      "domain": "newswitch.jp",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://nikkei.com/fixture/jp/110",
+      "title": "半導体投資が拡大 110",
+      "seendate": "20260806T145000Z",
+      "domain": "nikkei.com",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://toyokeizai.net/fixture/jp/111",
+      "title": "政策金利の見通し変化 111",
+      "seendate": "20260806T155100Z",
+      "domain": "toyokeizai.net",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://diamond.jp/fixture/jp/112",
+      "title": "円相場の変動性が上昇 112",
+      "seendate": "20260806T165200Z",
+      "domain": "diamond.jp",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://jiji.com/fixture/jp/113",
+      "title": "気候政策が市場に影響 113",
+      "seendate": "20260806T175300Z",
+      "domain": "jiji.com",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://newswitch.jp/fixture/jp/114",
+      "title": "住宅需要が減速 114",
+      "seendate": "20260806T185400Z",
+      "domain": "newswitch.jp",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://nikkei.com/fixture/jp/115",
+      "title": "半導体投資が拡大 115",
+      "seendate": "20260806T195500Z",
+      "domain": "nikkei.com",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://toyokeizai.net/fixture/jp/116",
+      "title": "政策金利の見通し変化 116",
+      "seendate": "20260806T205600Z",
+      "domain": "toyokeizai.net",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://diamond.jp/fixture/jp/117",
+      "title": "円相場の変動性が上昇 117",
+      "seendate": "20260806T215700Z",
+      "domain": "diamond.jp",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://jiji.com/fixture/jp/118",
+      "title": "気候政策が市場に影響 118",
+      "seendate": "20260806T225800Z",
+      "domain": "jiji.com",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    },
+    {
+      "url": "https://newswitch.jp/fixture/jp/119",
+      "title": "住宅需要が減速 119",
+      "seendate": "20260806T235900Z",
+      "domain": "newswitch.jp",
+      "language": "Japanese",
+      "sourcecountry": "Japan"
+    }
+  ]
+}

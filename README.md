@@ -27,7 +27,7 @@ uv sync --project backend --locked --group dev
 .\scripts\verify-all.ps1
 ```
 
-The default mode is `fixture`; real news APIs and LLMs are not called by the default test suite. Copy `backend/.env.example` to the ignored `backend/.env` only when local environment values are needed.
+The default mode is `fixture`; real news APIs and LLMs are not called by the default test suite. Copy `backend/.env.example` to the ignored `backend/.env` only when local environment values are needed. Follow `docs/SOURCE_REGISTRATION_GUIDE.md` for the free-source variable matrix and NAVER registration procedure.
 
 Build and preview a fixture-backed Pages artifact:
 
@@ -37,7 +37,7 @@ Set-Location .\preview-site
 python -m http.server 8080
 ```
 
-The target design uses the GDELT DOC API as the primary news metadata source and approved public RSS/API feeds as supplementary sources. Until the v2 collector is implemented, `publish-live` continues to use the existing enabled RSS configuration. The scheduled Pages workflow runs every day at 07:00 UTC (16:00 JST/KST), validates the public artifact, and deploys only after successful generation.
+The GDELT DOC API and NAVER API HUB collectors, versioned queries, 250-article cap, publisher allowlists, and NAVER usage hard stops are implemented. To preserve the existing v1 contract, scheduled `publish-live` still uses RSS only; GDELT and NAVER are enabled explicitly with `--enable-gdelt` and `--enable-naver` during bounded evaluation and will become defaults when the v2 producer and client migrate together. The scheduled Pages workflow runs every day at 07:00 UTC (16:00 JST/KST), validates the public artifact, and deploys only after successful generation.
 
 ## Documentation
 
@@ -45,7 +45,7 @@ The target design uses the GDELT DOC API as the primary news metadata source and
 - Japanese specification: `PROJECT_SPEC_JA.md`
 - AI development guide: `docs/AI_DEVELOPMENT_GUIDE.md`
 - Current status: `docs/DEVELOPMENT_STATUS.md`
-- Conditional API registration: `docs/SOURCE_REGISTRATION_GUIDE.md`
+- Free API environment and registration guide: `docs/SOURCE_REGISTRATION_GUIDE.md`
 - Keyword-news redesign decision: `docs/adr/ADR-0001-keyword-news-pipeline.md`
 
 ## Security

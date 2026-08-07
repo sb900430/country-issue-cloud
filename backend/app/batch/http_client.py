@@ -1,3 +1,5 @@
+import time
+from collections.abc import Callable, Mapping
 from ipaddress import ip_address
 from urllib.parse import urlparse
 
@@ -15,24 +17,40 @@ class HttpsFeedClient:
         timeout_seconds: float = 15.0,
         max_response_bytes: int = 2_000_000,
         max_attempts: int = 2,
+        retry_delay_seconds: float = 60.0,
+        sleeper: Callable[[float], None] = time.sleep,
     ) -> None:
         self.client = client or httpx.Client(
             follow_redirects=True,
             timeout=timeout_seconds,
             headers={
-                "Accept": "application/rss+xml, application/atom+xml, application/xml, text/xml",
+                "Accept": (
+                    "application/json, application/rss+xml, application/atom+xml, "
+                    "application/xml, text/xml"
+                ),
                 "User-Agent": "country-issue-cloud/0.1 (+https://github.com/sb900430/country-issue-cloud)",
             },
         )
         self.max_response_bytes = max_response_bytes
         self.max_attempts = max_attempts
+        self.retry_delay_seconds = retry_delay_seconds
+        self.sleeper = sleeper
 
     def fetch(self, url: str) -> bytes:
+        return self.fetch_with_headers(url, {})
+
+    def fetch_with_headers(self, url: str, headers: Mapping[str, str]) -> bytes:
         self._validate_url(url)
         last_error: httpx.HTTPError | None = None
         for attempt in range(self.max_attempts):
             try:
-                response = self.client.get(url)
+                response = self.client.get(
+                    url,
+                    headers=headers,
+                    follow_redirects=not headers,
+                )
+                if headers and response.is_redirect:
+                    raise FeedFetchError("authenticated source redirect is not allowed")
                 response.raise_for_status()
                 break
             except httpx.HTTPStatusError as error:
@@ -43,16 +61,17 @@ class HttpsFeedClient:
                 last_error = error
             if attempt + 1 == self.max_attempts:
                 raise FeedFetchError("feed request failed") from last_error
+            self.sleeper(self.retry_delay_seconds * (attempt + 1))
         else:
             raise FeedFetchError("feed request failed") from last_error
         self._validate_url(str(response.url))
         if len(response.content) > self.max_response_bytes:
-            raise FeedFetchError("feed response is too large")
+            raise FeedFetchError("source response is too large")
         content_type = response.headers.get("content-type", "").lower()
         if content_type and not any(
-            allowed in content_type for allowed in ("xml", "rss", "atom")
+            allowed in content_type for allowed in ("json", "xml", "rss", "atom")
         ):
-            raise FeedFetchError("feed response has an unsupported content type")
+            raise FeedFetchError("source response has an unsupported content type")
         return response.content
 
     @staticmethod

@@ -2,14 +2,14 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import UTC, datetime
 
 from app.batch.collectors.base import Collector
-from app.batch.deduplication import deduplicate_articles
+from app.batch.deduplication import deduplicate_articles, select_diverse_articles
 from app.batch.models import CollectedArticle, CollectorKind, CountryCollectionResult
 from app.core.settings import AppMode
 from app.schemas.issues import CountryCode
 
 
 class CollectionRunner:
-    def __init__(self, collectors: list[Collector], max_articles_per_country: int = 100) -> None:
+    def __init__(self, collectors: list[Collector], max_articles_per_country: int = 250) -> None:
         self.collectors = collectors
         self.max_articles_per_country = max_articles_per_country
 
@@ -64,9 +64,13 @@ class CollectionRunner:
                 )
                 articles.extend(fallback_articles)
                 errors.extend(fallback_errors)
+        unique_articles = deduplicate_articles(articles)
+        selected_articles = select_diverse_articles(
+            unique_articles, self.max_articles_per_country
+        )
         return CountryCollectionResult(
             country=country,
-            articles=tuple(deduplicate_articles(articles)[: self.max_articles_per_country]),
+            articles=tuple(selected_articles),
             errors=tuple(errors),
             used_fixture_fallback=used_fallback,
             collected_at=datetime.now(UTC),
@@ -86,10 +90,11 @@ class CollectionRunner:
         errors: list[str] = []
         for collector in collectors:
             try:
-                remaining = self.max_articles_per_country - len(articles)
-                if remaining <= 0:
-                    break
-                articles.extend(collector.collect(window_start, window_end, remaining))
+                articles.extend(
+                    collector.collect(
+                        window_start, window_end, self.max_articles_per_country
+                    )
+                )
             except Exception as error:
                 errors.append(f"{collector.source_id}:{type(error).__name__}")
         return articles, errors
