@@ -64,6 +64,14 @@ def test_long_japanese_title_is_bounded_without_losing_source_evidence() -> None
     assert candidate.evidence_expression in title
 
 
+def test_single_character_japanese_fragment_is_skipped() -> None:
+    candidates = LanguageKeywordExtractor().extract(
+        _article("article", CountryCode.JP, "米が利上げを検討")
+    )
+
+    assert candidates == ()
+
+
 def test_synonym_resolver_only_uses_labels_present_in_candidates() -> None:
     resolver = CandidateSynonymResolver(
         (SynonymGroup(aliases=("interest rate", "policy rate", "benchmark rate")),)
