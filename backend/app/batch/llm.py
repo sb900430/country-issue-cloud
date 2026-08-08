@@ -68,9 +68,7 @@ class RetryingStructuredExtractor:
         self.current_month_cost_usd = current_month_cost_usd
         self.retry_delay_seconds = retry_delay_seconds
 
-    def extract(
-        self, country: CountryCode, articles: list[CollectedArticle]
-    ) -> ExtractionResult:
+    def extract(self, country: CountryCode, articles: list[CollectedArticle]) -> ExtractionResult:
         payload = self._payload(country, articles)
         cache_key = sha256(
             json.dumps(payload, ensure_ascii=False, sort_keys=True).encode()
@@ -104,9 +102,7 @@ class RetryingStructuredExtractor:
                     sleep(self.retry_delay_seconds)
         raise ExtractionFailedError("structured LLM extraction failed") from last_error
 
-    def _payload(
-        self, country: CountryCode, articles: list[CollectedArticle]
-    ) -> dict[str, object]:
+    def _payload(self, country: CountryCode, articles: list[CollectedArticle]) -> dict[str, object]:
         return {
             "country": country.value,
             "prompt_version": self.prompt_version,

@@ -6,9 +6,7 @@ from app.schemas.issues import CountryCode
 
 SENSITIVE_PATTERNS = (
     re.compile(r"(?i)bearer\s+[a-z0-9._-]+"),
-    re.compile(
-        r"(?i)(api[_-]?key|token|secret|authorization)\s*[:=]\s*(?:bearer\s+)?\S+"
-    ),
+    re.compile(r"(?i)(api[_-]?key|token|secret|authorization)\s*[:=]\s*(?:bearer\s+)?\S+"),
 )
 
 

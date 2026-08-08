@@ -106,8 +106,7 @@ def load_gdelt_sources(path: Path) -> list[GdeltSource]:
                     source_country=entry.source_country or "",
                     source_language=entry.source_language or "",
                     allowed_domains=tuple(
-                        domain.lower().removeprefix("www.")
-                        for domain in entry.allowed_domains
+                        domain.lower().removeprefix("www.") for domain in entry.allowed_domains
                     ),
                 )
             )
@@ -144,8 +143,7 @@ def load_naver_sources(path: Path) -> list[NaverSource]:
                     queries=entry.queries,
                     query_version=entry.query_version or "",
                     allowed_domains=tuple(
-                        domain.lower().removeprefix("www.")
-                        for domain in entry.allowed_domains
+                        domain.lower().removeprefix("www.") for domain in entry.allowed_domains
                     ),
                     free_policy_review_due_at=entry.terms_review_due_at or date.min,
                 )

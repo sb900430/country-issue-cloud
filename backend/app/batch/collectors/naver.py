@@ -101,9 +101,9 @@ class NaverCollector:
                 if not title:
                     continue
                 seen_urls.add(item.originallink)
-                article_id = sha256(
-                    f"{self.source_id}:{item.originallink}".encode()
-                ).hexdigest()[:24]
+                article_id = sha256(f"{self.source_id}:{item.originallink}".encode()).hexdigest()[
+                    :24
+                ]
                 articles.append(
                     CollectedArticle(
                         article_id=article_id,

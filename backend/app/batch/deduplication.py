@@ -51,15 +51,11 @@ def deduplicate_articles(articles: list[CollectedArticle]) -> list[CollectedArti
     return selected
 
 
-def select_diverse_articles(
-    articles: list[CollectedArticle], limit: int
-) -> list[CollectedArticle]:
+def select_diverse_articles(articles: list[CollectedArticle], limit: int) -> list[CollectedArticle]:
     if not articles or limit <= 0:
         return []
     pool_size = min(len(articles), limit)
-    publisher_limit = max(
-        1, min(MAX_PUBLISHER_ARTICLES, int(pool_size * MAX_PUBLISHER_SHARE))
-    )
+    publisher_limit = max(1, min(MAX_PUBLISHER_ARTICLES, int(pool_size * MAX_PUBLISHER_SHARE)))
     selected: list[CollectedArticle] = []
     publisher_counts: Counter[str] = Counter()
     for article in articles:

@@ -939,6 +939,8 @@ v* 태그 → Pages URL 검증 → GitHub Release. Android 재개 후에만 AAB�
 
 2026-08-08 기준 순서 2는 외부 호출 없는 언어별 결정적 후보 추출, 국가별 불용어, 입력 후보 한정 동의어 통합, 문서 빈도·매체 다양성·최신 시각·ID 기반 TOP 5와 관련 기사 최대 20건을 구현한다. 국가별 120건 fixture에서 일반어 제외, 복합명사 보존, 국가 분리, 근거 연결과 입력 순서에 무관한 순위를 완료 기준으로 검증한다.
 
+2026-08-08 기준 순서 3은 기존 v1을 유지한 채 Schema 2.0, `/api/v2/keywords`, `data/v2`, 별도 JSON Repository와 정적 publisher를 추가하고 웹 기본 DataSource를 v2로 전환한다. main push는 외부 호출 없는 국가별 120건 fixture TOP 5를 배포한다. 예약 `publish-keyword-live`는 직전 24시간 GDELT·승인 RSS·한국 NAVER를 사용하며, 세 국가 모두 100건·TOP 5 기준을 충족할 때만 새 artifact를 만들고 실패 시 마지막 정상 Pages를 유지한다. NAVER Secret은 `pages-production` Environment에서만 주입한다.
+
 배포 오류 대응은 위 기능 PR과 섞지 않는다. GDELT 이용조건·query 편향·형태소 분석 library 선택이 구현 중 바뀌면 ADR을 갱신한다.
 
 ### 후속 선택 일정 — VPS/EC2 전환

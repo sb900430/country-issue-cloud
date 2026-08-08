@@ -3,14 +3,18 @@
 | 항목 | 현재 상태 |
 |---|---|
 | 현재 목표 | 키워드 뉴스 v2 — 국가별 100건 이상 경제뉴스 기반 TOP 5 |
-| 상태 | v2 키워드 파이프라인 완료 리뷰 통과, Draft PR 준비 |
+| 상태 | v2 Schema·Pages UI·예약 producer 전환 구현·전체 검증·완료 리뷰 완료 |
 | 기준 브랜치 | `main` |
-| 작업 브랜치 | `codex/v2-keyword-pipeline` |
+| 작업 브랜치 | `codex/v2-schema-pages-ui` |
 | 마지막 완료 커밋 | `f278c52` — 새 SHA 재배포 준비 PR #16 Rebase and merge |
-| 전체 검증 | PASS — Python 93개·전체 coverage 90%·키워드 모듈 94%·웹 8개·Ruff·mypy·Secret·명세 동기화 |
-| 다음 작업 | Draft PR 생성 후 CI 확인과 Rebase and merge 요청 |
+| 전체 검증 | PASS — Python 100개·전체 coverage 88%·웹 9개·Pages v2 artifact·Ruff·mypy·Secret·명세 동기화 |
+| 다음 작업 | Draft PR 생성 후 CI 확인 |
 
 ## 키워드 뉴스 v2 결정
+
+- Schema 2.0, `/api/v2/keywords`, `data/v2`와 v1 독립 Repository를 추가해 v1 계약을 보존했다.
+- 웹 기본 DataSource를 v2로 전환하고 국가별 TOP 5 클릭 시 관련 기사 최대 20건을 표시한다.
+- main push는 국가별 120건 fixture TOP 5를 배포하고, 예약 실행은 직전 24시간 GDELT·RSS·NAVER 결과가 기준을 통과할 때만 기존 정상 Pages를 교체한다.
 
 - 언어별 결정적 복합명사 후보 추출, 국가별 일반어·서술어 제거와 입력 후보 한정 동의어 통합을 구현했다.
 - 국가별 최소 100건을 강제하고 문서 빈도·매체 다양성·최신 시각·ID로 TOP 5를 결정하며 관련 기사 ID를 최대 20건 연결한다.

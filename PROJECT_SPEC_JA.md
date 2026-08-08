@@ -888,6 +888,8 @@ v* tag → Pages URL検証 → GitHub Release。Android再開後のみAABとPlay
 
 2026-08-08時点の順序2では、外部呼出し不要の言語別決定的候補抽出、国別stopword、入力候補限定の同義語統合、document frequency・媒体多様性・最新時刻・IDによるTOP 5と関連記事最大20件を実装する。国別120件fixtureで一般語除外、複合名詞保持、国分離、根拠接続、入力順序に依存しない順位を完了基準として検証する。
 
+2026-08-08時点の順序3では既存v1を維持したままSchema 2.0、`/api/v2/keywords`、`data/v2`、独立JSON Repository、静的publisherを追加し、Web標準DataSourceをv2へ移行する。main pushは外部呼出し不要の国別120件fixture TOP 5を配布する。予約`publish-keyword-live`は直前24時間のGDELT・承認RSS・韓国NAVERを使い、3か国すべてが100件・TOP 5基準を満たす場合だけ新artifactを生成し、失敗時は最後の正常Pagesを維持する。NAVER Secretは`pages-production` Environmentだけで注入する。
+
 配布障害対応は上記機能PRへ混在させない。GDELT利用条件・query偏り・形態素分析library選定が実装中に変わる場合はADRを更新する。
 
 ### 後続選択日程 — VPS/EC2移行

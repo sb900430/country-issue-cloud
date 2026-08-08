@@ -19,6 +19,9 @@ foreach ($required in @(
     'force_live_retry',
     'if [[ "${{ github.event_name }}" == "schedule" ]]',
     'mode="fixture"',
+    'environment: pages-production',
+    'NAVER_CLIENT_ID: ${{ secrets.NAVER_CLIENT_ID }}',
+    'NAVER_CLIENT_SECRET: ${{ secrets.NAVER_CLIENT_SECRET }}',
     "needs.gate.outputs.should-run == 'true'"
 )) {
     if (-not $workflow.Contains($required)) {
@@ -40,6 +43,11 @@ if (
 }
 if (-not $builder.Contains('Live attempt marker must be persisted before collection starts.')) {
     throw "The Pages builder must reject live collection without a persisted marker."
+}
+foreach ($required in @('publish-keyword-fixture', 'publish-keyword-live', 'data/v2')) {
+    if (-not $builder.Contains($required)) {
+        throw "Pages builder is missing the v2 keyword path: $required"
+    }
 }
 
 Write-Host "PASS: Pages schedules and duplicate-run safeguards are present."

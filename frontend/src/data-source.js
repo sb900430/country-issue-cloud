@@ -15,7 +15,7 @@ export class IssueDataSource {
 }
 
 export class StaticJsonDataSource extends IssueDataSource {
-  constructor(baseUrl = "./data/v1", fetcher = globalThis.fetch.bind(globalThis)) {
+  constructor(baseUrl = "./data/v2", fetcher = globalThis.fetch.bind(globalThis)) {
     super();
     this.baseUrl = baseUrl.replace(/\/$/, "");
     this.fetcher = fetcher;
@@ -44,23 +44,23 @@ export class StaticJsonDataSource extends IssueDataSource {
 }
 
 export class ApiDataSource extends IssueDataSource {
-  constructor(baseUrl = "/api/v1", fetcher = globalThis.fetch.bind(globalThis)) {
+  constructor(baseUrl = "/api/v2", fetcher = globalThis.fetch.bind(globalThis)) {
     super();
     this.baseUrl = baseUrl.replace(/\/$/, "");
     this.fetcher = fetcher;
   }
 
   async getLatest() {
-    return validateIssueResult(await this.#get(`${this.baseUrl}/issues/latest`));
+    return validateIssueResult(await this.#get(`${this.baseUrl}/keywords/latest`));
   }
 
   async getDates() {
-    return validateDates(await this.#get(`${this.baseUrl}/issues/dates?within_days=7`));
+    return validateDates(await this.#get(`${this.baseUrl}/keywords/dates?within_days=7`));
   }
 
   async getByDate(date) {
     validateDate(date);
-    return validateIssueResult(await this.#get(`${this.baseUrl}/issues/${date}`));
+    return validateIssueResult(await this.#get(`${this.baseUrl}/keywords/${date}`));
   }
 
   async #get(url) {
@@ -84,7 +84,7 @@ export class DataSourceError extends Error {
 export function validateIssueResult(value) {
   if (
     !value ||
-    value.schema_version !== "1.0" ||
+    value.schema_version !== "2.0" ||
     !isDate(value.date) ||
     !isTimestamp(value.generated_at) ||
     !isStatus(value.status)
@@ -134,44 +134,46 @@ function isCountryResult(result) {
     isStatus(result.status) &&
     Number.isInteger(result.article_count) &&
     result.article_count >= 0 &&
-    typeof result.extraction_success_rate === "number" &&
-    result.extraction_success_rate >= 0 &&
-    result.extraction_success_rate <= 1 &&
     Array.isArray(result.warnings) &&
     result.warnings.every((warning) => typeof warning === "string") &&
-    Array.isArray(result.top_issues) &&
-    result.top_issues.length <= 5 &&
-    result.top_issues.every((issue, index) => isTopIssue(issue, index + 1, result.article_count))
+    Array.isArray(result.top_keywords) &&
+    result.top_keywords.length <= 5 &&
+    (result.status !== "success" || result.top_keywords.length === 5) &&
+    result.top_keywords.every((keyword, index) =>
+      isTopKeyword(keyword, index + 1, result.article_count))
   );
 }
 
-function isTopIssue(issue, expectedRank, countryArticleCount) {
+function isTopKeyword(keyword, expectedRank, countryArticleCount) {
   return (
-    issue &&
-    issue.rank === expectedRank &&
-    typeof issue.issue_id === "string" &&
-    /^[a-z0-9][a-z0-9_-]{2,99}$/.test(issue.issue_id) &&
-    typeof issue.issue_label === "string" &&
-    issue.issue_label.length > 0 &&
-    typeof issue.display_label_ko === "string" &&
-    issue.display_label_ko.length > 0 &&
-    Number.isInteger(issue.article_count) &&
-    issue.article_count >= 1 &&
-    issue.article_count <= countryArticleCount &&
-    Number.isInteger(issue.publisher_count) &&
-    issue.publisher_count >= 1 &&
-    typeof issue.article_ratio === "number" &&
-    issue.article_ratio > 0 &&
-    issue.article_ratio <= 1 &&
-    Array.isArray(issue.representative_articles) &&
-    issue.representative_articles.length > 0 &&
-    issue.representative_articles.every(isRepresentativeArticle)
+    keyword &&
+    keyword.rank === expectedRank &&
+    typeof keyword.keyword_id === "string" &&
+    /^[a-z0-9][a-z0-9_-]{2,79}$/.test(keyword.keyword_id) &&
+    typeof keyword.label === "string" &&
+    keyword.label.length >= 2 &&
+    Number.isInteger(keyword.document_frequency) &&
+    keyword.document_frequency >= 1 &&
+    keyword.document_frequency <= countryArticleCount &&
+    Number.isInteger(keyword.publisher_count) &&
+    keyword.publisher_count >= 1 &&
+    typeof keyword.article_ratio === "number" &&
+    keyword.article_ratio > 0 &&
+    keyword.article_ratio <= 1 &&
+    Array.isArray(keyword.evidence_expressions) &&
+    keyword.evidence_expressions.length > 0 &&
+    Array.isArray(keyword.related_articles) &&
+    keyword.related_articles.length > 0 &&
+    keyword.related_articles.length <= 20 &&
+    keyword.related_articles.every(isRepresentativeArticle)
   );
 }
 
 function isRepresentativeArticle(article) {
   return (
     article &&
+    typeof article.article_id === "string" &&
+    article.article_id.length > 0 &&
     typeof article.title === "string" &&
     article.title.length > 0 &&
     typeof article.publisher === "string" &&

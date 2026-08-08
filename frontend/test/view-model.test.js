@@ -9,7 +9,7 @@ test("country view keeps the five independent ranked issues", () => {
     date: "2026-08-06",
     generated_at: "2026-08-06T01:00:00Z",
     countries: {
-      KR: { status: "success", article_count: 30, warnings: [], top_issues: issues },
+      KR: { status: "success", article_count: 120, warnings: [], top_keywords: issues },
     },
   };
 

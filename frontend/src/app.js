@@ -4,7 +4,7 @@ import { createCountryView } from "./view-model.js";
 
 export function createIssueCloudApp({
   root = document,
-  dataSource = new CachedIssueDataSource(new StaticJsonDataSource("./data/v1")),
+  dataSource = new CachedIssueDataSource(new StaticJsonDataSource("./data/v2")),
   logger = console,
 } = {}) {
   const state = { result: null, country: "KR", layout: "tiles", bound: false };
@@ -147,7 +147,7 @@ export function createIssueCloudApp({
     if (view.issues.length === 0) {
       const empty = root.createElement("p");
       empty.className = "empty";
-      empty.textContent = "표시할 이슈가 없습니다 · 表示できるイシューがありません";
+      empty.textContent = "표시할 키워드가 없습니다 · 表示できるキーワードがありません";
       elements.issues.append(empty);
     }
   }

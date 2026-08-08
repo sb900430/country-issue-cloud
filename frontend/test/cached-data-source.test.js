@@ -13,14 +13,14 @@ class MemoryStorage {
 test("cached data source stores successful responses and restores them on failure", async () => {
   const storage = new MemoryStorage();
   const value = {
-    schema_version: "1.0",
+    schema_version: "2.0",
     date: "2026-08-06",
     generated_at: "2026-08-06T00:00:00Z",
     status: "failed",
     countries: Object.fromEntries(
       ["US", "JP", "KR"].map((country) => [country, {
-        status: "failed", article_count: 0, extraction_success_rate: 0,
-        top_issues: [], warnings: [],
+        status: "failed", article_count: 0,
+        top_keywords: [], warnings: [],
       }]),
     ),
   };
