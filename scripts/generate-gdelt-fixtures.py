@@ -42,7 +42,7 @@ def main() -> None:
         domains = settings["domains"]
         titles = settings["titles"]
         for index in range(120):
-            domain = domains[index % len(domains)]
+            domain = domains[(index + index // len(titles)) % len(domains)]
             title = titles[index % len(titles)]
             articles.append(
                 {

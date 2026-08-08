@@ -1,45 +1,97 @@
 import re
 import unicodedata
 from collections import defaultdict
+from dataclasses import dataclass
 from datetime import datetime
 from hashlib import sha256
+from math import ceil
 
+from kiwipiepy import Kiwi  # type: ignore[import-untyped]
 from pydantic import BaseModel, ConfigDict, Field
+from sudachipy import dictionary, tokenizer  # type: ignore[import-untyped]
 
 from app.batch.models import CollectedArticle
 from app.schemas.issues import CountryCode
 
 _NUMBER_SUFFIX = re.compile(r"\s+\d{3,}$")
 _LATIN_WORD = re.compile(r"[A-Za-z][A-Za-z'-]*")
-_KOREAN_WORD = re.compile(r"[가-힣]{2,}")
-_JAPANESE_TEXT = re.compile(r"[一-龯々ぁ-んァ-ヶー]{2,}")
-_ENGLISH_TAILS = {
-    "affect",
-    "affects",
-    "change",
-    "changes",
-    "expand",
-    "expands",
-    "increase",
-    "increases",
-    "outlook",
-    "slow",
-    "slows",
-}
-_KOREAN_TAILS = {"감소", "둔화", "변화", "상승", "영향", "전망", "확대"}
-_JAPANESE_TAILS = (
-    "見通し変化",
-    "見通し",
-    "拡大",
-    "上昇",
-    "影響",
-    "減速",
-    "変化",
-)
+_MIN_DOCUMENT_RATIO = 0.03
+_MIN_DOCUMENT_FREQUENCY = 3
+_MIN_PUBLISHER_COUNT = 2
 _GENERAL_TERMS = {
-    CountryCode.US: {"economy", "market", "markets", "news", "report", "today"},
-    CountryCode.JP: {"ニュース", "市場", "今日", "経済"},
-    CountryCode.KR: {"경제", "기사", "뉴스", "시장", "오늘"},
+    CountryCode.US: {
+        "after",
+        "amid",
+        "announces",
+        "affect",
+        "affects",
+        "business",
+        "change",
+        "changes",
+        "demand",
+        "economy",
+        "expand",
+        "expands",
+        "government",
+        "investment",
+        "increase",
+        "increases",
+        "market",
+        "markets",
+        "news",
+        "outlook",
+        "policy",
+        "report",
+        "says",
+        "slow",
+        "slows",
+        "today",
+    },
+    CountryCode.JP: {
+        "ニュース",
+        "今日",
+        "会見",
+        "公表",
+        "変化",
+        "市場",
+        "影響",
+        "投資",
+        "拡大",
+        "政府",
+        "政策",
+        "明らか",
+        "検討",
+        "減速",
+        "発表",
+        "経済",
+        "見通し",
+        "速報",
+        "上昇",
+        "需要",
+    },
+    CountryCode.KR: {
+        "감소",
+        "경제",
+        "기사",
+        "뉴스",
+        "대통령",
+        "둔화",
+        "변화",
+        "보도",
+        "속보",
+        "수요",
+        "시장",
+        "상승",
+        "영향",
+        "오늘",
+        "전망",
+        "정부",
+        "정책",
+        "종합",
+        "증가",
+        "투자",
+        "확대",
+    },
 }
 
 
@@ -77,65 +129,130 @@ class CountryKeywordAnalysis(BaseModel):
     top_keywords: tuple[RankedKeyword, ...] = Field(min_length=1, max_length=5)
 
 
+@dataclass(frozen=True)
+class _TermUnit:
+    label: str
+    start: int
+    end: int
+
+
 class LanguageKeywordExtractor:
+    def __init__(self) -> None:
+        self._kiwi = Kiwi()
+        self._sudachi = dictionary.Dictionary(dict="core").create()
+
     def extract(self, article: CollectedArticle) -> tuple[KeywordCandidate, ...]:
         title = _NUMBER_SUFFIX.sub("", article.title).strip()
         if article.country is CountryCode.US:
-            label = self._english_label(title)
-            evidence = label
+            segments = self._english_segments(title)
         elif article.country is CountryCode.JP:
-            label, evidence = self._japanese_label(title)
+            segments = self._japanese_segments(title)
         else:
-            label = self._korean_label(title)
-            evidence = label
-        label = label[:80].strip()
-        evidence = evidence[:120].strip()
-        if len(label) < 2 or len(evidence) < 2 or _normalize(label) in {
-            _normalize(term) for term in _GENERAL_TERMS[article.country]
-        }:
-            return ()
-        return (KeywordCandidate(label=label, evidence_expression=evidence),)
+            segments = self._korean_segments(title)
+        return self._build_candidates(article.country, title, segments)
 
     @staticmethod
-    def _english_label(title: str) -> str:
-        words = [word.casefold() for word in _LATIN_WORD.findall(title)]
-        content: list[str] = []
-        for word in words:
-            if word in _ENGLISH_TAILS:
-                break
-            if word not in _GENERAL_TERMS[CountryCode.US]:
-                content.append(word)
-            if len(content) == 3:
-                break
-        return " ".join(content)
+    def _english_segments(title: str) -> list[list[_TermUnit]]:
+        segments: list[list[_TermUnit]] = []
+        current: list[_TermUnit] = []
+        for match in _LATIN_WORD.finditer(title):
+            surface = match.group().casefold()
+            label = _english_lemma(surface)
+            if (
+                surface in _GENERAL_TERMS[CountryCode.US]
+                or label in _GENERAL_TERMS[CountryCode.US]
+                or len(label) < 3
+            ):
+                if current:
+                    segments.append(current)
+                    current = []
+                continue
+            current.append(_TermUnit(label, match.start(), match.end()))
+        if current:
+            segments.append(current)
+        return segments
+
+    def _korean_segments(self, title: str) -> list[list[_TermUnit]]:
+        segments: list[list[_TermUnit]] = []
+        current: list[_TermUnit] = []
+        for token in self._kiwi.tokenize(title):
+            if token.tag.startswith("N"):
+                current.append(_TermUnit(token.form, token.start, token.start + token.len))
+            elif token.tag == "XSN" and current:
+                previous = current[-1]
+                current[-1] = _TermUnit(
+                    previous.label + token.form, previous.start, token.start + token.len
+                )
+            elif current:
+                segments.append(current)
+                current = []
+        if current:
+            segments.append(current)
+        return segments
+
+    def _japanese_segments(self, title: str) -> list[list[_TermUnit]]:
+        segments: list[list[_TermUnit]] = []
+        current: list[_TermUnit] = []
+        mode = tokenizer.Tokenizer.SplitMode.C
+        for morpheme in self._sudachi.tokenize(title, mode):
+            part = morpheme.part_of_speech()[0]
+            if part == "名詞":
+                current.append(
+                    _TermUnit(morpheme.dictionary_form(), morpheme.begin(), morpheme.end())
+                )
+            elif part == "接尾辞" and current:
+                previous = current[-1]
+                current[-1] = _TermUnit(
+                    previous.label + morpheme.surface(), previous.start, morpheme.end()
+                )
+            elif part == "助詞" and morpheme.surface() == "の":
+                continue
+            elif current:
+                segments.append(current)
+                current = []
+        if current:
+            segments.append(current)
+        return segments
 
     @staticmethod
-    def _korean_label(title: str) -> str:
-        words = _KOREAN_WORD.findall(title)
-        content: list[str] = []
-        for word in words:
-            if word in _KOREAN_TAILS:
-                break
-            if word not in _GENERAL_TERMS[CountryCode.KR]:
-                content.append(word)
-            if len(content) == 3:
-                break
-        return " ".join(content)
-
-    @staticmethod
-    def _japanese_label(title: str) -> tuple[str, str]:
-        match = _JAPANESE_TEXT.search(title)
-        if match is None:
-            return "", ""
-        value = match.group()
-        for particle in ("が", "を", "に", "へ", "で", "と", "は", "も"):
-            value = value.split(particle, 1)[0]
-        for tail in _JAPANESE_TAILS:
-            if value.endswith(tail):
-                value = value[: -len(tail)]
-                break
-        evidence = value.strip()
-        return evidence.replace("の", "").strip(), evidence
+    def _build_candidates(
+        country: CountryCode, title: str, segments: list[list[_TermUnit]]
+    ) -> tuple[KeywordCandidate, ...]:
+        candidates: dict[str, KeywordCandidate] = {}
+        general_terms = _GENERAL_TERMS[country]
+        for segment in segments:
+            covered: set[int] = set()
+            for index, (left, right) in enumerate(zip(segment, segment[1:], strict=False)):
+                if left.label in general_terms or right.label in general_terms:
+                    continue
+                separator = " " if country is CountryCode.US else ""
+                label = f"{left.label}{separator}{right.label}"
+                if len(label) > 30:
+                    continue
+                evidence = title[left.start : right.end].strip()
+                if country is CountryCode.US:
+                    evidence = evidence.casefold()
+                if len(evidence) < 2:
+                    continue
+                normalized = _normalize(label)
+                candidates[normalized] = KeywordCandidate(
+                    label=label[:80], evidence_expression=evidence[:120]
+                )
+                covered.update((index, index + 1))
+            for index, unit in enumerate(segment):
+                if index in covered or unit.label in general_terms or len(unit.label) < 2:
+                    continue
+                label = unit.label[:80].strip()
+                evidence = title[unit.start : unit.end][:120].strip()
+                if country is CountryCode.US:
+                    evidence = evidence.casefold()
+                if len(label) < 2 or len(evidence) < 2:
+                    continue
+                normalized = _normalize(label)
+                candidates[normalized] = KeywordCandidate(
+                    label=label, evidence_expression=evidence
+                )
+        return tuple(candidates.values())
 
 
 class CandidateSynonymResolver:
@@ -189,13 +306,20 @@ class KeywordRanker:
                 grouped_labels[key].add(candidate.label)
                 grouped_evidence[key].add(candidate.evidence_expression)
 
+        minimum_frequency = max(
+            _MIN_DOCUMENT_FREQUENCY, ceil(len(articles) * _MIN_DOCUMENT_RATIO)
+        )
         ranked: list[tuple[int, int, datetime, str, str]] = []
         for key, indexed in grouped_articles.items():
+            frequency = len(indexed)
+            publisher_count = len({article.publisher for article in indexed.values()})
+            if frequency < minimum_frequency or publisher_count < _MIN_PUBLISHER_COUNT:
+                continue
             label = self.resolver.display_label(grouped_labels[key])
             ranked.append(
                 (
-                    len(indexed),
-                    len({article.publisher for article in indexed.values()}),
+                    frequency,
+                    publisher_count,
                     max(article.published_at for article in indexed.values()),
                     _keyword_id(country, label),
                     key,
@@ -231,6 +355,16 @@ class KeywordRanker:
             article_count=len(articles),
             top_keywords=tuple(top_keywords),
         )
+
+
+def _english_lemma(value: str) -> str:
+    if len(value) > 4 and value.endswith("ies"):
+        return f"{value[:-3]}y"
+    if len(value) > 4 and value.endswith("s") and not value.endswith(
+        ("ics", "is", "ss", "us")
+    ):
+        return value[:-1]
+    return value
 
 
 def _normalize(value: str) -> str:
