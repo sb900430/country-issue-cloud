@@ -69,18 +69,16 @@ class RssCollector:
 
     @staticmethod
     def _entries(root: ElementTree.Element) -> list[tuple[str, str, str, str]]:
-        rss_items = root.findall("./channel/item")
+        rss_items = [
+            element for element in root.iter() if element.tag.rsplit("}", 1)[-1] == "item"
+        ]
         if rss_items:
             return [
                 (
-                    (item.findtext("title") or "").strip(),
-                    (item.findtext("link") or "").strip(),
-                    (item.findtext("description") or "").strip(),
-                    (
-                        item.findtext("pubDate")
-                        or item.findtext("{http://purl.org/dc/elements/1.1/}date")
-                        or ""
-                    ).strip(),
+                    RssCollector._child_text(item, "title"),
+                    RssCollector._child_text(item, "link"),
+                    RssCollector._child_text(item, "description"),
+                    RssCollector._child_text(item, "pubDate", "date"),
                 )
                 for item in rss_items
             ]
@@ -102,6 +100,13 @@ class RssCollector:
             )
             for entry in root.findall(f"{namespace}entry")
         ]
+
+    @staticmethod
+    def _child_text(element: ElementTree.Element, *names: str) -> str:
+        for child in element:
+            if child.tag.rsplit("}", 1)[-1] in names and child.text:
+                return child.text.strip()
+        return ""
 
     @staticmethod
     def _atom_link(entry: ElementTree.Element, namespace: str) -> str:

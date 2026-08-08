@@ -131,7 +131,11 @@ def test_publish_keyword_live_can_skip_rss_for_historical_check(
     monkeypatch.setattr(
         cli,
         "get_settings",
-        lambda: SimpleNamespace(naver_client_id=None, naver_client_secret=None),
+        lambda: SimpleNamespace(
+            naver_client_id=None,
+            naver_client_secret=None,
+            newsdata_api_key=None,
+        ),
     )
     captured: list[object] = []
     client_options: list[dict[str, object]] = []
@@ -152,4 +156,5 @@ def test_publish_keyword_live_can_skip_rss_for_historical_check(
 
     assert cli.main() == 0
     assert captured[0] == []
+    assert captured[3] == []
     assert client_options == [{"max_attempts": 1}]

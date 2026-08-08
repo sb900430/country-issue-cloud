@@ -1,3 +1,4 @@
+import json
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -69,8 +70,10 @@ def test_live_batch_collects_three_countries_and_publishes_json(tmp_path: Path) 
         sources,
         [],
         [],
+        [],
         payloads.__getitem__,
         lambda _url, _headers: b"{}",
+        None,
         None,
         None,
         end - timedelta(days=1),
@@ -83,3 +86,10 @@ def test_live_batch_collects_three_countries_and_publishes_json(tmp_path: Path) 
     assert result.status is IssueStatus.SUCCESS
     assert all(result.countries[country].article_count == 15 for country in CountryCode)
     assert (tmp_path / "site" / "data" / "v1" / "latest.json").exists()
+    diagnostics = json.loads(
+        (tmp_path / "data" / "runtime" / "collection-diagnostics.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert diagnostics["countries"]["US"]["raw_article_count"] == 15
+    assert diagnostics["countries"]["US"]["selected_article_count"] == 15

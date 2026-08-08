@@ -156,6 +156,7 @@ Android 앱은 폐기하지 않는다. 키워드 중심 웹과 공개 URL의 안
 - 주 소스는 GDELT Project DOC API의 Article List이며 `sourcecountry`, `sourcelang`, 직전 24시간, `maxrecords=250`을 국가별로 독립 적용한다.
 - 1차 운영 뉴스 소스는 무료 구성으로 고정한다. 한국은 NAVER API HUB 뉴스 검색의 무료 호출 한도 안에서 보강하며, 유료 전환·종량제 확장은 사용자 승인 전에는 사용하지 않는다.
 - NAVER 호출은 애플리케이션과 NAVER Console 양쪽에서 일 300회·월 9,000회로 제한하고, 어느 한도든 도달하면 추가 호출을 자동 중단한다. 사용량 50%·80%에서 알림을 보내며 무료 정책 변경 전에는 유료 초과 사용이나 자동 한도 증설을 허용하지 않는다.
+- 미국·일본 경제뉴스 보강은 NewsData.io Latest News API 무료 플랜의 `country`·`language`·`business` 필터를 국가별로 독립 적용한다. 호출은 애플리케이션에서 일 40회·월 1,200회로 제한하고, 국가별 목표·상한 150건과 최대 20페이지만 순회하며 유료 초과 사용과 자동 유료 전환을 금지한다. 무료 플랜의 지연 데이터와 제목·링크·매체·발행시각만 사용한다.
 - 경제 범위는 버전 관리되는 국가별 경제 주제 query 묶음으로 제한하고 query별 수집량과 편향을 기록한다. 특정 기업·사건 이름을 미리 넣어 결과를 유도하지 않는다.
 - 기존 중앙은행·정부기관 RSS와 조건부 공공 API는 보조 소스로 유지하며 주 소스 결과와 함께 중복 제거한다.
 - NewsAPI, GNews, Mediastack, World News API 등 개발 전용 또는 유료 전환이 필요한 집계 API는 운영 의존성으로 두지 않는다.
@@ -170,9 +171,10 @@ US supplementary: Federal Reserve RSS; BLS RSS 비활성, BEA API 조건부
 JP supplementary: BOJ RSS; METI Atom 비활성, e-Stat API 조건부
 KR supplementary: 한국은행·금융위원회·중소벤처기업부 RSS
 KR news supplement: NAVER API HUB 무료 호출 한도 내 사용
+US/JP news supplement: NewsData.io Latest News API 무료 플랜을 국가별 독립 사용
 ```
 
-GDELT와 RSS가 직접 제공한 제목·짧은 요약·원문 URL·매체·발행 시각만 허용한다. 기사 본문, PDF·첨부파일, 이미지와 HTML을 파싱한 요약은 수집·재배포하지 않는다. GDELT 데이터는 파생 키워드와 최소 기사 metadata만 최근 7일 보관하고 공식 attribution을 제공한다. 실제 endpoint, query version, 승인 상태는 `config/sources.example.yml`을 기준으로 하며 세부 절차는 `docs/SOURCE_REGISTRATION_GUIDE.md`를 따른다.
+GDELT·RSS·NewsData.io가 제공한 제목·짧은 요약·원문 URL·매체·발행 시각만 허용한다. 기사 본문, PDF·첨부파일, 이미지와 HTML을 파싱한 요약은 수집·재배포하지 않는다. GDELT와 NewsData.io 데이터는 파생 키워드와 최소 기사 metadata만 최근 7일 보관하고 제공자 attribution을 표시한다. 실제 endpoint, query version, 승인 상태는 `config/sources.example.yml`을 기준으로 하며 세부 절차는 `docs/SOURCE_REGISTRATION_GUIDE.md`를 따른다.
 
 ### 중복 제거
 
@@ -849,7 +851,7 @@ v* 태그 → Pages URL 검증 → GitHub Release. Android 재개 후에만 AAB�
 | GitHub Pages | 공개 포트폴리오 용도와 무료 제공량 내 운영 |
 | VPS/EC2·도메인 | 후속 전환 시에만 저가 월 고정비와 예산을 사전 확정 |
 | NewsAPI | 운영 사용 안 함, 로컬 개발만 |
-| 운영 뉴스 소스 | GDELT·NAVER 무료 한도·허용된 공식 RSS/API만 사용, NAVER 일 300회·월 9,000회 hard stop과 50%·80% 알림, 유료 자동 전환 금지 |
+| 운영 뉴스 소스 | GDELT·NAVER·NewsData.io 무료 한도와 허용된 공식 RSS/API만 사용, NAVER 일 300회·월 9,000회 및 NewsData.io 일 40회·월 1,200회 hard stop, 유료 자동 전환 금지 |
 | LLM | 1차 운영은 `mock` 또는 로컬 코드 분석만 사용해 0원, 외부 유료 LLM은 별도 승인 전 비활성 |
 | HTTPS | 1차 Pages 기본 HTTPS, 후속 무료 인증서 또는 cloud 인증서 |
 | GitHub Actions | 공개 저장소 표준 runner와 무료 제공량 내 목표, larger runner 금지 |
@@ -935,6 +937,7 @@ v* 태그 → Pages URL 검증 → GitHub Release. Android 재개 후에만 AAB�
 | 2 | `codex/v2-keyword-pipeline` | 언어별 명사·복합명사, 불용어, 동의어 통합, 결정적 TOP 5, 관련 기사 연결 | 국가별 100건 fixture에서 일반어 제외·복합명사·근거·순위 회귀 통과 |
 | 3 | `codex/v2-schema-pages-ui` | Schema/API/data v2, DataSource migration, 키워드 상세·관련 기사 최대 20건, Pages artifact | v1 보존, v2 producer/client 동시 전환, UI·전체·Pages smoke test 통과 |
 | 4 | `codex/v1-release-hardening` | 공개 URL 자동 smoke, 운영 런북, 7일 배치 관찰, README·Release 준비 | 현재 공개 Pages 검증, 장애 대응 절차와 7일 관찰 증거, 전체 회귀 통과 |
+| 5 | `codex/v2-source-coverage` | 소스별 수집량 계측, 국가별 무료 경제뉴스 소스·query 보강, 중복·편중 손실 분석 | Secret 없는 fixture 회귀, 무료 한도 준수, 국가별 100건 목표 또는 소스별 근거가 있는 partial |
 
 2026-08-07 기준 순서 1의 GDELT·NAVER adapter, versioned query, 국가별 120건 GDELT fixture, 250건 상한·매체 20%/30건 제한, NAVER 승인 domain과 일 300회·월 9,000회 차단 ledger를 구현했다. 제한적 GDELT live 검증은 무료 endpoint의 429와 매체 coverage로 국가별 100건에 미달해 원인 있는 partial로 기록하며, v1 예약 실행에서는 `--enable-gdelt`·`--enable-naver` 명시 전까지 활성화하지 않는다.
 
@@ -945,6 +948,14 @@ v* 태그 → Pages URL 검증 → GitHub Release. Android 재개 후에만 AAB�
 순서 4는 배포 결과와 무관하게 현재 공개 URL의 HTML·Schema 2.0·TOP5 계약을 재시도와 함께 확인하는 `public-smoke` job을 추가한다. 운영 런북과 날짜별 관찰표에 예약 실행·수동 재시도·기존 Pages 보존 결과를 기록하고 서로 다른 JST 날짜 7일의 증거가 쌓인 뒤에만 연속 운영 게이트를 완료한다.
 
 초기 전체 경로 확인용 과거 수집은 기존 `publish-keyword-live`의 JST 날짜별 24시간 계산을 사용하고, 과거 보존이 불확실한 RSS와 장시간 HTTP 재시도를 수동 옵션 `--skip-rss --single-attempt`로만 제외한다. 이 옵션은 예약 workflow에 적용하지 않는다. 2026-08-02~08의 GDELT·NAVER 소급 점검은 모든 날짜가 세 국가 100건 기준에 미달했고 게시 파일을 만들지 않아 기존 Pages가 보존됐다. 이 결과는 기능 동작 확인이며 7일 연속 예약 운영 증거로 계산하지 않는다.
+
+순서 5는 무료 소스 보강 전에 국가·소스별 원본 수신 건수, 소스별 채택 매체 분포, 중복 제거 후 건수, 편중 제한 후 최종 건수를 계측한다. 진단 Schema 1.1에는 기사 제목·URL·ID·Secret 없이 집계값만 기록한다. NAVER 일 300회·월 9,000회와 유료 자동 전환 금지는 유지하며, 소스·query 변경은 허용 domain과 이용조건을 확인한 항목만 적용한다.
+
+2026-08-08 제한 실연동에서는 NAVER 5개 query의 500건 중 기존 허용 domain 42건을 확인했다. 상위 제외 domain을 로컬 진단으로 검토해 출처가 명확한 종합·경제 전문 매체만 허용 목록에 추가한 `2026-08-08.v3`에서 103건을 확보했다. 진단용 별도 ledger는 25/300회이며 유료 호출은 사용하지 않았다. 같은 실행에서 GDELT 세 국가 요청은 `FeedFetchError`였으므로 GDELT 안정화와 미국·일본 24시간 coverage는 계속 partial로 관리한다.
+
+GDELT 최소 1건 공개 요청에서도 HTTP 429를 재현했다. HTTP 오류는 본문·URL·Secret 없이 `rate_limited`, `client_error`, `server_error`, `timeout` 등으로 분류하고, 한 국가에서 429가 발생하면 같은 배치의 나머지 GDELT 요청을 `circuit_open_rate_limited`로 즉시 차단한다. RSS와 NAVER는 독립적으로 계속 실행한다.
+
+2026-08-08 미국·일본 보강 소스로 NewsData.io 무료 Latest News API를 채택했다. `NEWSDATA_API_KEY`는 로컬 `.env`와 `pages-production` Environment Secret에서만 주입하고, US `country=us&language=en`·JP `country=jp&language=ja`에 `category=business`를 각각 적용한다. mock pagination·응답 검증과 일 40회·월 1,200회 ledger를 구현했으며 최근 24시간 제한 실연동에서 US·JP 각각 100건을 확보했다.
 
 배포 오류 대응은 위 기능 PR과 섞지 않는다. GDELT 이용조건·query 편향·형태소 분석 library 선택이 구현 중 바뀌면 ADR을 갱신한다.
 

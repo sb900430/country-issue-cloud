@@ -37,5 +37,11 @@ class CountryCollectionResult(BaseModel):
     country: CountryCode
     articles: tuple[CollectedArticle, ...] = ()
     errors: tuple[str, ...] = ()
+    source_article_counts: dict[str, int] = Field(default_factory=dict)
+    source_filter_counts: dict[str, dict[str, int]] = Field(default_factory=dict)
+    source_rejected_domain_counts: dict[str, dict[str, int]] = Field(default_factory=dict)
+    source_publisher_counts: dict[str, dict[str, int]] = Field(default_factory=dict)
+    raw_article_count: int = Field(default=0, ge=0)
+    deduplicated_article_count: int = Field(default=0, ge=0)
     used_fixture_fallback: bool = False
     collected_at: datetime

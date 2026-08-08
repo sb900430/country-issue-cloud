@@ -4,7 +4,13 @@ from urllib.parse import parse_qs, urlsplit
 
 import pytest
 
-from app.batch.collectors.gdelt import GdeltCollector, GdeltSource, RequestIntervalGate
+from app.batch.collectors.gdelt import (
+    GdeltCollector,
+    GdeltFetchCircuitBreaker,
+    GdeltSource,
+    RequestIntervalGate,
+)
+from app.batch.http_client import FeedFetchError
 from app.schemas.issues import CountryCode
 
 WINDOW_END = datetime(2026, 8, 7, 0, 0, tzinfo=UTC)
@@ -78,7 +84,8 @@ def test_gdelt_collector_builds_bounded_query_and_maps_articles() -> None:
         requested.append(url)
         return json.dumps(payload).encode()
 
-    result = GdeltCollector(source(), fetch).collect(WINDOW_START, WINDOW_END, 999)
+    collector = GdeltCollector(source(), fetch)
+    result = collector.collect(WINDOW_START, WINDOW_END, 999)
 
     assert len(result) == 1
     assert result[0].publisher == "example.com"
@@ -87,6 +94,14 @@ def test_gdelt_collector_builds_bounded_query_and_maps_articles() -> None:
     assert parameters["maxrecords"] == ["250"]
     assert parameters["startdatetime"] == ["20260806000000"]
     assert "sourcecountry:UnitedStates" in parameters["query"][0]
+    assert collector.last_diagnostics == {
+        "response_items": 5,
+        "scope_rejected": 1,
+        "domain_rejected": 2,
+        "date_rejected": 0,
+        "insecure_url_rejected": 1,
+        "accepted": 1,
+    }
 
 
 def test_gdelt_collector_skips_invalid_dates_and_outside_window() -> None:
@@ -107,11 +122,11 @@ def test_gdelt_collector_skips_invalid_dates_and_outside_window() -> None:
         ]
     }
 
-    result = GdeltCollector(source(), lambda _: json.dumps(payload).encode()).collect(
-        WINDOW_START, WINDOW_END, 10
-    )
+    collector = GdeltCollector(source(), lambda _: json.dumps(payload).encode())
+    result = collector.collect(WINDOW_START, WINDOW_END, 10)
 
     assert result == []
+    assert collector.last_diagnostics["date_rejected"] == 2
 
 
 def test_gdelt_collector_rejects_malformed_response() -> None:
@@ -130,3 +145,42 @@ def test_gdelt_request_gate_waits_between_calls() -> None:
     gate()
 
     assert waits == [3.0]
+
+
+def test_gdelt_circuit_breaker_stops_calls_after_rate_limit() -> None:
+    calls = 0
+
+    def fetch(_url: str) -> bytes:
+        nonlocal calls
+        calls += 1
+        raise FeedFetchError("rate_limited")
+
+    breaker = GdeltFetchCircuitBreaker(fetch)
+
+    with pytest.raises(FeedFetchError) as first:
+        breaker("https://example.com/first")
+    with pytest.raises(FeedFetchError) as second:
+        breaker("https://example.com/second")
+
+    assert first.value.category == "rate_limited"
+    assert second.value.category == "circuit_open_rate_limited"
+    assert calls == 1
+
+
+def test_gdelt_circuit_breaker_does_not_open_for_other_failures() -> None:
+    calls = 0
+
+    def fetch(_url: str) -> bytes:
+        nonlocal calls
+        calls += 1
+        if calls == 1:
+            raise FeedFetchError("timeout")
+        return b"{}"
+
+    breaker = GdeltFetchCircuitBreaker(fetch)
+
+    with pytest.raises(FeedFetchError, match="timeout"):
+        breaker("https://example.com/first")
+
+    assert breaker("https://example.com/second") == b"{}"
+    assert calls == 2

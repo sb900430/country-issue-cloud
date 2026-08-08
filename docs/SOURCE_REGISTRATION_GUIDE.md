@@ -1,8 +1,8 @@
 # 무료 뉴스 소스 환경변수 등록·활성화 설명서 / 無料ニュースソース環境変数登録・有効化ガイド
 
-이 문서는 0원 운영을 전제로 GDELT DOC API, NAVER API HUB, 공식 RSS와 선택적 무료 통계 API에 필요한 환경변수와 등록 절차를 정의한다. GDELT와 공식 RSS에는 Secret이 필요 없고, 한국 뉴스 보강에는 NAVER 자격정보가 필요하다. BEA·e-Stat은 뉴스 수집원이 아니라 선택적 통계 보강용이다. 외부 유료 뉴스 API와 유료 LLM은 등록하지 않는다.
+이 문서는 0원 운영을 전제로 GDELT DOC API, NAVER API HUB, NewsData.io 무료 Latest API, 공식 RSS와 선택적 무료 통계 API에 필요한 환경변수와 등록 절차를 정의한다. GDELT와 공식 RSS에는 Secret이 필요 없고, 한국 뉴스 보강에는 NAVER 자격정보, 미국·일본 뉴스 보강에는 `NEWSDATA_API_KEY`가 필요하다. BEA·e-Stat은 뉴스 수집원이 아니라 선택적 통계 보강용이다. 유료 뉴스 API와 유료 LLM은 등록하지 않는다.
 
-本書は0円運用を前提に、GDELT DOC API、NAVER API HUB、公式RSS、選択的な無料統計APIに必要な環境変数と登録手順を定義する。GDELTと公式RSSにSecretは不要で、韓国news補完にはNAVER資格情報が必要となる。BEA・e-Statはnews収集元ではなく、選択的な統計補完用とする。外部有料news APIと有料LLMは登録しない。
+本書は0円運用を前提に、GDELT DOC API、NAVER API HUB、NewsData.io無料Latest API、公式RSS、選択的な無料統計APIに必要な環境変数と登録手順を定義する。GDELTと公式RSSにSecretは不要で、韓国news補完にはNAVER資格情報、米国・日本news補完には`NEWSDATA_API_KEY`が必要となる。BEA・e-Statはnews収集元ではなく、選択的な統計補完用とする。有料news APIと有料LLMは登録しない。
 
 ## 1. 한눈에 보는 준비 상태 / 準備状態一覧
 
@@ -10,6 +10,7 @@
 |---|---|---|---|---|
 | GDELT DOC API (US/JP/KR) | 별도 등록 없음, attribution·이용조건 확인 / 登録不要、attribution・利用条件確認 | 없음 / なし | adapter·국가 query·120건 fixture 구현, v1 예약 실행은 기본 비활성 / adapter・国query・120件fixture実装、v1予約実行は標準無効 | v2 producer 전환 + 국가별 live 표본 재검증 / v2 producer移行 + 国別live sample再検証 |
 | NAVER API HUB (KR) | NAVER Cloud 계정에서 application 등록 / NAVER Cloudアカウントでapplication登録 | `NAVER_CLIENT_ID`, `NAVER_CLIENT_SECRET` | 전용 adapter·사용량 차단 구현, 명시 flag로 활성 / 専用adapter・利用量停止を実装、明示flagで有効化 | Console 한도·알림 설정 + 제한 실연동 / Console上限・通知設定 + 制限付き実接続 |
+| NewsData.io (US/JP) | Free 계정의 기본 API key 발급 / Freeアカウントのdefault API key発行 | `NEWSDATA_API_KEY` | 전용 adapter·일 40회·월 1,200회 차단 구현 / 専用adapter・日40回・月1,200回停止を実装 | 제한 실연동 완료, Pages Secret 필요 / 限定実接続完了、Pages Secretが必要 |
 | BEA API (US) | 이메일로 API key 신청, 약관 동의 / emailでAPI key申請、規約同意 | `BEA_API_KEY` | 전용 API adapter 미구현 / 専用API adapter未実装 | key 등록 + adapter·fixture·실연동 검증 / key登録 + adapter・fixture・実接続検証 |
 | e-Stat API (JP) | 이용자 등록 후 Application ID 발급 / 利用者登録後Application ID発行 | `E_STAT_APP_ID` | 전용 API adapter 미구현 / 専用API adapter未実装 | app ID 등록 + 출처표시 + adapter·검증 / app ID登録 + 出典表示 + adapter・検証 |
 
@@ -59,6 +60,10 @@ SERVICE_TIMEZONE=Asia/Tokyo
 DATA_DIR=../data
 NAVER_CLIENT_ID=
 NAVER_CLIENT_SECRET=
+NEWSDATA_API_KEY=
+NEWSDATA_DAILY_REQUEST_LIMIT=40
+NEWSDATA_MONTHLY_REQUEST_LIMIT=1200
+NEWSDATA_PAID_OVERAGE_ENABLED=false
 NAVER_DAILY_REQUEST_LIMIT=300
 NAVER_MONTHLY_REQUEST_LIMIT=9000
 NAVER_USAGE_ALERT_THRESHOLD_1=50
@@ -81,13 +86,13 @@ LLM_PROVIDER=mock
 ### GitHub Actions 운영 / GitHub Actions本番
 
 1. GitHub 저장소의 **Settings → Environments**에서 운영용 Environment를 만든다. 권장 이름은 `pages-production`이다.
-2. 해당 Environment의 **Environment secrets → Add secret**에서 `NAVER_CLIENT_ID`, `NAVER_CLIENT_SECRET`과 실제 사용하는 선택 변수만 등록한다.
+2. 해당 Environment의 **Environment secrets → Add secret**에서 `NAVER_CLIENT_ID`, `NAVER_CLIENT_SECRET`, `NEWSDATA_API_KEY`와 실제 사용하는 선택 변수만 등록한다.
 3. 실제 데이터 생성 workflow에만 Environment를 연결한다. PR workflow와 fork workflow에는 Secret을 전달하지 않는다.
 4. workflow에서 값을 출력하거나 공개 Pages artifact·JSON에 포함하지 않는다.
 5. 노출이 의심되면 GitHub 값만 바꾸지 말고 제공기관에서 기존 key를 폐기·재발급한다.
 
 1. GitHub repositoryの**Settings → Environments**で本番用Environmentを作成する。推奨名は`pages-production`とする。
-2. そのEnvironmentの**Environment secrets → Add secret**から`NAVER_CLIENT_ID`、`NAVER_CLIENT_SECRET`と実際に使う選択変数だけを登録する。
+2. そのEnvironmentの**Environment secrets → Add secret**から`NAVER_CLIENT_ID`、`NAVER_CLIENT_SECRET`、`NEWSDATA_API_KEY`と実際に使う選択変数だけを登録する。
 3. 実data生成workflowだけにEnvironmentを接続する。PR workflowとfork workflowへSecretを渡さない。
 4. workflowで値を出力せず、公開Pages artifact・JSONへ含めない。
 5. 漏えいが疑われる場合はGitHub側の値だけでなく、提供機関で旧keyを失効・再発行する。

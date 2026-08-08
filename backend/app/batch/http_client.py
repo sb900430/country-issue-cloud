@@ -7,7 +7,9 @@ import httpx
 
 
 class FeedFetchError(RuntimeError):
-    pass
+    def __init__(self, category: str) -> None:
+        super().__init__(f"feed request failed:{category}")
+        self.category = category
 
 
 class HttpsFeedClient:
@@ -50,41 +52,51 @@ class HttpsFeedClient:
                     follow_redirects=not headers,
                 )
                 if headers and response.is_redirect:
-                    raise FeedFetchError("authenticated source redirect is not allowed")
+                    raise FeedFetchError("authenticated_redirect")
                 response.raise_for_status()
                 break
             except httpx.HTTPStatusError as error:
                 last_error = error
                 if error.response.status_code < 500 and error.response.status_code != 429:
-                    raise FeedFetchError("feed request failed") from error
+                    raise FeedFetchError("client_error") from error
             except httpx.TransportError as error:
                 last_error = error
             if attempt + 1 == self.max_attempts:
-                raise FeedFetchError("feed request failed") from last_error
+                raise FeedFetchError(self._error_category(last_error)) from last_error
             self.sleeper(self.retry_delay_seconds * (attempt + 1))
         else:
-            raise FeedFetchError("feed request failed") from last_error
+            raise FeedFetchError(self._error_category(last_error)) from last_error
         self._validate_url(str(response.url))
         if len(response.content) > self.max_response_bytes:
-            raise FeedFetchError("source response is too large")
+            raise FeedFetchError("response_too_large")
         content_type = response.headers.get("content-type", "").lower()
         if content_type and not any(
             allowed in content_type for allowed in ("json", "xml", "rss", "atom")
         ):
-            raise FeedFetchError("source response has an unsupported content type")
+            raise FeedFetchError("unsupported_content_type")
         return response.content
 
     @staticmethod
     def _validate_url(url: str) -> None:
         parsed = urlparse(url)
         if parsed.scheme != "https" or not parsed.hostname or parsed.username or parsed.password:
-            raise FeedFetchError("feed URL must be public HTTPS")
+            raise FeedFetchError("invalid_url")
         hostname = parsed.hostname
         try:
             address = ip_address(hostname)
         except ValueError:
             if hostname == "localhost" or hostname.endswith(".localhost"):
-                raise FeedFetchError("local feed URL is not allowed") from None
+                raise FeedFetchError("local_address") from None
         else:
             if not address.is_global:
-                raise FeedFetchError("private feed address is not allowed")
+                raise FeedFetchError("private_address")
+
+    @staticmethod
+    def _error_category(error: httpx.HTTPError | None) -> str:
+        if isinstance(error, httpx.HTTPStatusError):
+            if error.response.status_code == 429:
+                return "rate_limited"
+            return "server_error"
+        if isinstance(error, httpx.TimeoutException):
+            return "timeout"
+        return "transport_error"

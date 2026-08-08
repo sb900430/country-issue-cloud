@@ -23,6 +23,7 @@ foreach ($required in @(
     'environment: pages-production',
     'NAVER_CLIENT_ID: ${{ secrets.NAVER_CLIENT_ID }}',
     'NAVER_CLIENT_SECRET: ${{ secrets.NAVER_CLIENT_SECRET }}',
+    'NEWSDATA_API_KEY: ${{ secrets.NEWSDATA_API_KEY }}',
     "needs.gate.outputs.should-run == 'true'"
 )) {
     if (-not $workflow.Contains($required)) {
@@ -49,6 +50,9 @@ foreach ($required in @('publish-keyword-fixture', 'publish-keyword-live', 'data
     if (-not $builder.Contains($required)) {
         throw "Pages builder is missing the v2 keyword path: $required"
     }
+}
+if (-not $builder.Contains('--enable-newsdata')) {
+    throw "The live Pages builder must enable the NewsData supplement."
 }
 foreach ($required in @(
     'public-smoke:',

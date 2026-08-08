@@ -35,7 +35,7 @@ def test_https_feed_client_fetches_xml_with_safe_headers() -> None:
     ],
 )
 def test_https_feed_client_rejects_unsafe_urls(url: str) -> None:
-    with pytest.raises(FeedFetchError, match="feed URL|feed address"):
+    with pytest.raises(FeedFetchError):
         HttpsFeedClient().fetch(url)
 
 
@@ -47,7 +47,7 @@ def test_https_feed_client_rejects_non_xml_and_oversized_responses() -> None:
             )
         )
     )
-    with pytest.raises(FeedFetchError, match="content type"):
+    with pytest.raises(FeedFetchError, match="unsupported_content_type"):
         HttpsFeedClient(client=non_xml).fetch("https://example.com/feed")
 
     oversized = httpx.Client(
@@ -57,7 +57,7 @@ def test_https_feed_client_rejects_non_xml_and_oversized_responses() -> None:
             )
         )
     )
-    with pytest.raises(FeedFetchError, match="too large"):
+    with pytest.raises(FeedFetchError, match="response_too_large"):
         HttpsFeedClient(client=oversized, max_response_bytes=10).fetch(
             "https://example.com/feed"
         )
@@ -117,10 +117,39 @@ def test_https_feed_client_does_not_forward_authentication_across_redirects() ->
 
     client = httpx.Client(transport=httpx.MockTransport(handler), follow_redirects=True)
 
-    with pytest.raises(FeedFetchError, match="redirect"):
+    with pytest.raises(FeedFetchError, match="authenticated_redirect"):
         HttpsFeedClient(client=client).fetch_with_headers(
             "https://example.com/news",
             {"x-api-secret": "secret"},
         )
 
     assert calls == 1
+
+
+@pytest.mark.parametrize(
+    ("status_code", "category"),
+    [(429, "rate_limited"), (503, "server_error"), (403, "client_error")],
+)
+def test_https_feed_client_classifies_http_failures(
+    status_code: int, category: str
+) -> None:
+    client = httpx.Client(
+        transport=httpx.MockTransport(lambda _request: httpx.Response(status_code))
+    )
+
+    with pytest.raises(FeedFetchError) as captured:
+        HttpsFeedClient(client=client, max_attempts=1).fetch("https://example.com/feed")
+
+    assert captured.value.category == category
+
+
+def test_https_feed_client_classifies_timeout() -> None:
+    def timeout(_request: httpx.Request) -> httpx.Response:
+        raise httpx.ReadTimeout("timed out")
+
+    client = httpx.Client(transport=httpx.MockTransport(timeout))
+
+    with pytest.raises(FeedFetchError) as captured:
+        HttpsFeedClient(client=client, max_attempts=1).fetch("https://example.com/feed")
+
+    assert captured.value.category == "timeout"

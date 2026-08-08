@@ -7,7 +7,12 @@ from app.batch.http_client import HttpsFeedClient
 from app.batch.keyword_fixture import publish_keyword_fixture
 from app.batch.live import run_live_batch, run_live_keyword_batch
 from app.batch.publishing import StaticJsonPublisher
-from app.batch.source_config import load_gdelt_sources, load_naver_sources, load_rss_sources
+from app.batch.source_config import (
+    load_gdelt_sources,
+    load_naver_sources,
+    load_newsdata_sources,
+    load_rss_sources,
+)
 from app.core.settings import get_settings
 from app.repositories.json_issue_repository import JsonIssueRepository
 from app.schemas.issues import IssueResult
@@ -37,6 +42,7 @@ def main() -> int:
     live.add_argument("--lookback-hours", type=int, default=48)
     live.add_argument("--enable-gdelt", action="store_true")
     live.add_argument("--enable-naver", action="store_true")
+    live.add_argument("--enable-newsdata", action="store_true")
     keyword_fixture = subparsers.add_parser("publish-keyword-fixture")
     keyword_fixture.add_argument("--evaluation-dir", type=Path, required=True)
     keyword_fixture.add_argument("--data-dir", type=Path, required=True)
@@ -49,6 +55,7 @@ def main() -> int:
     keyword_live.add_argument("--lookback-hours", type=int, default=24)
     keyword_live.add_argument("--skip-rss", action="store_true")
     keyword_live.add_argument("--single-attempt", action="store_true")
+    keyword_live.add_argument("--enable-newsdata", action="store_true")
     arguments = parser.parse_args()
 
     if arguments.command == "publish-fixture":
@@ -73,10 +80,16 @@ def main() -> int:
             load_rss_sources(arguments.sources_config),
             (load_gdelt_sources(arguments.sources_config) if arguments.enable_gdelt else []),
             (load_naver_sources(arguments.sources_config) if arguments.enable_naver else []),
+            (
+                load_newsdata_sources(arguments.sources_config)
+                if arguments.enable_newsdata
+                else []
+            ),
             client.fetch,
             client.fetch_with_headers,
             settings.naver_client_id,
             settings.naver_client_secret,
+            settings.newsdata_api_key,
             window_start,
             window_end,
             target_date,
@@ -116,10 +129,16 @@ def main() -> int:
             ([] if arguments.skip_rss else load_rss_sources(arguments.sources_config)),
             load_gdelt_sources(arguments.sources_config),
             load_naver_sources(arguments.sources_config),
+            (
+                load_newsdata_sources(arguments.sources_config)
+                if arguments.enable_newsdata
+                else []
+            ),
             client.fetch,
             client.fetch_with_headers,
             settings.naver_client_id,
             settings.naver_client_secret,
+            settings.newsdata_api_key,
             window_start,
             window_end,
             target_date,

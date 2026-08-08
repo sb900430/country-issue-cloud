@@ -73,7 +73,8 @@ if ($Mode -eq "fixture") {
         --sources-config (Join-Path $projectRoot "config/sources.example.yml") `
         --data-dir $runtimePath `
         --site-data-dir $dataPath `
-        --lookback-hours 24
+        --lookback-hours 24 `
+        --enable-newsdata
 }
 if ($LASTEXITCODE -ne 0) {
     throw "Pages data generation failed with exit code $LASTEXITCODE"

@@ -25,6 +25,10 @@ class Settings(BaseSettings):
     service_timezone: str = "Asia/Tokyo"
     data_dir: Path = Path("../data")
     news_api_key: str | None = None
+    newsdata_api_key: str | None = None
+    newsdata_daily_request_limit: Literal[40] = 40
+    newsdata_monthly_request_limit: Literal[1_200] = 1_200
+    newsdata_paid_overage_enabled: Literal[False] = False
     naver_client_id: str | None = None
     naver_client_secret: str | None = None
     naver_daily_request_limit: Literal[300] = 300

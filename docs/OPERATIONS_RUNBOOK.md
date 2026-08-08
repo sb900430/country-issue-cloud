@@ -2,6 +2,16 @@
 
 ## 한국어
 
+### 운영 소스 확인
+
+- 미국 공식 보조 소스는 Federal Reserve와 함께 Census 경제지표 RSS 및 BEA 뉴스 릴리스 RSS를 사용한다.
+- 일본 공식 보조 소스는 일본은행과 함께 재무성 신착 RSS 및 통계국 신착 RSS를 사용한다.
+- Census·BEA 피드는 등록이나 Secret이 필요 없으며 제목·요약·원문 링크·발행 시각만 처리한다.
+- 재무성·통계국 피드도 등록이나 Secret이 필요 없으며, 일본 금융청 영문 RSS는 일본어 분석 혼합을 막기 위해 사용하지 않는다.
+- NewsData.io는 미국·일본 `business` 보강에만 사용하며 `NEWSDATA_API_KEY`를 `pages-production` Environment에서 주입한다. 애플리케이션 한도는 일 40회·월 1,200회이고 유료 초과 사용은 금지한다.
+- 대한민국 정책브리핑 RSS는 2026-07-01 서비스 중단 공지에 따라 활성 소스로 추가하지 않는다.
+- 실제 기사 수 기여도는 `data/runtime/collection-diagnostics.json`의 소스별 건수로 확인한다. 이 파일은 로컬 런타임 전용이며 Git과 Pages artifact에 포함하지 않는다.
+
 ### 운영 범위
 
 - 공개 서비스: `https://sb900430.github.io/country-issue-cloud/`
@@ -51,6 +61,16 @@ GitHub Actions에서 `Publish Country Issue Cloud Pages`의 **Run workflow**를 
 - 결과는 Git 제외 로컬 경로에 저장하고 실제 Pages를 교체하지 않는다.
 
 ## 日本語
+
+### 運用source確認
+
+- 米国公式補助sourceはFederal Reserveに加えて、Census経済指標RSSとBEA news release RSSを使う。
+- 日本公式補助sourceは日本銀行に加えて、財務省新着RSSと統計局新着RSSを使う。
+- Census・BEA feedは登録やSecretが不要で、title・summary・原文link・公開時刻だけを処理する。
+- 財務省・統計局feedも登録やSecretが不要で、日本金融庁の英語RSSは日本語分析への混在を防ぐため使用しない。
+- NewsData.ioは米国・日本の`business`補完だけに使用し、`NEWSDATA_API_KEY`を`pages-production` Environmentから注入する。application上限は日40回・月1,200回で、有料超過利用は禁止する。
+- 韓国政策ブリーフィングRSSは2026-07-01のservice終了案内によりactive sourceへ追加しない。
+- 実際の記事数への寄与は`data/runtime/collection-diagnostics.json`のsource別件数で確認する。このfileはlocal runtime専用で、GitとPages artifactへ含めない。
 
 ### 運用範囲
 

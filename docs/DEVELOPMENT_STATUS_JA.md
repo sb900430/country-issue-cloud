@@ -2,13 +2,13 @@
 
 | 項目 | 現在状態 |
 |---|---|
-| 現在目標 | v1.0公開準備 — 公開smoke・運用Runbook・7日batch観察 |
-| 状態 | 公開smoke・運用Runbook・初回7日遡及検証の実装・全検証・完了review完了 |
+| 現在目標 | v2運用source coverage補完 |
+| 状態 | source計測・公式RSS補完とNewsData.io US/JP adapter・限定実接続完了 |
 | 基準branch | `main` |
-| 作業branch | `codex/v1-release-hardening` |
+| 作業branch | `codex/v2-source-coverage` |
 | 最終完了commit | `66e9c2f` — keyword Pages v2 PR #22 Rebase and merge |
 | 全体検証 | PASS — Python 103件・全体coverage 89%・Web 9件・Pages v2 artifact・Ruff・mypy・Secret・仕様同期 |
-| 次作業 | Draft PR作成・merge後に運用source coverage補完 |
+| 次作業 | NewsData.io日次上限reset後にPages live gate全体を1回再検証 |
 
 ## v1.0公開準備の進行結果
 
@@ -17,6 +17,16 @@
 - 予約・手動retry・配布・Secret事故対応と7日運用gateを韓日運用Runbookと観察表へ整理した。
 - 7日連続自動batch証跡は時間経過が必要なrelease gateとして未完了を維持する。
 - JST日付別の過去24時間計算と手動遡及用`--skip-rss --single-attempt`を追加し、8/2～8の実GDELT・NAVER経路を確認した。
+- raw・重複除去・最終選択件数とsource別寄与を原文なしで`data/runtime/collection-diagnostics.json`へatomicに記録する。
+- 公式無料sourceのCensus経済指標RSSとBEA news release RSSを米国補助収集へ追加した。
+- 日本財務省・統計局の公式RSSを追加し、RSS 1.0/RDFのdefault namespace parseを実装した。直近168時間の限定実接続で財務省51件・統計局5件を収集した。
+- 韓国政策ブリーフィングRSSは2026-07-01の終了案内を確認し、追加しなかった。
+- GDELT・NAVERのscope/domain/date/duplicate/limit段階別除外件数とNAVER上位除外domainをlocal診断へ追加した。
+- NAVER許可domain `2026-08-08.v3`限定実接続で500件中103件を採用し、診断用の別ledgerは25/300回となった。
+- GDELT最小requestでHTTP 429を再現し、安全なerror分類と同一batchの429 circuit breakerを追加した。
+- NewsData.io無料Latest APIを米国・日本の`business`補完sourceとして追加し、国別目標・上限150件、日40回・月1,200回hard stopと有料自動移行禁止を適用した。初回の直近24時間限定実接続でUS・JP各100件を確保した。
+- 初回live gate全体はNewsData.io raw US/JP各100件でも重複・媒体偏重適用後US 89・JP 73、NAVER KR 95となり、安全に公開を停止した。品質基準は維持し、NewsData.io目標を150件へ調整して、NAVER許可媒体v4を根拠のある主要媒体で補完した。日次上限保護のため同日の追加live retryは行わない。
+- 次回live 1回で偏重原因を確認できるよう、診断Schema 1.1へsource別採用媒体集計を追加した。記事title・URL・ID・Secretは記録しない。
 - 7日すべて3か国100件未満で公開が安全に停止した。最大は8/3 US 34・KR 90、8/5 JP 26・KR 90で、NAVERは40/300回を使用した。
 
 ## keyword news v2決定
