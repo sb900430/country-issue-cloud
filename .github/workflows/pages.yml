@@ -167,3 +167,23 @@ jobs:
       - name: Deploy GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+  public-smoke:
+    needs:
+      - build
+      - deploy
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Verify current public site
+        shell: pwsh
+        run: >-
+          ./scripts/check-public-site.ps1
+          -BaseUrl "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/"
+          -MaxAttempts 6
+          -DelaySeconds 10

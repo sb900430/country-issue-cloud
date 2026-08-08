@@ -934,12 +934,17 @@ v* 태그 → Pages URL 검증 → GitHub Release. Android 재개 후에만 AAB�
 | 1 | `codex/v2-gdelt-collection` | GDELT·NAVER adapter, 국가별 query config, 100건 이상 fixture, 150/250 수집·편중·NAVER 사용량 차단 기준 | mock·fixture 기본 CI, 제한적 live에서 국가별 100건 이상 또는 원인 있는 partial |
 | 2 | `codex/v2-keyword-pipeline` | 언어별 명사·복합명사, 불용어, 동의어 통합, 결정적 TOP 5, 관련 기사 연결 | 국가별 100건 fixture에서 일반어 제외·복합명사·근거·순위 회귀 통과 |
 | 3 | `codex/v2-schema-pages-ui` | Schema/API/data v2, DataSource migration, 키워드 상세·관련 기사 최대 20건, Pages artifact | v1 보존, v2 producer/client 동시 전환, UI·전체·Pages smoke test 통과 |
+| 4 | `codex/v1-release-hardening` | 공개 URL 자동 smoke, 운영 런북, 7일 배치 관찰, README·Release 준비 | 현재 공개 Pages 검증, 장애 대응 절차와 7일 관찰 증거, 전체 회귀 통과 |
 
 2026-08-07 기준 순서 1의 GDELT·NAVER adapter, versioned query, 국가별 120건 GDELT fixture, 250건 상한·매체 20%/30건 제한, NAVER 승인 domain과 일 300회·월 9,000회 차단 ledger를 구현했다. 제한적 GDELT live 검증은 무료 endpoint의 429와 매체 coverage로 국가별 100건에 미달해 원인 있는 partial로 기록하며, v1 예약 실행에서는 `--enable-gdelt`·`--enable-naver` 명시 전까지 활성화하지 않는다.
 
 2026-08-08 기준 순서 2는 외부 호출 없는 언어별 결정적 후보 추출, 국가별 불용어, 입력 후보 한정 동의어 통합, 문서 빈도·매체 다양성·최신 시각·ID 기반 TOP 5와 관련 기사 최대 20건을 구현한다. 국가별 120건 fixture에서 일반어 제외, 복합명사 보존, 국가 분리, 근거 연결과 입력 순서에 무관한 순위를 완료 기준으로 검증한다.
 
 2026-08-08 기준 순서 3은 기존 v1을 유지한 채 Schema 2.0, `/api/v2/keywords`, `data/v2`, 별도 JSON Repository와 정적 publisher를 추가하고 웹 기본 DataSource를 v2로 전환한다. main push는 외부 호출 없는 국가별 120건 fixture TOP 5를 배포한다. 예약 `publish-keyword-live`는 직전 24시간 GDELT·승인 RSS·한국 NAVER를 사용하며, 세 국가 모두 100건·TOP 5 기준을 충족할 때만 새 artifact를 만들고 실패 시 마지막 정상 Pages를 유지한다. NAVER Secret은 `pages-production` Environment에서만 주입한다.
+
+순서 4는 배포 결과와 무관하게 현재 공개 URL의 HTML·Schema 2.0·TOP5 계약을 재시도와 함께 확인하는 `public-smoke` job을 추가한다. 운영 런북과 날짜별 관찰표에 예약 실행·수동 재시도·기존 Pages 보존 결과를 기록하고 서로 다른 JST 날짜 7일의 증거가 쌓인 뒤에만 연속 운영 게이트를 완료한다.
+
+초기 전체 경로 확인용 과거 수집은 기존 `publish-keyword-live`의 JST 날짜별 24시간 계산을 사용하고, 과거 보존이 불확실한 RSS와 장시간 HTTP 재시도를 수동 옵션 `--skip-rss --single-attempt`로만 제외한다. 이 옵션은 예약 workflow에 적용하지 않는다. 2026-08-02~08의 GDELT·NAVER 소급 점검은 모든 날짜가 세 국가 100건 기준에 미달했고 게시 파일을 만들지 않아 기존 Pages가 보존됐다. 이 결과는 기능 동작 확인이며 7일 연속 예약 운영 증거로 계산하지 않는다.
 
 배포 오류 대응은 위 기능 PR과 섞지 않는다. GDELT 이용조건·query 편향·형태소 분석 library 선택이 구현 중 바뀌면 ADR을 갱신한다.
 
@@ -1004,7 +1009,7 @@ v1.0.0 첫 공개 릴리스
 - [x] LLM 결과에 없는 기사/표현이 포함되지 않음
 - [x] API 200/400/404/503 검증
 - [x] 웹 브라우저 캐시와 복구 검증
-- [ ] 공개 웹 URL에서 주요 화면과 API가 동작
+- [x] 공개 웹 URL에서 주요 화면과 API가 동작
 - [x] 개인정보처리방침, 문의, 출처, 발행일 표시
 - [x] GitHub에 비밀키와 운영 데이터가 없음
 - [x] Pages 배포 실패 시 기존 정상 artifact 유지·롤백 검증
@@ -1041,7 +1046,7 @@ v1.0.0 첫 공개 릴리스
 - [x] 자동 테스트와 CI/CD
 - [x] GitHub Actions 배치·Pages 배포 workflow
 - [ ] 후속 VPS/EC2용 배포 스크립트, nginx, systemd/container 템플릿
-- [ ] 운영 런북과 장애 보고서 예시
+- [x] 운영 런북과 장애 보고서 예시
 - [x] 개인정보처리방침과 문의 페이지
 - [ ] Android 재개 시 Google Play 등록 자료
 - [ ] README, 데모 이미지, GitHub Release

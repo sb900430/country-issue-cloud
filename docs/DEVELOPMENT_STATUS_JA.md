@@ -2,13 +2,22 @@
 
 | 項目 | 現在状態 |
 |---|---|
-| 現在目標 | keyword news v2 — 国別100件以上の経済newsに基づくTOP 5 |
-| 状態 | v2 Schema・Pages UI・予約producer移行実装・全検証・完了review完了 |
+| 現在目標 | v1.0公開準備 — 公開smoke・運用Runbook・7日batch観察 |
+| 状態 | 公開smoke・運用Runbook・初回7日遡及検証の実装・全検証・完了review完了 |
 | 基準branch | `main` |
-| 作業branch | `codex/v2-schema-pages-ui` |
-| 最終完了commit | `f278c52` — 新SHA再配布準備PR #16 Rebase and merge |
-| 全体検証 | PASS — Python 100件・全体coverage 88%・Web 9件・Pages v2 artifact・Ruff・mypy・Secret・仕様同期 |
-| 次作業 | Draft PR作成後にCI確認 |
+| 作業branch | `codex/v1-release-hardening` |
+| 最終完了commit | `66e9c2f` — keyword Pages v2 PR #22 Rebase and merge |
+| 全体検証 | PASS — Python 103件・全体coverage 89%・Web 9件・Pages v2 artifact・Ruff・mypy・Secret・仕様同期 |
+| 次作業 | Draft PR作成・merge後に運用source coverage補完 |
+
+## v1.0公開準備の進行結果
+
+- 公開Pagesで3か国切替、TOP5、tile・cloud切替、詳細dialog、関連記事20件linkを確認し、console errorがないことを確認した。
+- 配布成否に関係なく現在の公開HTMLと`data/v2`契約を確認する`public-smoke` jobとretry可能な検査scriptを追加した。
+- 予約・手動retry・配布・Secret事故対応と7日運用gateを韓日運用Runbookと観察表へ整理した。
+- 7日連続自動batch証跡は時間経過が必要なrelease gateとして未完了を維持する。
+- JST日付別の過去24時間計算と手動遡及用`--skip-rss --single-attempt`を追加し、8/2～8の実GDELT・NAVER経路を確認した。
+- 7日すべて3か国100件未満で公開が安全に停止した。最大は8/3 US 34・KR 90、8/5 JP 26・KR 90で、NAVERは40/300回を使用した。
 
 ## keyword news v2決定
 

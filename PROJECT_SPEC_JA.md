@@ -883,12 +883,17 @@ v* tag → Pages URL検証 → GitHub Release。Android再開後のみAABとPlay
 | 1 | `codex/v2-gdelt-collection` | GDELT・NAVER adapter、国別query config、100件以上fixture、150/250収集・偏重・NAVER利用量停止基準 | mock・fixture標準CI、制限付きliveで国別100件以上または理由付きpartial |
 | 2 | `codex/v2-keyword-pipeline` | 言語別名詞・複合名詞、stopword、同義語統合、決定的TOP 5、関連記事接続 | 国別100件fixtureで一般語除外・複合名詞・根拠・順位regression通過 |
 | 3 | `codex/v2-schema-pages-ui` | Schema/API/data v2、DataSource migration、keyword詳細・関連記事最大20件、Pages artifact | v1維持、v2 producer/client同時移行、UI・全体・Pages smoke test通過 |
+| 4 | `codex/v1-release-hardening` | 公開URL自動smoke、運用Runbook、7日batch観察、README・Release準備 | 現在の公開Pages検証、障害対応手順と7日観察証跡、全回帰通過 |
 
 2026-08-07時点で順序1のGDELT・NAVER adapter、versioned query、国別120件GDELT fixture、250件上限・媒体20%/30件制限、NAVER承認domainと日300回・月9,000回停止ledgerを実装した。制限付きGDELT live検証は無料endpointの429と媒体coverageにより国別100件未満となったため理由付きpartialとして記録し、v1予約実行では`--enable-gdelt`・`--enable-naver`明示前に有効化しない。
 
 2026-08-08時点の順序2では、外部呼出し不要の言語別決定的候補抽出、国別stopword、入力候補限定の同義語統合、document frequency・媒体多様性・最新時刻・IDによるTOP 5と関連記事最大20件を実装する。国別120件fixtureで一般語除外、複合名詞保持、国分離、根拠接続、入力順序に依存しない順位を完了基準として検証する。
 
 2026-08-08時点の順序3では既存v1を維持したままSchema 2.0、`/api/v2/keywords`、`data/v2`、独立JSON Repository、静的publisherを追加し、Web標準DataSourceをv2へ移行する。main pushは外部呼出し不要の国別120件fixture TOP 5を配布する。予約`publish-keyword-live`は直前24時間のGDELT・承認RSS・韓国NAVERを使い、3か国すべてが100件・TOP 5基準を満たす場合だけ新artifactを生成し、失敗時は最後の正常Pagesを維持する。NAVER Secretは`pages-production` Environmentだけで注入する。
+
+順序4では配布結果に関係なく現在の公開URLのHTML・Schema 2.0・TOP5契約をretry付きで確認する`public-smoke` jobを追加する。運用Runbookと日付別観察表へ予約実行・手動retry・既存Pages維持結果を記録し、異なるJST日付7日分の証跡が揃った後だけ連続運用gateを完了する。
+
+初回全経路確認用の過去収集は既存`publish-keyword-live`のJST日付別24時間計算を使い、過去保持が不確実なRSSと長時間HTTP retryを手動option`--skip-rss --single-attempt`だけで除外する。このoptionは予約workflowへ適用しない。2026-08-02～08のGDELT・NAVER遡及確認は全日が3か国100件基準未満で、公開fileを生成せず既存Pagesを維持した。この結果は機能動作確認であり、7日連続予約運用証跡には数えない。
 
 配布障害対応は上記機能PRへ混在させない。GDELT利用条件・query偏り・形態素分析library選定が実装中に変わる場合はADRを更新する。
 
@@ -953,7 +958,7 @@ v1.0.0 初回公開リリース
 - [x] LLM結果に存在しない記事/表現なし
 - [x] API 200/400/404/503検証
 - [x] Web browser cache・復旧検証
-- [ ] 公開Web URLで主要画面とAPIが動作
+- [x] 公開Web URLで主要画面とAPIが動作
 - [x] プライバシー、問い合わせ、出典、公開日表示
 - [x] GitHubに秘密鍵・運用データなし
 - [x] Pages配布失敗時の既存正常artifact維持・rollback検証
@@ -990,7 +995,7 @@ v1.0.0 初回公開リリース
 - [x] 自動テストとCI/CD
 - [x] GitHub Actions batch・Pages配布workflow
 - [ ] 後続VPS/EC2用配布script、nginx、systemd/container template
-- [ ] 運用Runbookと障害レポート例
+- [x] 運用Runbookと障害レポート例
 - [x] プライバシーポリシーと問い合わせページ
 - [ ] Android再開時にGoogle Play登録資料
 - [ ] README、デモ画像、GitHub Release

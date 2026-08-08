@@ -8,6 +8,15 @@
 
 初回運用はGitHub Actionsが静的JSONを生成し、GitHub PagesがWebとdataを提供する。FastAPIと同じSchemaのAPI adapterを維持し、将来VPS/EC2へ移行してもUI logicを変更しない。
 
+## Live demo
+
+- Public site / 공개 사이트 / 公開site: https://sb900430.github.io/country-issue-cloud/
+- Default view: Korea TOP5 tiles; switch countries or enable cloud view
+- Keyword detail: up to 20 related source links
+- Data contract: `data/v2/latest.json` and the latest seven available dates
+
+The public URL is checked after every Pages workflow by `scripts/check-public-site.ps1`. The check validates HTTPS, primary UI markers, Schema 2.0, all three countries, and exactly five keywords per country. 실제 live 데이터는 세 국가 모두 100건 기준을 충족한 경우에만 기존 정상 배포를 교체합니다. 実live dataは3か国すべてが100件基準を満たす場合だけ既存の正常配布を置換します。
+
 ## Repository layout
 
 - `backend/`: FastAPI, batch processing, and local JSON repository
@@ -47,6 +56,9 @@ The v2 Pages client reads `data/v2` keyword JSON. A push to `main` builds a netw
 - Current status: `docs/DEVELOPMENT_STATUS.md`
 - Free API environment and registration guide: `docs/SOURCE_REGISTRATION_GUIDE.md`
 - Keyword-news redesign decision: `docs/adr/ADR-0001-keyword-news-pipeline.md`
+- Operations runbook: `docs/OPERATIONS_RUNBOOK.md`
+- Seven-day batch observation: `docs/operations/BATCH_OBSERVATION.md`
+- v1.0 release checklist: `docs/releases/V1_RELEASE_CHECKLIST.md`
 
 ## Security
 

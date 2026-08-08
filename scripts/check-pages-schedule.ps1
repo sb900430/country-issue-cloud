@@ -5,6 +5,7 @@ $ErrorActionPreference = "Stop"
 $projectRoot = Split-Path -Parent $PSScriptRoot
 $workflow = Get-Content -LiteralPath (Join-Path $projectRoot ".github/workflows/pages.yml") -Raw
 $builder = Get-Content -LiteralPath (Join-Path $PSScriptRoot "build-pages-site.ps1") -Raw
+$publicSmoke = Get-Content -LiteralPath (Join-Path $PSScriptRoot "check-public-site.ps1") -Raw
 
 foreach ($cron in @('0 0 * * *', '0 1 * * *', '0 3 * * *')) {
     if (-not $workflow.Contains('cron: "' + $cron + '"')) {
@@ -47,6 +48,22 @@ if (-not $builder.Contains('Live attempt marker must be persisted before collect
 foreach ($required in @('publish-keyword-fixture', 'publish-keyword-live', 'data/v2')) {
     if (-not $builder.Contains($required)) {
         throw "Pages builder is missing the v2 keyword path: $required"
+    }
+}
+foreach ($required in @(
+    'public-smoke:',
+    'if: ${{ always() }}',
+    'check-public-site.ps1',
+    'github.repository_owner',
+    'github.event.repository.name'
+)) {
+    if (-not $workflow.Contains($required)) {
+        throw "Pages workflow is missing the public smoke safeguard: $required"
+    }
+}
+foreach ($required in @('https', 'data/v2/latest.json', 'data/v2/dates.json', 'data-dialog')) {
+    if (-not $publicSmoke.Contains($required)) {
+        throw "Public smoke script is missing a required contract check: $required"
     }
 }
 
