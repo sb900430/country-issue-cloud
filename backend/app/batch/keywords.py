@@ -90,7 +90,7 @@ class LanguageKeywordExtractor:
             evidence = label
         label = label[:80].strip()
         evidence = evidence[:120].strip()
-        if not label or _normalize(label) in {
+        if len(label) < 2 or len(evidence) < 2 or _normalize(label) in {
             _normalize(term) for term in _GENERAL_TERMS[article.country]
         }:
             return ()
