@@ -2,13 +2,22 @@
 
 | 항목 | 현재 상태 |
 |---|---|
-| 현재 목표 | 키워드 뉴스 v2 — 국가별 100건 이상 경제뉴스 기반 TOP 5 |
-| 상태 | v2 Schema·Pages UI·예약 producer 전환 구현·전체 검증·완료 리뷰 완료 |
+| 현재 목표 | v1.0 공개 준비 — 공개 smoke·운영 런북·7일 배치 관찰 |
+| 상태 | 공개 smoke·운영 런북·초기 7일 소급 검증 구현·전체 검증·완료 리뷰 완료 |
 | 기준 브랜치 | `main` |
-| 작업 브랜치 | `codex/v2-schema-pages-ui` |
-| 마지막 완료 커밋 | `f278c52` — 새 SHA 재배포 준비 PR #16 Rebase and merge |
-| 전체 검증 | PASS — Python 100개·전체 coverage 88%·웹 9개·Pages v2 artifact·Ruff·mypy·Secret·명세 동기화 |
-| 다음 작업 | Draft PR 생성 후 CI 확인 |
+| 작업 브랜치 | `codex/v1-release-hardening` |
+| 마지막 완료 커밋 | `66e9c2f` — 키워드 Pages v2 PR #22 Rebase and merge |
+| 전체 검증 | PASS — Python 103개·전체 coverage 89%·웹 9개·Pages v2 artifact·Ruff·mypy·Secret·명세 동기화 |
+| 다음 작업 | Draft PR 생성·병합 후 운영 소스 coverage 보강 |
+
+## v1.0 공개 준비 진행 결과
+
+- 공개 Pages에서 세 국가 전환, TOP5, 타일·클라우드 전환, 상세 dialog와 관련 기사 20개 링크를 확인했고 console 오류가 없었다.
+- 배포 성공·실패와 관계없이 현재 공개 HTML과 `data/v2` 계약을 확인하는 `public-smoke` job과 재시도 가능한 검사 스크립트를 추가했다.
+- 예약·수동 재시도·배포·Secret 사고 대응과 7일 운영 게이트를 한·일 운영 런북 및 관찰표로 정리했다.
+- 7일 연속 자동 배치 증거는 시간 경과가 필요한 출시 게이트로 계속 미완료 상태다.
+- JST 날짜별 과거 24시간 계산과 수동 소급용 `--skip-rss --single-attempt`를 추가하고 8/2~8 실제 GDELT·NAVER 경로를 확인했다.
+- 7개 날짜 모두 세 국가 100건에 미달해 게시가 안전하게 차단됐다. 최대치는 8/3 US 34·KR 90, 8/5 JP 26·KR 90이며 NAVER는 40/300회를 사용했다.
 
 ## 키워드 뉴스 v2 결정
 

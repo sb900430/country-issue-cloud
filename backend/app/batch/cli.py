@@ -13,6 +13,15 @@ from app.repositories.json_issue_repository import JsonIssueRepository
 from app.schemas.issues import IssueResult
 
 
+def resolve_collection_window(
+    target_date: date, now: datetime, lookback_hours: int
+) -> tuple[datetime, datetime]:
+    jst = ZoneInfo("Asia/Tokyo")
+    target_end = datetime.combine(target_date + timedelta(days=1), datetime.min.time(), jst)
+    window_end = min(now, target_end.astimezone(UTC))
+    return window_end - timedelta(hours=lookback_hours), window_end
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(prog="country-issue-cloud-batch")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -38,6 +47,8 @@ def main() -> int:
     keyword_live.add_argument("--site-data-dir", type=Path, required=True)
     keyword_live.add_argument("--target-date", type=date.fromisoformat)
     keyword_live.add_argument("--lookback-hours", type=int, default=24)
+    keyword_live.add_argument("--skip-rss", action="store_true")
+    keyword_live.add_argument("--single-attempt", action="store_true")
     arguments = parser.parse_args()
 
     if arguments.command == "publish-fixture":
@@ -53,9 +64,9 @@ def main() -> int:
             parser.error("--lookback-hours must be between 1 and 168")
         now = datetime.now(UTC)
         target_date = arguments.target_date or datetime.now(ZoneInfo("Asia/Tokyo")).date()
-        target_end = datetime.combine(target_date + timedelta(days=1), datetime.min.time(), UTC)
-        window_end = min(now, target_end)
-        window_start = window_end - timedelta(hours=arguments.lookback_hours)
+        window_start, window_end = resolve_collection_window(
+            target_date, now, arguments.lookback_hours
+        )
         client = HttpsFeedClient()
         settings = get_settings()
         result = run_live_batch(
@@ -96,12 +107,13 @@ def main() -> int:
             parser.error("--lookback-hours must be between 1 and 168")
         now = datetime.now(UTC)
         target_date = arguments.target_date or datetime.now(ZoneInfo("Asia/Tokyo")).date()
-        window_end = now
-        window_start = window_end - timedelta(hours=arguments.lookback_hours)
-        client = HttpsFeedClient()
+        window_start, window_end = resolve_collection_window(
+            target_date, now, arguments.lookback_hours
+        )
+        client = HttpsFeedClient(max_attempts=1 if arguments.single_attempt else 2)
         settings = get_settings()
         keyword_result = run_live_keyword_batch(
-            load_rss_sources(arguments.sources_config),
+            ([] if arguments.skip_rss else load_rss_sources(arguments.sources_config)),
             load_gdelt_sources(arguments.sources_config),
             load_naver_sources(arguments.sources_config),
             client.fetch,
