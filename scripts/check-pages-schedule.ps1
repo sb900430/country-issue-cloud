@@ -70,5 +70,11 @@ foreach ($required in @('https', 'data/v2/latest.json', 'data/v2/dates.json', 'd
         throw "Public smoke script is missing a required contract check: $required"
     }
 }
+if (-not $publicSmoke.Contains('[System.IO.Path]::GetTempPath()')) {
+    throw "Public smoke must use a cross-platform temporary directory."
+}
+if ($publicSmoke.Contains('$LASTEXITCODE -ne 0')) {
+    throw "Public smoke must rely on PowerShell exception propagation."
+}
 
 Write-Host "PASS: Pages schedules and duplicate-run safeguards are present."
