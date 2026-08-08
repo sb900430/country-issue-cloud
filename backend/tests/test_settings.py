@@ -6,7 +6,15 @@ from pydantic import ValidationError
 from app.core.settings import AppMode, Settings
 
 
-def test_fixture_mode_is_the_safe_default() -> None:
+def test_fixture_mode_is_the_safe_default(monkeypatch: pytest.MonkeyPatch) -> None:
+    for variable in (
+        "NEWS_API_KEY",
+        "NEWSDATA_API_KEY",
+        "BEA_API_KEY",
+        "E_STAT_APP_ID",
+        "LLM_API_KEY",
+    ):
+        monkeypatch.delenv(variable, raising=False)
     settings = Settings(_env_file=None)
 
     assert settings.app_mode is AppMode.FIXTURE
@@ -37,6 +45,16 @@ def test_environment_values_are_separated_from_source(monkeypatch: object) -> No
 
     assert settings.app_mode is AppMode.MIXED
     assert settings.data_dir == Path("runtime-data")
+
+
+def test_newsdata_secret_can_be_injected_by_production_environment(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("NEWSDATA_API_KEY", "test-newsdata-key")
+
+    settings = Settings(_env_file=None)
+
+    assert settings.newsdata_api_key == "test-newsdata-key"
 
 
 def test_paid_naver_overage_cannot_be_enabled_by_environment(

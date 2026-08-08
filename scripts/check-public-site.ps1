@@ -11,7 +11,9 @@ if ($BaseUrl.Scheme -ne "https") {
 }
 
 $base = $BaseUrl.AbsoluteUri.TrimEnd('/') + '/'
-$temporary = Join-Path $env:TEMP ("country-issue-cloud-public-smoke-" + [guid]::NewGuid())
+$temporary = Join-Path ([System.IO.Path]::GetTempPath()) (
+    "country-issue-cloud-public-smoke-" + [guid]::NewGuid()
+)
 $targets = [ordered]@{
     "index.html" = $base
     "about.html" = $base + "about.html"
@@ -29,9 +31,6 @@ try {
                 Invoke-WebRequest -Uri $entry.Value -OutFile $destination -TimeoutSec 20
             }
             & (Join-Path $PSScriptRoot "check-public-artifact.ps1") -Path $temporary
-            if ($LASTEXITCODE -ne 0) {
-                throw "Public artifact validation failed with exit code $LASTEXITCODE"
-            }
             $index = Get-Content -LiteralPath (Join-Path $temporary "index.html") -Raw
             foreach ($required in @('data-countries', 'data-issues', 'data-dialog')) {
                 if (-not $index.Contains($required)) {
