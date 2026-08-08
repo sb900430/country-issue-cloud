@@ -29,7 +29,7 @@ if (
     throw "Refusing to replace a broad output directory."
 }
 $frontendPath = Join-Path $projectRoot "frontend"
-$dataPath = Join-Path $outputPath "data/v1"
+$dataPath = Join-Path $outputPath "data/v2"
 $runtimePath = Join-Path $env:TEMP ("country-issue-cloud-pages-" + [guid]::NewGuid())
 $uvCommand = Get-Command uv -ErrorAction SilentlyContinue
 if (-not $uvCommand) {
@@ -48,8 +48,8 @@ Copy-Item -LiteralPath (Join-Path $frontendPath "src") -Destination $outputPath 
 New-Item -ItemType File -Path (Join-Path $outputPath ".nojekyll") | Out-Null
 
 if ($Mode -eq "fixture") {
-    & $uvCommand run --project (Join-Path $projectRoot "backend") python -m app.batch.cli publish-fixture `
-        --fixture (Join-Path $projectRoot "sample-data/fixtures/issues_2026-08-03.json") `
+    & $uvCommand run --project (Join-Path $projectRoot "backend") python -m app.batch.cli publish-keyword-fixture `
+        --evaluation-dir (Join-Path $projectRoot "sample-data/evaluation") `
         --data-dir $runtimePath `
         --site-data-dir $dataPath
 } else {
@@ -69,11 +69,11 @@ if ($Mode -eq "fixture") {
     if (-not (Test-Path -LiteralPath $markerPath)) {
         throw "Live attempt marker must be persisted before collection starts."
     }
-    & $uvCommand run --project (Join-Path $projectRoot "backend") python -m app.batch.cli publish-live `
+    & $uvCommand run --project (Join-Path $projectRoot "backend") python -m app.batch.cli publish-keyword-live `
         --sources-config (Join-Path $projectRoot "config/sources.example.yml") `
         --data-dir $runtimePath `
         --site-data-dir $dataPath `
-        --lookback-hours 168
+        --lookback-hours 24
 }
 if ($LASTEXITCODE -ne 0) {
     throw "Pages data generation failed with exit code $LASTEXITCODE"

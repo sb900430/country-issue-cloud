@@ -120,9 +120,7 @@ class GdeltCollector:
                 break
         return articles
 
-    def _request_url(
-        self, window_start: datetime, window_end: datetime, limit: int
-    ) -> str:
+    def _request_url(self, window_start: datetime, window_end: datetime, limit: int) -> str:
         query = " ".join(
             (
                 f"({self.source.query})",

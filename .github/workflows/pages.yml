@@ -89,6 +89,10 @@ jobs:
     if: needs.gate.outputs.should-run == 'true'
     runs-on: windows-latest
     timeout-minutes: 20
+    environment: pages-production
+    env:
+      NAVER_CLIENT_ID: ${{ secrets.NAVER_CLIENT_ID }}
+      NAVER_CLIENT_SECRET: ${{ secrets.NAVER_CLIENT_SECRET }}
     outputs:
       artifact-name: github-pages
 

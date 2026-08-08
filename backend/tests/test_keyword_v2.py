@@ -1,0 +1,127 @@
+from datetime import date
+from pathlib import Path
+
+import pytest
+from fastapi.testclient import TestClient
+
+from app.batch.keyword_fixture import publish_keyword_fixture
+from app.batch.keyword_publishing import KeywordStaticJsonPublisher
+from app.main import create_app
+from app.repositories import JsonIssueRepository
+from app.repositories.json_keyword_repository import JsonKeywordRepository
+from app.schemas.issues import CountryCode, IssueStatus
+from app.schemas.keywords import KeywordResult
+
+PROJECT_ROOT = Path(__file__).parents[2]
+
+
+def test_keyword_fixture_publishes_schema_v2_with_related_articles(tmp_path: Path) -> None:
+    site_dir = tmp_path / "site" / "data" / "v2"
+
+    result = publish_keyword_fixture(
+        PROJECT_ROOT / "sample-data" / "evaluation",
+        tmp_path / "data",
+        site_dir,
+    )
+
+    assert result.status is IssueStatus.SUCCESS
+    assert all(result.countries[country].article_count == 120 for country in CountryCode)
+    assert all(len(result.countries[country].top_keywords) == 5 for country in CountryCode)
+    assert all(
+        len(keyword.related_articles) == 20
+        for country in CountryCode
+        for keyword in result.countries[country].top_keywords
+    )
+    published = KeywordResult.model_validate_json(
+        (site_dir / "latest.json").read_text(encoding="utf-8")
+    )
+    assert published.schema_version == "2.0"
+    assert (site_dir / "2026-08-07.json").exists()
+    assert (site_dir / "dates.json").exists()
+    stale_backup = site_dir.with_name(".v2.previous")
+    stale_backup.mkdir()
+    (stale_backup / "stale.json").write_text("{}", encoding="utf-8")
+    outputs = KeywordStaticJsonPublisher(
+        tmp_path / "data" / "keyword-published", site_dir
+    ).publish()
+    assert site_dir / "latest.json" in outputs
+    assert not stale_backup.exists()
+
+
+def test_v2_api_returns_published_keyword_data(tmp_path: Path) -> None:
+    data_dir = tmp_path / "data"
+    publish_keyword_fixture(
+        PROJECT_ROOT / "sample-data" / "evaluation",
+        data_dir,
+        tmp_path / "site" / "data" / "v2",
+    )
+    client = TestClient(
+        create_app(
+            repository=JsonIssueRepository(data_dir),
+            keyword_repository=JsonKeywordRepository(
+                data_dir, today_provider=lambda: date(2026, 8, 8)
+            ),
+            today_provider=lambda: date(2026, 8, 8),
+        )
+    )
+
+    latest = client.get("/api/v2/keywords/latest")
+    dates = client.get("/api/v2/keywords/dates")
+    country = client.get("/api/v2/keywords/2026-08-07/KR")
+
+    assert latest.status_code == 200
+    assert latest.json()["schema_version"] == "2.0"
+    assert dates.json() == ["2026-08-07"]
+    assert country.status_code == 200
+    assert len(country.json()["top_keywords"]) == 5
+
+
+def test_v2_api_preserves_v1_and_rejects_invalid_country(tmp_path: Path) -> None:
+    client = TestClient(
+        create_app(
+            repository=JsonIssueRepository(tmp_path),
+            keyword_repository=JsonKeywordRepository(tmp_path),
+            today_provider=lambda: date(2026, 8, 8),
+        )
+    )
+
+    assert client.get("/api/v1/health").status_code == 200
+    invalid = client.get("/api/v2/keywords/2026-08-07/GB")
+    assert invalid.status_code == 400
+    assert invalid.json()["detail"]["code"] == "invalid_country"
+
+
+def test_keyword_publisher_restores_previous_site_when_swap_fails(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    data_dir = tmp_path / "data"
+    site_dir = tmp_path / "site" / "data" / "v2"
+    publish_keyword_fixture(PROJECT_ROOT / "sample-data" / "evaluation", data_dir, site_dir)
+    previous = (site_dir / "latest.json").read_bytes()
+    original_replace = Path.replace
+
+    def fail_temporary_swap(path: Path, target: Path) -> Path:
+        if path == site_dir.with_name(".v2.tmp") and target == site_dir:
+            raise OSError("simulated atomic swap failure")
+        return original_replace(path, target)
+
+    monkeypatch.setattr(Path, "replace", fail_temporary_swap)
+
+    with pytest.raises(OSError, match="simulated atomic swap failure"):
+        KeywordStaticJsonPublisher(data_dir / "keyword-published", site_dir).publish()
+
+    assert (site_dir / "latest.json").read_bytes() == previous
+
+
+def test_keyword_publisher_rejects_missing_or_orphan_latest(tmp_path: Path) -> None:
+    publisher = KeywordStaticJsonPublisher(tmp_path / "missing", tmp_path / "site")
+    with pytest.raises(FileNotFoundError):
+        publisher.publish()
+
+    data_dir = tmp_path / "data"
+    site_dir = tmp_path / "published-site"
+    publish_keyword_fixture(PROJECT_ROOT / "sample-data" / "evaluation", data_dir, site_dir)
+    (data_dir / "keyword-published" / "keywords_2026-08-07.json").unlink()
+
+    with pytest.raises(ValueError, match="no matching dated result"):
+        KeywordStaticJsonPublisher(data_dir / "keyword-published", site_dir).publish()

@@ -8,14 +8,15 @@ import { createIssueCloudApp } from "../src/app.js";
 
 function issue(label) {
   return {
-    issue_id: `issue-${label.toLowerCase()}`,
-    issue_label: label,
-    display_label_ko: label,
+    keyword_id: `keyword-${label.toLowerCase()}`,
+    label,
     rank: 1,
-    article_count: 1,
+    document_frequency: 1,
     publisher_count: 1,
     article_ratio: 1,
-    representative_articles: [{
+    evidence_expressions: [label],
+    related_articles: [{
+      article_id: `article-${label.toLowerCase()}`,
       title: `${label} article`,
       publisher: "Publisher",
       published_at: "2026-08-06T01:00:00Z",
@@ -30,9 +31,9 @@ function result() {
     generated_at: "2026-08-06T01:00:00Z",
     countries: Object.fromEntries(["US", "JP", "KR"].map((country) => [country, {
       status: "success",
-      article_count: 1,
+      article_count: 120,
       warnings: [],
-      top_issues: [issue(`${country} issue`)],
+      top_keywords: [issue(`${country} issue`)],
     }])),
   };
 }

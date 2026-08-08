@@ -117,7 +117,7 @@ NAVER_CLIENT_SECRET=발급받은_Client_Secret
 
 ### 코드 활성화 절차 / Code有効化手順
 
-NAVER 전용 수집 adapter가 구현되어 있으며 `publish-live --enable-naver`를 명시한 실행에서만 활성화된다. 기본 예약 v1 배치는 RSS만 사용하므로 v2 전환 전에는 자동 호출되지 않는다.
+NAVER 전용 수집 adapter는 v2 예약 `publish-keyword-live`에서 한국 경제뉴스 보강용으로 활성화된다. GitHub의 `pages-production` Environment에 두 Secret이 없으면 인증 요청 전에 실패하며, PR·fixture 검증에서는 호출하지 않는다.
 
 1. 인증값을 `X-NCP-APIGW-API-KEY-ID`, `X-NCP-APIGW-API-KEY` header로 전달하고 log에서 마스킹한다.
 2. 경제 주제 query를 순환하되 결과의 `originallink` domain을 승인된 한국 경제언론 allowlist로 제한한다.
@@ -128,7 +128,7 @@ NAVER 전용 수집 adapter가 구현되어 있으며 `publish-live --enable-nav
 7. Console의 Application 목록에서 **한도 및 알림**을 열어 일별 한도 `300`, 월별 한도 `9000`을 저장하고 사용량 `50%`, `80%` 알림과 통보 대상을 활성화한다. 이 Console hard limit은 여러 실행 환경의 사용량을 합산하는 최종 차단선이다.
 8. `NAVER_PAID_OVERAGE_ENABLED=false`를 유지한다. 무료 정책이 변경되어도 사용자 승인과 한·일 명세 변경 전에는 유료 초과 호출이나 자동 한도 증설을 적용하지 않는다.
 
-NAVER専用収集adapterを実装済みで、`publish-live --enable-naver`を明示した実行時だけ有効になる。標準予約v1 batchはRSSだけを使うため、v2移行前に自動呼出されない。
+NAVER専用収集adapterはv2予約`publish-keyword-live`で韓国経済news補完用として有効化する。GitHubの`pages-production` Environmentに2件のSecretがない場合は認証request前に失敗し、PR・fixture検証では呼び出さない。
 
 1. 認証値を`X-NCP-APIGW-API-KEY-ID`、`X-NCP-APIGW-API-KEY` headerで渡し、logではmaskingする。
 2. 経済topic queryを循環し、結果の`originallink` domainを承認済み韓国経済媒体allowlistに限定する。

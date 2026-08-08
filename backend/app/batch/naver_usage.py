@@ -59,9 +59,7 @@ class NaverUsageLedger:
             month_key = day_key[:7]
             state = self._load()
             daily_usage = state.get("daily_usage", 0) if state.get("day") == day_key else 0
-            monthly_usage = (
-                state.get("monthly_usage", 0) if state.get("month") == month_key else 0
-            )
+            monthly_usage = state.get("monthly_usage", 0) if state.get("month") == month_key else 0
             if not isinstance(daily_usage, int) or not isinstance(monthly_usage, int):
                 raise ValueError("Invalid NAVER usage ledger")
             self.policy.ensure_request_allowed(

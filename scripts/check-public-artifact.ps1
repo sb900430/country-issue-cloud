@@ -23,9 +23,18 @@ foreach ($file in Get-ChildItem -LiteralPath $resolved -Recurse -File) {
     }
 }
 
-$latest = Join-Path $resolved "data/v1/latest.json"
-$dates = Join-Path $resolved "data/v1/dates.json"
+$latest = Join-Path $resolved "data/v2/latest.json"
+$dates = Join-Path $resolved "data/v2/dates.json"
 if (-not (Test-Path -LiteralPath $latest) -or -not (Test-Path -LiteralPath $dates)) {
     throw "Public artifact is missing required JSON files."
+}
+$payload = Get-Content -LiteralPath $latest -Raw | ConvertFrom-Json
+if ($payload.schema_version -ne "2.0") {
+    throw "Public artifact must use keyword Schema 2.0."
+}
+foreach ($country in @("US", "JP", "KR")) {
+    if ($payload.countries.$country.top_keywords.Count -ne 5) {
+        throw "Public artifact must contain five keywords for $country."
+    }
 }
 Write-Host "PASS: Public Pages artifact contains required JSON and no secret patterns."

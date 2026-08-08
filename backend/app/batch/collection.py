@@ -65,9 +65,7 @@ class CollectionRunner:
                 articles.extend(fallback_articles)
                 errors.extend(fallback_errors)
         unique_articles = deduplicate_articles(articles)
-        selected_articles = select_diverse_articles(
-            unique_articles, self.max_articles_per_country
-        )
+        selected_articles = select_diverse_articles(unique_articles, self.max_articles_per_country)
         return CountryCollectionResult(
             country=country,
             articles=tuple(selected_articles),
@@ -91,9 +89,7 @@ class CollectionRunner:
         for collector in collectors:
             try:
                 articles.extend(
-                    collector.collect(
-                        window_start, window_end, self.max_articles_per_country
-                    )
+                    collector.collect(window_start, window_end, self.max_articles_per_country)
                 )
             except Exception as error:
                 errors.append(f"{collector.source_id}:{type(error).__name__}")

@@ -6,12 +6,17 @@ from app.schemas.issues import (
     RepresentativeArticle,
     TopIssue,
 )
+from app.schemas.keywords import CountryKeywordResult, KeywordResult, RelatedArticle, TopKeyword
 
 __all__ = [
     "CountryCode",
     "CountryIssueResult",
+    "CountryKeywordResult",
     "IssueResult",
     "IssueStatus",
+    "KeywordResult",
+    "RelatedArticle",
     "RepresentativeArticle",
     "TopIssue",
+    "TopKeyword",
 ]

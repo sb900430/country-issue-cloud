@@ -16,9 +16,12 @@ export function createCountryView(result, country) {
     status: countryResult.status,
     articleCount: countryResult.article_count,
     warnings: countryResult.warnings,
-    issues: countryResult.top_issues.map((issue) => ({
-      ...issue,
-      weight: Math.max(0.45, 1 - (issue.rank - 1) * 0.12),
+    issues: countryResult.top_keywords.map((keyword) => ({
+      ...keyword,
+      display_label_ko: keyword.label,
+      article_count: keyword.document_frequency,
+      representative_articles: keyword.related_articles,
+      weight: Math.max(0.45, 1 - (keyword.rank - 1) * 0.12),
     })),
   };
 }

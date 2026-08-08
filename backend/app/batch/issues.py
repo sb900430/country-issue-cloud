@@ -50,9 +50,7 @@ class MockIssueExtractor:
     def __init__(self, labels: dict[str, tuple[str, str]] | None = None) -> None:
         self.labels = labels or {}
 
-    def extract(
-        self, country: CountryCode, articles: list[CollectedArticle]
-    ) -> ExtractionResult:
+    def extract(self, country: CountryCode, articles: list[CollectedArticle]) -> ExtractionResult:
         issues = []
         for article in articles:
             label, display_label = self.labels.get(
@@ -159,12 +157,9 @@ def aggregate_top_issues(
         )
     ranked.sort(key=lambda item: (-item[0], -item[1], -item[2].timestamp(), item[3]))
     top_issues = [
-        item[4].model_copy(update={"rank": rank})
-        for rank, item in enumerate(ranked[:5], 1)
+        item[4].model_copy(update={"rank": rank}) for rank, item in enumerate(ranked[:5], 1)
     ]
-    success_rate = (
-        len(set(extraction.processed_article_ids)) / len(articles) if articles else 0.0
-    )
+    success_rate = len(set(extraction.processed_article_ids)) / len(articles) if articles else 0.0
     if len(articles) >= 15 and success_rate >= 0.8 and len(top_issues) >= 3:
         status = IssueStatus.SUCCESS
     elif len(articles) >= 5 and success_rate >= 0.7 and top_issues:
@@ -188,9 +183,10 @@ def _normalize_label(label: str) -> str:
 def _similar(left: str, right: str) -> bool:
     normalized_left = _normalize_label(left)
     normalized_right = _normalize_label(right)
-    return normalized_left == normalized_right or SequenceMatcher(
-        None, normalized_left, normalized_right
-    ).ratio() >= 0.88
+    return (
+        normalized_left == normalized_right
+        or SequenceMatcher(None, normalized_left, normalized_right).ratio() >= 0.88
+    )
 
 
 def _preferred_label(issues: list[ExtractedIssue]) -> str:
