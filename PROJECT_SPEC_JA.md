@@ -886,6 +886,8 @@ v* tag → Pages URL検証 → GitHub Release。Android再開後のみAABとPlay
 
 2026-08-07時点で順序1のGDELT・NAVER adapter、versioned query、国別120件GDELT fixture、250件上限・媒体20%/30件制限、NAVER承認domainと日300回・月9,000回停止ledgerを実装した。制限付きGDELT live検証は無料endpointの429と媒体coverageにより国別100件未満となったため理由付きpartialとして記録し、v1予約実行では`--enable-gdelt`・`--enable-naver`明示前に有効化しない。
 
+2026-08-08時点の順序2では、外部呼出し不要の言語別決定的候補抽出、国別stopword、入力候補限定の同義語統合、document frequency・媒体多様性・最新時刻・IDによるTOP 5と関連記事最大20件を実装する。国別120件fixtureで一般語除外、複合名詞保持、国分離、根拠接続、入力順序に依存しない順位を完了基準として検証する。
+
 配布障害対応は上記機能PRへ混在させない。GDELT利用条件・query偏り・形態素分析library選定が実装中に変わる場合はADRを更新する。
 
 ### 後続選択日程 — VPS/EC2移行
