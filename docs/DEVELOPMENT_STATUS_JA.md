@@ -3,14 +3,18 @@
 | 項目 | 現在状態 |
 |---|---|
 | 現在目標 | keyword news v2 — 国別100件以上の経済newsに基づくTOP 5 |
-| 状態 | Pages merge push mode修正・全検証完了、Draft PR準備 |
+| 状態 | v2 keyword pipeline完了review通過、Draft PR準備 |
 | 基準branch | `main` |
-| 作業branch | `codex/post-merge-fix-week-03-push-mode` |
+| 作業branch | `codex/v2-keyword-pipeline` |
 | 最終完了commit | `f278c52` — 新SHA再配布準備PR #16 Rebase and merge |
-| 全体検証 | PASS — Python 84件・line+branch coverage 89%・Web 8件・Ruff・mypy・Secret・仕様同期 |
-| 次作業 | 修正commit・Draft PR作成後にActions fixture配布確認 |
+| 全体検証 | PASS — Python 93件・全体coverage 90%・keyword module 94%・Web 8件・Ruff・mypy・Secret・仕様同期 |
+| 次作業 | Draft PR作成後にCI確認とRebase and merge依頼 |
 
 ## keyword news v2決定
+
+- 言語別の決定的複合名詞候補抽出、国別一般語・叙述語除外、入力候補限定の同義語統合を実装した。
+- 国別最低100件を強制し、document frequency・媒体多様性・最新時刻・IDでTOP 5を決定し、関連記事IDを最大20件接続する。
+- 国別120件fixtureで期待複合名詞5件、決定性、一般語除外、国分離、原文根拠接続を検証する。
 
 - GDELT DOC APIを国別主source、既存公共RSS/APIを補助sourceへ変更する。
 - 重複排除後の国別150件を目標、最大250件、正常100件以上、部分成功50～99件とする。
