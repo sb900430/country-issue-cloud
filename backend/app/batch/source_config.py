@@ -7,6 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_valida
 
 from app.batch.collectors.gdelt import GdeltSource
 from app.batch.collectors.naver import NaverSource
+from app.batch.collectors.newsdata import NewsDataSource
 from app.batch.collectors.rss import RssSource
 from app.schemas.issues import CountryCode
 
@@ -145,6 +146,42 @@ def load_naver_sources(path: Path) -> list[NaverSource]:
                     allowed_domains=tuple(
                         domain.lower().removeprefix("www.") for domain in entry.allowed_domains
                     ),
+                    free_policy_review_due_at=entry.terms_review_due_at or date.min,
+                )
+            )
+    return result
+
+
+def load_newsdata_sources(path: Path) -> list[NewsDataSource]:
+    registry = load_source_registry(path)
+    result: list[NewsDataSource] = []
+    seen_ids: set[str] = set()
+    for country, entries in registry.sources.items():
+        for entry in entries:
+            _ensure_unique_source_id(entry.id, seen_ids)
+            if not entry.enabled or entry.type != "api" or entry.provider != "newsdata":
+                continue
+            if country not in {CountryCode.US, CountryCode.JP}:
+                raise ValueError("NewsData supplement must belong to US or JP")
+            required = (
+                entry.endpoint,
+                entry.query_version,
+                entry.source_country,
+                entry.source_language,
+                entry.query,
+                entry.terms_review_due_at,
+            )
+            if not entry.terms_status.startswith("approved") or not all(required):
+                raise ValueError(f"Enabled NewsData source is incomplete: {entry.id}")
+            result.append(
+                NewsDataSource(
+                    source_id=entry.id,
+                    country=country,
+                    endpoint=entry.endpoint or "",
+                    api_country=entry.source_country or "",
+                    language=entry.source_language or "",
+                    category=entry.query or "",
+                    query_version=entry.query_version or "",
                     free_policy_review_due_at=entry.terms_review_due_at or date.min,
                 )
             )

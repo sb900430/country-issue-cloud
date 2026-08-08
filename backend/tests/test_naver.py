@@ -66,6 +66,16 @@ def test_naver_collector_authenticates_filters_and_normalizes(tmp_path: Path) ->
     parameters = parse_qs(urlsplit(requested[0]).query)
     assert parameters["query"] == ["경제"]
     assert parameters["display"] == ["100"]
+    assert collector.last_diagnostics == {
+        "response_items": 2,
+        "domain_rejected": 0,
+        "duplicate_rejected": 0,
+        "date_rejected": 0,
+        "title_rejected": 0,
+        "limit_rejected": 1,
+        "accepted": 1,
+    }
+    assert collector.last_rejected_domain_counts == {}
 
 
 def test_naver_collector_cycles_queries_and_deduplicates_urls(tmp_path: Path) -> None:
@@ -86,16 +96,42 @@ def test_naver_collector_cycles_queries_and_deduplicates_urls(tmp_path: Path) ->
             }
         ).encode()
 
-    articles = NaverCollector(
+    collector = NaverCollector(
         _source(),
         fetch,
         "client-id",
         "client-secret",
         NaverUsageLedger(tmp_path / "usage.json", NaverUsagePolicy()),
-    ).collect(WINDOW_START, WINDOW_END, 10)
+    )
+    articles = collector.collect(WINDOW_START, WINDOW_END, 10)
 
     assert len(articles) == 1
     assert calls == 2
+    assert collector.last_diagnostics["response_items"] == 2
+    assert collector.last_diagnostics["duplicate_rejected"] == 1
+    assert collector.last_rejected_domain_counts == {}
+
+
+def test_naver_collector_reports_top_rejected_domains(tmp_path: Path) -> None:
+    payload = {
+        "items": [
+            {
+                "title": "경제 기사",
+                "originallink": "https://news.example.com/economy/1",
+                "pubDate": "Thu, 06 Aug 2026 23:00:00 +0000",
+            }
+        ]
+    }
+    collector = NaverCollector(
+        _source(),
+        lambda _url, _headers: json.dumps(payload).encode(),
+        "client-id",
+        "client-secret",
+        NaverUsageLedger(tmp_path / "usage.json", NaverUsagePolicy()),
+    )
+
+    assert collector.collect(WINDOW_START, WINDOW_END, 10) == []
+    assert collector.last_rejected_domain_counts == {"news.example.com": 2}
 
 
 def test_naver_collector_caps_total_results_at_250(tmp_path: Path) -> None:

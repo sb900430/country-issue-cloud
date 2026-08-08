@@ -1,5 +1,19 @@
 sources:
   US:
+    - id: newsdata_us_business_news
+      type: api
+      provider: newsdata
+      publisher: NewsData.io
+      endpoint: https://newsdata.io/api/1/latest
+      query: business
+      query_version: 2026-08-08.v1
+      source_country: us
+      source_language: en
+      enabled: true
+      terms_status: approved_free_delayed_attribution
+      terms_checked_at: 2026-08-08
+      terms_review_due_at: 2026-09-07
+      allowed_fields: [title, url, publisher, published_at]
     - id: gdelt_us_economic_news
       type: api
       provider: gdelt
@@ -24,6 +38,24 @@ sources:
       terms_checked_at: 2026-08-06
       terms_review_due_at: 2026-11-04
       allowed_fields: &public_rss_fields [title, summary, url, publisher, published_at]
+    - id: census_economic_indicators
+      type: rss
+      publisher: U.S. Census Bureau
+      feed_url: https://www.census.gov/economic-indicators/indicator.xml
+      enabled: true
+      terms_status: approved_public_rss
+      terms_checked_at: 2026-08-08
+      terms_review_due_at: 2026-11-06
+      allowed_fields: *public_rss_fields
+    - id: bea_news_releases
+      type: rss
+      publisher: U.S. Bureau of Economic Analysis
+      feed_url: https://apps.bea.gov/rss/rss.xml
+      enabled: true
+      terms_status: approved_public_domain
+      terms_checked_at: 2026-08-08
+      terms_review_due_at: 2026-11-06
+      allowed_fields: *public_rss_fields
     - id: bls_employment_situation
       type: rss
       publisher: U.S. Bureau of Labor Statistics
@@ -51,6 +83,20 @@ sources:
       terms_review_due_at: 2026-11-04
       allowed_fields: *public_rss_fields
   JP:
+    - id: newsdata_jp_business_news
+      type: api
+      provider: newsdata
+      publisher: NewsData.io
+      endpoint: https://newsdata.io/api/1/latest
+      query: business
+      query_version: 2026-08-08.v1
+      source_country: jp
+      source_language: ja
+      enabled: true
+      terms_status: approved_free_delayed_attribution
+      terms_checked_at: 2026-08-08
+      terms_review_due_at: 2026-09-07
+      allowed_fields: [title, url, publisher, published_at]
     - id: gdelt_jp_economic_news
       type: api
       provider: gdelt
@@ -93,6 +139,24 @@ sources:
       terms_checked_at: 2026-08-06
       terms_review_due_at: 2026-11-04
       allowed_fields: [title, url, publisher, published_at]
+    - id: mof_japan_updates
+      type: rss
+      publisher: Ministry of Finance Japan
+      feed_url: https://www.mof.go.jp/news.rss
+      enabled: true
+      terms_status: approved_official_rss
+      terms_checked_at: 2026-08-08
+      terms_review_due_at: 2026-11-06
+      allowed_fields: *public_rss_fields
+    - id: statistics_japan_updates
+      type: rss
+      publisher: Statistics Bureau of Japan
+      feed_url: https://www.stat.go.jp/whatsnew/news.rdf
+      enabled: true
+      terms_status: approved_official_rss
+      terms_checked_at: 2026-08-08
+      terms_review_due_at: 2026-11-06
+      allowed_fields: [title, url, publisher, published_at]
     - id: e_stat_api
       type: api
       publisher: Statistics Bureau of Japan
@@ -108,8 +172,8 @@ sources:
       publisher: NAVER API HUB
       endpoint: https://naverapihub.apigw.ntruss.com/search/v1/news
       queries: [경제, 금융, 산업, 증권, 부동산]
-      query_version: 2026-08-07.v1
-      allowed_domains: [hankyung.com, mk.co.kr, sedaily.com, edaily.co.kr, fnnews.com, heraldcorp.com, mt.co.kr, asiae.co.kr]
+      query_version: 2026-08-08.v4
+      allowed_domains: [hankyung.com, mk.co.kr, sedaily.com, edaily.co.kr, fnnews.com, heraldcorp.com, mt.co.kr, asiae.co.kr, newsis.com, news1.kr, ajunews.com, ebn.co.kr, yna.co.kr, segye.com, ytn.co.kr, econovill.com, donga.com, metroseoul.co.kr, hansbiz.co.kr, g-enews.com, ekn.kr, dailian.co.kr, munhwa.com, mbn.mk.co.kr, yonhapnewstv.co.kr]
       enabled: true
       terms_status: approved_free_period
       terms_checked_at: 2026-08-07

@@ -156,6 +156,7 @@ Androidアプリは廃止しない。keyword中心Webと公開URLの安定化後
 - 主sourceはGDELT Project DOC APIのArticle Listとし、`sourcecountry`、`sourcelang`、直前24時間、`maxrecords=250`を国別に独立適用する。
 - 初回運用のnews sourceは無料構成に固定する。韓国はNAVER API HUB news検索の無料呼出上限内で補完し、有料移行・従量課金拡張は利用者承認前に使わない。
 - NAVER呼出はapplicationとNAVER Consoleの両方で日300回・月9,000回に制限し、いずれかの上限到達時に追加呼出を自動停止する。使用量50%・80%で通知し、無料policy変更前は有料超過利用や自動上限拡張を許可しない。
+- 米国・日本の経済news補完はNewsData.io Latest News API無料planの`country`・`language`・`business` filterを国別に独立適用する。呼出はapplicationで日40回・月1,200回に制限し、国別目標・上限150件と最大20pageだけを巡回して、有料超過利用と自動有料移行を禁止する。無料planの遅延dataとtitle・link・媒体・公開時刻だけを使用する。
 - 経済範囲はversion管理された国別経済topic query群で制限し、query別収集量と偏りを記録する。特定企業・事件名を事前投入して結果を誘導しない。
 - 既存の中央銀行・政府機関RSSと条件付き公共APIは補助sourceとして維持し、主source結果とまとめて重複排除する。
 - NewsAPI、GNews、Mediastack、World News APIなど開発専用または有料移行が必要な集約APIは本番依存にしない。
@@ -170,9 +171,10 @@ US supplementary: Federal Reserve RSS；BLS RSS無効、BEA API条件付き
 JP supplementary: BOJ RSS；METI Atom無効、e-Stat API条件付き
 KR supplementary: 韓国銀行・金融委員会・中小ベンチャー企業部RSS
 KR news supplement: NAVER API HUBを無料呼出上限内で使用
+US/JP news supplement: NewsData.io Latest News API無料planを国別に独立使用
 ```
 
-GDELTとRSSが直接提供するtitle・短いsummary・原文URL・媒体・公開時刻だけを許可する。記事本文、PDF・添付file、画像、HTMLを解析したsummaryは収集・再配布しない。GDELT dataは派生keywordと最小記事metadataだけを直近7日保管し、公式attributionを提供する。実endpoint、query version、承認状態は`config/sources.example.yml`を基準とし、詳細手順は`docs/SOURCE_REGISTRATION_GUIDE.md`に従う。
+GDELT・RSS・NewsData.ioが提供するtitle・短いsummary・原文URL・媒体・公開時刻だけを許可する。記事本文、PDF・添付file、画像、HTMLを解析したsummaryは収集・再配布しない。GDELTとNewsData.io dataは派生keywordと最小記事metadataだけを直近7日保管し、provider attributionを表示する。実endpoint、query version、承認状態は`config/sources.example.yml`を基準とし、詳細手順は`docs/SOURCE_REGISTRATION_GUIDE.md`に従う。
 
 ### 重複排除
 
@@ -798,7 +800,7 @@ v* tag → Pages URL検証 → GitHub Release。Android再開後のみAABとPlay
 | GitHub Pages | 公開portfolio用途と無料提供量内で運用 |
 | VPS/EC2・ドメイン | 後続移行時のみ低価格の月額固定費と予算を事前確定 |
 | NewsAPI | 運用利用せず、ローカル開発のみ |
-| 運用ニュースソース | GDELT・NAVER無料枠・許可済み公式RSS/APIだけを使用し、NAVER日300回・月9,000回hard stopと50%・80%通知、有料自動移行は禁止 |
+| 運用ニュースソース | GDELT・NAVER・NewsData.io無料枠と許可済み公式RSS/APIだけを使用し、NAVER日300回・月9,000回およびNewsData.io日40回・月1,200回hard stop、有料自動移行は禁止 |
 | LLM | 初回運用は`mock`またはlocal code分析だけで0円、外部有料LLMは別途承認まで無効 |
 | HTTPS | 初回Pages標準HTTPS、後続は無料証明書またはcloud証明書 |
 | GitHub Actions | 公開repositoryの標準runnerと無料提供量内、larger runner禁止 |
@@ -884,6 +886,7 @@ v* tag → Pages URL検証 → GitHub Release。Android再開後のみAABとPlay
 | 2 | `codex/v2-keyword-pipeline` | 言語別名詞・複合名詞、stopword、同義語統合、決定的TOP 5、関連記事接続 | 国別100件fixtureで一般語除外・複合名詞・根拠・順位regression通過 |
 | 3 | `codex/v2-schema-pages-ui` | Schema/API/data v2、DataSource migration、keyword詳細・関連記事最大20件、Pages artifact | v1維持、v2 producer/client同時移行、UI・全体・Pages smoke test通過 |
 | 4 | `codex/v1-release-hardening` | 公開URL自動smoke、運用Runbook、7日batch観察、README・Release準備 | 現在の公開Pages検証、障害対応手順と7日観察証跡、全回帰通過 |
+| 5 | `codex/v2-source-coverage` | source別収集量計測、国別無料経済news source・query補完、重複・偏重損失分析 | Secretなしfixture regression、無料上限順守、国別100件目標またはsource別根拠付きpartial |
 
 2026-08-07時点で順序1のGDELT・NAVER adapter、versioned query、国別120件GDELT fixture、250件上限・媒体20%/30件制限、NAVER承認domainと日300回・月9,000回停止ledgerを実装した。制限付きGDELT live検証は無料endpointの429と媒体coverageにより国別100件未満となったため理由付きpartialとして記録し、v1予約実行では`--enable-gdelt`・`--enable-naver`明示前に有効化しない。
 
@@ -894,6 +897,14 @@ v* tag → Pages URL検証 → GitHub Release。Android再開後のみAABとPlay
 順序4では配布結果に関係なく現在の公開URLのHTML・Schema 2.0・TOP5契約をretry付きで確認する`public-smoke` jobを追加する。運用Runbookと日付別観察表へ予約実行・手動retry・既存Pages維持結果を記録し、異なるJST日付7日分の証跡が揃った後だけ連続運用gateを完了する。
 
 初回全経路確認用の過去収集は既存`publish-keyword-live`のJST日付別24時間計算を使い、過去保持が不確実なRSSと長時間HTTP retryを手動option`--skip-rss --single-attempt`だけで除外する。このoptionは予約workflowへ適用しない。2026-08-02～08のGDELT・NAVER遡及確認は全日が3か国100件基準未満で、公開fileを生成せず既存Pagesを維持した。この結果は機能動作確認であり、7日連続予約運用証跡には数えない。
+
+順序5では無料source補完の前に、国・source別のraw受信件数、source別採用媒体分布、重複除去後件数、偏重制限後の最終件数を計測する。診断Schema 1.1には記事title・URL・ID・Secretを含めず集計値だけを記録する。NAVERの日300回・月9,000回と有料自動移行禁止を維持し、source・query変更は許可domainと利用条件を確認した項目だけ適用する。
+
+2026-08-08の限定実接続ではNAVER 5 queryの500件中、既存許可domain 42件を確認した。上位除外domainをlocal診断で検討し、出所が明確な総合・経済専門媒体だけを許可listへ追加した`2026-08-08.v3`で103件を確保した。診断用の別ledgerは25/300回で、有料呼出しは使用していない。同じ実行でGDELT 3か国requestは`FeedFetchError`となったため、GDELT安定化と米国・日本の24時間coverageは引き続きpartialとして管理する。
+
+GDELTの最小1件公開requestでもHTTP 429を再現した。HTTP errorは本文・URL・Secretなしで`rate_limited`、`client_error`、`server_error`、`timeout`などに分類し、一つの国で429が発生した場合は同じbatchの残りGDELT requestを`circuit_open_rate_limited`として即時停止する。RSSとNAVERは独立して継続する。
+
+2026-08-08に米国・日本の補完sourceとしてNewsData.io無料Latest News APIを採用した。`NEWSDATA_API_KEY`はlocal `.env`と`pages-production` Environment Secretだけから注入し、US `country=us&language=en`・JP `country=jp&language=ja`へ`category=business`をそれぞれ適用する。mock pagination・response検証と日40回・月1,200回ledgerを実装し、直近24時間の限定実接続でUS・JP各100件を確保した。
 
 配布障害対応は上記機能PRへ混在させない。GDELT利用条件・query偏り・形態素分析library選定が実装中に変わる場合はADRを更新する。
 

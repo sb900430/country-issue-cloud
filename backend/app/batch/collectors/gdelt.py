@@ -9,10 +9,29 @@ from urllib.parse import urlencode, urlsplit
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
+from app.batch.http_client import FeedFetchError
 from app.batch.models import CollectedArticle, CollectorKind
 from app.schemas.issues import CountryCode
 
 GDELT_MAX_RECORDS = 250
+
+
+class GdeltFetchCircuitBreaker:
+    def __init__(self, fetch: Callable[[str], bytes]) -> None:
+        self.fetch = fetch
+        self._lock = Lock()
+        self._rate_limited = False
+
+    def __call__(self, url: str) -> bytes:
+        with self._lock:
+            if self._rate_limited:
+                raise FeedFetchError("circuit_open_rate_limited")
+            try:
+                return self.fetch(url)
+            except FeedFetchError as error:
+                if error.category == "rate_limited":
+                    self._rate_limited = True
+                raise
 
 
 class RequestIntervalGate:
@@ -81,6 +100,7 @@ class GdeltCollector:
         self.country = source.country
         self.fetch = fetch
         self.request_gate = request_gate or (lambda: None)
+        self.last_diagnostics: dict[str, int] = {}
 
     def collect(
         self, window_start: datetime, window_end: datetime, limit: int
@@ -89,21 +109,34 @@ class GdeltCollector:
         self.request_gate()
         payload = self.fetch(self._request_url(window_start, window_end, request_limit))
         response = self._parse_response(payload)
+        self.last_diagnostics = {
+            "response_items": len(response),
+            "scope_rejected": 0,
+            "domain_rejected": 0,
+            "date_rejected": 0,
+            "insecure_url_rejected": 0,
+            "accepted": 0,
+        }
         articles: list[CollectedArticle] = []
         for item in response:
             if not self._matches_source_scope(item):
+                self.last_diagnostics["scope_rejected"] += 1
                 continue
             response_domain = self._approved_domain(item.domain)
             url_domain = self._approved_domain(urlsplit(item.url).hostname or "")
             if response_domain is None or response_domain != url_domain:
+                self.last_diagnostics["domain_rejected"] += 1
                 continue
             try:
                 published_at = self._parse_datetime(item.seendate)
             except ValueError:
+                self.last_diagnostics["date_rejected"] += 1
                 continue
             if not window_start <= published_at <= window_end:
+                self.last_diagnostics["date_rejected"] += 1
                 continue
             if not item.url.startswith("https://"):
+                self.last_diagnostics["insecure_url_rejected"] += 1
                 continue
             article_id = sha256(f"{self.source_id}:{item.url}".encode()).hexdigest()[:24]
             articles.append(
@@ -116,6 +149,7 @@ class GdeltCollector:
                     published_at=published_at,
                 )
             )
+            self.last_diagnostics["accepted"] += 1
             if len(articles) >= request_limit:
                 break
         return articles

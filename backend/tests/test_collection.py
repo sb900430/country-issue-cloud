@@ -103,6 +103,22 @@ def test_feed_collector_supports_dc_and_compact_dates_and_upgrades_links() -> No
     assert result[0].url == "https://example.com/dc"
 
 
+def test_feed_collector_supports_rss_one_rdf_items() -> None:
+    feed = b"""<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <channel rdf:about="https://example.com/feed"/>
+    <item rdf:about="https://example.com/statistics">
+      <title>Statistics release</title><link>https://example.com/statistics</link>
+      <dc:date>2026-08-05</dc:date>
+    </item></rdf:RDF>"""
+    source = RssSource("statistics", CountryCode.JP, "Statistics", "https://example.com/rss")
+
+    result = RssCollector(source, lambda _: feed).collect(WINDOW_START, WINDOW_END, 10)
+
+    assert [item.title for item in result] == ["Statistics release"]
+    assert result[0].published_at == datetime(2026, 8, 5, tzinfo=UTC)
+
+
 def test_deduplication_applies_url_title_and_similarity_rules() -> None:
     articles = [
         article("a", url="https://EXAMPLE.com/story?utm_source=x&id=1"),
@@ -178,7 +194,9 @@ def test_runner_isolates_country_failures() -> None:
     )
 
     assert result[CountryCode.US].errors == ("us:RuntimeError",)
+    assert result[CountryCode.US].source_article_counts == {"us": 0}
     assert result[CountryCode.JP].articles[0].article_id == "jp"
+    assert result[CountryCode.JP].source_article_counts == {"jp": 1}
 
 
 def test_mixed_mode_falls_back_to_fixture_when_live_is_empty() -> None:
@@ -193,6 +211,27 @@ def test_mixed_mode_falls_back_to_fixture_when_live_is_empty() -> None:
 
     assert result.used_fixture_fallback is True
     assert result.articles[0].article_id == "kr"
+    assert result.source_article_counts == {"live": 0, "fixture": 1}
+
+
+def test_runner_reports_raw_deduplicated_and_selected_counts() -> None:
+    repeated = article("duplicate", url="https://example.com/repeated")
+    collector = StubCollector(
+        "diagnostic-us",
+        CountryCode.US,
+        CollectorKind.LIVE,
+        [repeated, repeated.model_copy(update={"article_id": "duplicate-copy"})],
+    )
+
+    result = CollectionRunner([collector]).collect_all(
+        (CountryCode.US,), WINDOW_START, WINDOW_END, AppMode.LIVE
+    )[CountryCode.US]
+
+    assert result.source_article_counts == {"diagnostic-us": 2}
+    assert result.source_publisher_counts == {"diagnostic-us": {"Example News": 2}}
+    assert result.raw_article_count == 2
+    assert result.deduplicated_article_count == 1
+    assert len(result.articles) == 1
 
 
 def test_three_country_fixture_collection_uses_independent_results() -> None:

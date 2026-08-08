@@ -2,13 +2,13 @@
 
 | 항목 | 현재 상태 |
 |---|---|
-| 현재 목표 | v1.0 공개 준비 — 공개 smoke·운영 런북·7일 배치 관찰 |
-| 상태 | 공개 smoke·운영 런북·초기 7일 소급 검증 구현·전체 검증·완료 리뷰 완료 |
+| 현재 목표 | v2 운영 소스 커버리지 보강 |
+| 상태 | 소스 계측·공식 RSS 보강과 NewsData.io US/JP 어댑터·제한 실연동 완료 |
 | 기준 브랜치 | `main` |
-| 작업 브랜치 | `codex/v1-release-hardening` |
+| 작업 브랜치 | `codex/v2-source-coverage` |
 | 마지막 완료 커밋 | `66e9c2f` — 키워드 Pages v2 PR #22 Rebase and merge |
 | 전체 검증 | PASS — Python 103개·전체 coverage 89%·웹 9개·Pages v2 artifact·Ruff·mypy·Secret·명세 동기화 |
-| 다음 작업 | Draft PR 생성·병합 후 운영 소스 coverage 보강 |
+| 다음 작업 | NewsData.io 일일 한도 초기화 후 전체 Pages live 게이트 1회 재검증 |
 
 ## v1.0 공개 준비 진행 결과
 
@@ -17,6 +17,16 @@
 - 예약·수동 재시도·배포·Secret 사고 대응과 7일 운영 게이트를 한·일 운영 런북 및 관찰표로 정리했다.
 - 7일 연속 자동 배치 증거는 시간 경과가 필요한 출시 게이트로 계속 미완료 상태다.
 - JST 날짜별 과거 24시간 계산과 수동 소급용 `--skip-rss --single-attempt`를 추가하고 8/2~8 실제 GDELT·NAVER 경로를 확인했다.
+- 원본·중복 제거·최종 선택 건수와 소스별 기여도를 원문 없이 `data/runtime/collection-diagnostics.json`에 원자적으로 기록한다.
+- 공식 무료 소스인 Census 경제지표 RSS와 BEA 뉴스 릴리스 RSS를 미국 보조 수집에 추가했다.
+- 일본 재무성·통계국 공식 RSS를 추가하고 RSS 1.0/RDF 기본 namespace 파싱을 구현했다. 최근 168시간 제한 실연동에서 재무성 51건·통계국 5건을 수집했다.
+- 대한민국 정책브리핑 RSS는 2026-07-01 중단 공지를 확인해 추가하지 않았다.
+- GDELT·NAVER의 scope/domain/date/duplicate/limit 단계별 제외 건수와 NAVER 상위 제외 domain을 로컬 진단에 추가했다.
+- NAVER 허용 domain `2026-08-08.v3` 제한 실연동에서 500건 중 103건을 채택했으며 진단용 별도 ledger는 25/300회다.
+- GDELT 최소 요청에서 HTTP 429를 재현하고 안전한 오류 분류와 동일 배치 429 회로 차단기를 추가했다.
+- NewsData.io 무료 Latest API를 미국·일본 `business` 보강 소스로 추가하고 국가별 목표·상한 150건, 일 40회·월 1,200회 hard stop과 유료 자동 전환 금지를 적용했다. 초기 최근 24시간 제한 실연동에서 US·JP 각각 100건을 확보했다.
+- 첫 전체 live 게이트는 NewsData.io 원본 US/JP 각 100건에도 중복·매체 편중 적용 후 US 89·JP 73, NAVER KR 95로 안전하게 게시를 중단했다. 품질 기준은 유지하고 NewsData.io 목표를 150건으로 조정했으며 NAVER 허용 매체 v4를 근거 있는 주요 언론으로 보강했다. 일일 한도 보호를 위해 같은 날 추가 live 재시도는 하지 않는다.
+- 다음 live 1회로 편중 원인을 확인할 수 있도록 진단 Schema 1.1에 소스별 채택 매체 집계를 추가했다. 기사 제목·URL·ID·Secret은 기록하지 않는다.
 - 7개 날짜 모두 세 국가 100건에 미달해 게시가 안전하게 차단됐다. 최대치는 8/3 US 34·KR 90, 8/5 JP 26·KR 90이며 NAVER는 40/300회를 사용했다.
 
 ## 키워드 뉴스 v2 결정

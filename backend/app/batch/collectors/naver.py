@@ -1,6 +1,7 @@
 import html
 import json
 import re
+from collections import Counter
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from datetime import date, datetime
@@ -73,6 +74,8 @@ class NaverCollector:
         }
         self.usage_ledger = usage_ledger
         self.today = today
+        self.last_diagnostics: dict[str, int] = {}
+        self.last_rejected_domain_counts: dict[str, int] = {}
 
     def collect(
         self, window_start: datetime, window_end: datetime, limit: int
@@ -82,23 +85,43 @@ class NaverCollector:
                 "NAVER free policy review is required before further requests"
             )
         target_limit = min(max(limit, 1), NAVER_MAX_RESULTS_TOTAL)
+        self.last_diagnostics = {
+            "response_items": 0,
+            "domain_rejected": 0,
+            "duplicate_rejected": 0,
+            "date_rejected": 0,
+            "title_rejected": 0,
+            "limit_rejected": 0,
+            "accepted": 0,
+        }
+        rejected_domains: Counter[str] = Counter()
         articles: list[CollectedArticle] = []
         seen_urls: set[str] = set()
         for query in self.source.queries:
             self.usage_ledger.reserve_request()
             payload = self.fetch(self._request_url(query), self.headers)
-            for item in self._parse_response(payload):
+            response = self._parse_response(payload)
+            self.last_diagnostics["response_items"] += len(response)
+            for index, item in enumerate(response):
                 domain = self._approved_domain(item.originallink)
-                if domain is None or item.originallink in seen_urls:
+                if domain is None:
+                    self.last_diagnostics["domain_rejected"] += 1
+                    rejected_domains[self._response_domain(item.originallink)] += 1
+                    continue
+                if item.originallink in seen_urls:
+                    self.last_diagnostics["duplicate_rejected"] += 1
                     continue
                 try:
                     published_at = parsedate_to_datetime(item.pubDate)
                 except (TypeError, ValueError):
+                    self.last_diagnostics["date_rejected"] += 1
                     continue
                 if published_at.tzinfo is None or not window_start <= published_at <= window_end:
+                    self.last_diagnostics["date_rejected"] += 1
                     continue
                 title = self._plain_text(item.title)
                 if not title:
+                    self.last_diagnostics["title_rejected"] += 1
                     continue
                 seen_urls.add(item.originallink)
                 article_id = sha256(f"{self.source_id}:{item.originallink}".encode()).hexdigest()[
@@ -114,8 +137,12 @@ class NaverCollector:
                         published_at=published_at,
                     )
                 )
+                self.last_diagnostics["accepted"] += 1
                 if len(articles) >= target_limit:
+                    self.last_diagnostics["limit_rejected"] += len(response) - index - 1
+                    self._store_rejected_domains(rejected_domains)
                     return articles
+        self._store_rejected_domains(rejected_domains)
         return articles
 
     def _request_url(self, query: str) -> str:
@@ -156,6 +183,15 @@ class NaverCollector:
                 if domain == allowed or domain.endswith(f".{allowed}")
             ),
             None,
+        )
+
+    @staticmethod
+    def _response_domain(url: str) -> str:
+        return (urlsplit(url).hostname or "invalid").lower().removeprefix("www.")
+
+    def _store_rejected_domains(self, counts: Counter[str]) -> None:
+        self.last_rejected_domain_counts = dict(
+            sorted(counts.items(), key=lambda item: (-item[1], item[0]))[:20]
         )
 
     @staticmethod

@@ -3,14 +3,22 @@ from datetime import date, datetime
 from pathlib import Path
 
 from app.batch.collection import CollectionRunner
+from app.batch.collection_diagnostics import write_collection_diagnostics
 from app.batch.collectors.base import Collector
-from app.batch.collectors.gdelt import GdeltCollector, GdeltSource, RequestIntervalGate
+from app.batch.collectors.gdelt import (
+    GdeltCollector,
+    GdeltFetchCircuitBreaker,
+    GdeltSource,
+    RequestIntervalGate,
+)
 from app.batch.collectors.naver import NaverCollector, NaverSource
+from app.batch.collectors.newsdata import NewsDataCollector, NewsDataSource
 from app.batch.collectors.rss import RssCollector, RssSource
 from app.batch.issues import MockIssueExtractor
 from app.batch.keyword_pipeline import build_keyword_result
 from app.batch.keyword_publishing import KeywordStaticJsonPublisher
 from app.batch.naver_usage import NaverUsageLedger, NaverUsagePolicy
+from app.batch.newsdata_usage import NewsDataUsageLedger, NewsDataUsagePolicy
 from app.batch.pipeline import IssuePipeline, PipelineLock
 from app.batch.publishing import StaticJsonPublisher
 from app.core.settings import AppMode
@@ -24,10 +32,12 @@ def run_live_batch(
     rss_sources: list[RssSource],
     gdelt_sources: list[GdeltSource],
     naver_sources: list[NaverSource],
+    newsdata_sources: list[NewsDataSource],
     fetch: Callable[[str], bytes],
     authenticated_fetch: Callable[[str, Mapping[str, str]], bytes],
     naver_client_id: str | None,
     naver_client_secret: str | None,
+    newsdata_api_key: str | None,
     window_start: datetime,
     window_end: datetime,
     target_date: date,
@@ -35,14 +45,15 @@ def run_live_batch(
     site_data_dir: Path,
 ) -> IssueResult:
     gdelt_request_gate = RequestIntervalGate(minimum_interval_seconds=60.0)
+    gdelt_fetch = GdeltFetchCircuitBreaker(fetch)
     collectors: list[Collector] = [
-        *[GdeltCollector(source, fetch, gdelt_request_gate) for source in gdelt_sources],
+        *[GdeltCollector(source, gdelt_fetch, gdelt_request_gate) for source in gdelt_sources],
         *[RssCollector(source, fetch) for source in rss_sources],
     ]
     if naver_sources:
         if not naver_client_id or not naver_client_secret:
             raise ValueError("NAVER credentials are required when NAVER is enabled")
-        usage_ledger = NaverUsageLedger(
+        naver_usage_ledger = NaverUsageLedger(
             data_dir / "runtime" / "naver-usage.json",
             NaverUsagePolicy(),
         )
@@ -52,12 +63,31 @@ def run_live_batch(
                 authenticated_fetch,
                 naver_client_id,
                 naver_client_secret,
-                usage_ledger,
+                naver_usage_ledger,
             )
             for source in naver_sources
         )
+    if newsdata_sources:
+        if not newsdata_api_key:
+            raise ValueError("NewsData API key is required when NewsData is enabled")
+        newsdata_usage_ledger = NewsDataUsageLedger(
+            data_dir / "runtime" / "newsdata-usage.json", NewsDataUsagePolicy()
+        )
+        collectors.extend(
+            NewsDataCollector(
+                source, authenticated_fetch, newsdata_api_key, newsdata_usage_ledger
+            )
+            for source in newsdata_sources
+        )
     collections = CollectionRunner(collectors).collect_all(
         tuple(CountryCode), window_start, window_end, mode=AppMode.LIVE
+    )
+    write_collection_diagnostics(
+        data_dir / "runtime" / "collection-diagnostics.json",
+        target_date,
+        window_start,
+        window_end,
+        collections,
     )
     repository = JsonIssueRepository(data_dir)
     pipeline = IssuePipeline(
@@ -75,10 +105,12 @@ def run_live_keyword_batch(
     rss_sources: list[RssSource],
     gdelt_sources: list[GdeltSource],
     naver_sources: list[NaverSource],
+    newsdata_sources: list[NewsDataSource],
     fetch: Callable[[str], bytes],
     authenticated_fetch: Callable[[str, Mapping[str, str]], bytes],
     naver_client_id: str | None,
     naver_client_secret: str | None,
+    newsdata_api_key: str | None,
     window_start: datetime,
     window_end: datetime,
     target_date: date,
@@ -86,14 +118,15 @@ def run_live_keyword_batch(
     site_data_dir: Path,
 ) -> KeywordResult:
     gdelt_request_gate = RequestIntervalGate(minimum_interval_seconds=60.0)
+    gdelt_fetch = GdeltFetchCircuitBreaker(fetch)
     collectors: list[Collector] = [
-        *[GdeltCollector(source, fetch, gdelt_request_gate) for source in gdelt_sources],
+        *[GdeltCollector(source, gdelt_fetch, gdelt_request_gate) for source in gdelt_sources],
         *[RssCollector(source, fetch) for source in rss_sources],
     ]
     if naver_sources:
         if not naver_client_id or not naver_client_secret:
             raise ValueError("NAVER credentials are required when NAVER is enabled")
-        usage_ledger = NaverUsageLedger(
+        naver_usage_ledger = NaverUsageLedger(
             data_dir / "runtime" / "naver-usage.json", NaverUsagePolicy()
         )
         collectors.extend(
@@ -102,12 +135,31 @@ def run_live_keyword_batch(
                 authenticated_fetch,
                 naver_client_id,
                 naver_client_secret,
-                usage_ledger,
+                naver_usage_ledger,
             )
             for source in naver_sources
         )
+    if newsdata_sources:
+        if not newsdata_api_key:
+            raise ValueError("NewsData API key is required when NewsData is enabled")
+        newsdata_usage_ledger = NewsDataUsageLedger(
+            data_dir / "runtime" / "newsdata-usage.json", NewsDataUsagePolicy()
+        )
+        collectors.extend(
+            NewsDataCollector(
+                source, authenticated_fetch, newsdata_api_key, newsdata_usage_ledger
+            )
+            for source in newsdata_sources
+        )
     collections = CollectionRunner(collectors).collect_all(
         tuple(CountryCode), window_start, window_end, mode=AppMode.LIVE
+    )
+    write_collection_diagnostics(
+        data_dir / "runtime" / "collection-diagnostics.json",
+        target_date,
+        window_start,
+        window_end,
+        collections,
     )
     result = build_keyword_result(target_date, collections)
     if result.status is IssueStatus.SUCCESS:
