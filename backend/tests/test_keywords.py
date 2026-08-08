@@ -46,30 +46,47 @@ def test_language_extractors_keep_compound_nouns_and_remove_reporting_tails(
     assert candidates == (KeywordCandidate(label=expected, evidence_expression=evidence),)
 
 
-def test_general_terms_do_not_become_candidates() -> None:
-    candidates = LanguageKeywordExtractor().extract(
-        _article("article", CountryCode.KR, "경제 뉴스 시장 영향 001")
-    )
+@pytest.mark.parametrize(
+    ("country", "title"),
+    [
+        (CountryCode.US, "News markets today 001"),
+        (CountryCode.JP, "経済ニュース市場速報 001"),
+        (CountryCode.KR, "경제 뉴스 시장 영향 001"),
+    ],
+)
+def test_general_terms_do_not_become_candidates(country: CountryCode, title: str) -> None:
+    candidates = LanguageKeywordExtractor().extract(_article("article", country, title))
 
     assert candidates == ()
 
 
-def test_long_japanese_title_is_bounded_without_losing_source_evidence() -> None:
+def test_english_normalization_keeps_s_ending_singular_words() -> None:
+    candidates = LanguageKeywordExtractor().extract(
+        _article("article", CountryCode.US, "Analysis report exports 001")
+    )
+
+    assert candidates == (
+        KeywordCandidate(label="analysis", evidence_expression="analysis"),
+        KeywordCandidate(label="export", evidence_expression="exports"),
+    )
+
+
+def test_long_japanese_title_produces_only_short_evidence_backed_concepts() -> None:
     title = "半導体投資" * 30
 
-    candidate = LanguageKeywordExtractor().extract(_article("article", CountryCode.JP, title))[0]
+    candidates = LanguageKeywordExtractor().extract(_article("article", CountryCode.JP, title))
 
-    assert len(candidate.label) == 80
-    assert len(candidate.evidence_expression) == 120
-    assert candidate.evidence_expression in title
+    assert candidates
+    assert all(len(candidate.label) <= 30 for candidate in candidates)
+    assert all(candidate.evidence_expression in title for candidate in candidates)
 
 
-def test_single_character_japanese_fragment_is_skipped() -> None:
+def test_single_character_japanese_fragment_does_not_hide_valid_concept() -> None:
     candidates = LanguageKeywordExtractor().extract(
         _article("article", CountryCode.JP, "米が利上げを検討")
     )
 
-    assert candidates == ()
+    assert candidates == (KeywordCandidate(label="利上げ", evidence_expression="利上げ"),)
 
 
 def test_synonym_resolver_only_uses_labels_present_in_candidates() -> None:
@@ -97,7 +114,7 @@ def test_ranker_rejects_small_samples_and_country_mixing() -> None:
 def test_ranker_merges_only_configured_candidate_synonyms() -> None:
     topics = (
         "interest rate",
-        "policy rate",
+        "benchmark rate",
         "semiconductor investment",
         "dollar volatility",
         "climate policy",
@@ -113,10 +130,39 @@ def test_ranker_merges_only_configured_candidate_synonyms() -> None:
         )
         for index in range(120)
     ]
-    resolver = CandidateSynonymResolver((SynonymGroup(aliases=("interest rate", "policy rate")),))
+    resolver = CandidateSynonymResolver(
+        (SynonymGroup(aliases=("interest rate", "benchmark rate")),)
+    )
 
     result = KeywordRanker(resolver=resolver).analyze(CountryCode.US, articles)
 
     assert result.top_keywords[0].label == "interest rate"
     assert result.top_keywords[0].document_frequency == 40
-    assert "policy rate" not in {keyword.label for keyword in result.top_keywords}
+    assert "benchmark rate" not in {keyword.label for keyword in result.top_keywords}
+
+
+def test_ranker_excludes_rare_and_single_publisher_words() -> None:
+    topics = ("semiconductor", "inflation", "currency", "export", "housing")
+    articles = []
+    for index in range(120):
+        suffix = " report monopoly" if index < 10 else " report scarcity" if index < 12 else ""
+        articles.append(
+            _article(
+                f"article-{index:03d}",
+                CountryCode.US,
+                f"{topics[index % len(topics)]}{suffix} {index:03d}",
+                publisher=(
+                    "publisher-0" if index < 10 else f"publisher-{(index + index // 5) % 5}"
+                ),
+                offset=index,
+            )
+        )
+
+    result = KeywordRanker().analyze(CountryCode.US, articles)
+
+    labels = {keyword.label for keyword in result.top_keywords}
+    assert labels == set(topics)
+    assert "monopoly" not in labels
+    assert "scarcity" not in labels
+    assert all(keyword.document_frequency >= 4 for keyword in result.top_keywords)
+    assert all(keyword.publisher_count >= 2 for keyword in result.top_keywords)

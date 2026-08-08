@@ -25,14 +25,14 @@ SOURCE_LANGUAGES = {
 }
 EXPECTED_LABELS = {
     CountryCode.US: {
-        "semiconductor investment",
+        "semiconductor",
         "interest rate",
         "dollar volatility",
-        "climate policy",
-        "housing demand",
+        "climate",
+        "housing",
     },
-    CountryCode.JP: {"半導体投資", "政策金利", "円相場変動性", "気候政策", "住宅需要"},
-    CountryCode.KR: {"반도체 투자", "기준금리", "원화 변동성", "기후 정책", "주택 수요"},
+    CountryCode.JP: {"半導体", "金利", "円相場変動性", "気候", "住宅"},
+    CountryCode.KR: {"반도체", "기준금리", "원화변동성", "기후", "주택"},
 }
 
 
@@ -64,6 +64,13 @@ def test_country_fixtures_produce_deterministic_evidence_backed_top_five() -> No
         assert first.article_count == 120
         assert {keyword.label for keyword in first.top_keywords} == EXPECTED_LABELS[country]
         assert all(keyword.document_frequency == 24 for keyword in first.top_keywords)
+        assert all(keyword.publisher_count == 5 for keyword in first.top_keywords)
+        assert all(
+            len(keyword.label.split()) <= 2
+            if country is CountryCode.US
+            else " " not in keyword.label
+            for keyword in first.top_keywords
+        )
         assert all(len(keyword.related_article_ids) == 20 for keyword in first.top_keywords)
         assert len({keyword.keyword_id for keyword in first.top_keywords}) == 5
         indexed = {article.article_id: article for article in articles}

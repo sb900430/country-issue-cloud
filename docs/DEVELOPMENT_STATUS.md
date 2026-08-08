@@ -2,13 +2,13 @@
 
 | 항목 | 현재 상태 |
 |---|---|
-| 현재 목표 | v2 운영 소스 커버리지 보강 |
-| 상태 | 소스 계측·공식 RSS 보강과 NewsData.io US/JP 어댑터·제한 실연동 완료 |
+| 현재 목표 | 국가별 단일 이슈 개념 키워드 품질 개선 |
+| 상태 | 한국어·일본어 형태소 분석과 영어 단어 정규화 구현·전체 회귀 완료 |
 | 기준 브랜치 | `main` |
-| 작업 브랜치 | `codex/v2-source-coverage` |
-| 마지막 완료 커밋 | `66e9c2f` — 키워드 Pages v2 PR #22 Rebase and merge |
-| 전체 검증 | PASS — Python 103개·전체 coverage 89%·웹 9개·Pages v2 artifact·Ruff·mypy·Secret·명세 동기화 |
-| 다음 작업 | NewsData.io 일일 한도 초기화 후 전체 Pages live 게이트 1회 재검증 |
+| 작업 브랜치 | `codex/single-concept-keywords` |
+| 마지막 완료 커밋 | `36d8ddb` — 일본어 한 글자 후보 수정 PR #26 Rebase and merge |
+| 전체 검증 | PASS — Python 124개·coverage 89%·웹 9개·Pages fixture·Ruff·mypy·Secret·명세 동기화 |
+| 다음 작업 | 변경 PR 병합 후 다음 예약 실행의 실제 TOP 5 품질 확인 |
 
 ## v1.0 공개 준비 진행 결과
 
@@ -29,6 +29,7 @@
 - 다음 live 1회로 편중 원인을 확인할 수 있도록 진단 Schema 1.1에 소스별 채택 매체 집계를 추가했다. 기사 제목·URL·ID·Secret은 기록하지 않는다.
 - PR #24 병합 후 Pages 운영 Secret이 주입된 검증에서 기본값 테스트가 환경변수를 격리하지 않아 실패한 원인을 확인했다. post-merge fix에서 credential 환경변수 격리와 Linux 공개 smoke 임시 경로 호환성을 수정한다.
 - 실제 live 수집은 US 108·JP 129·KR 107건을 확보했지만 일본어 조사 분리 후 한 글자 후보가 Schema 검증 예외를 일으켜 게시가 중단됐다. 한 글자 조각을 후보 없음으로 처리하는 회귀 수정 후 다시 게시한다.
+- PR #26 병합 후 실제 live 배포에서 US 114·JP 124·KR 103건과 세 국가 TOP 5 게시에 성공했다. 다만 제목 앞 3단어가 문장 조각으로 노출되는 품질 문제를 확인해, `kiwipiepy`·`SudachiPy`와 영어 단어 정규화 기반의 하나의 짧은 이슈 개념 추출로 교체한다.
 - 7개 날짜 모두 세 국가 100건에 미달해 게시가 안전하게 차단됐다. 최대치는 8/3 US 34·KR 90, 8/5 JP 26·KR 90이며 NAVER는 40/300회를 사용했다.
 
 ## 키워드 뉴스 v2 결정

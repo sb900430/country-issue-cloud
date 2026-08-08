@@ -2,13 +2,13 @@
 
 | 項目 | 現在状態 |
 |---|---|
-| 現在目標 | v2運用source coverage補完 |
-| 状態 | source計測・公式RSS補完とNewsData.io US/JP adapter・限定実接続完了 |
+| 現在目標 | 国別の単一イシュー概念keyword品質改善 |
+| 状態 | 韓国語・日本語形態素分析と英語単語正規化を実装・全回帰完了 |
 | 基準branch | `main` |
-| 作業branch | `codex/v2-source-coverage` |
-| 最終完了commit | `66e9c2f` — keyword Pages v2 PR #22 Rebase and merge |
-| 全体検証 | PASS — Python 103件・全体coverage 89%・Web 9件・Pages v2 artifact・Ruff・mypy・Secret・仕様同期 |
-| 次作業 | NewsData.io日次上限reset後にPages live gate全体を1回再検証 |
+| 作業branch | `codex/single-concept-keywords` |
+| 最終完了commit | `36d8ddb` — 日本語1文字候補修正PR #26 Rebase and merge |
+| 全体検証 | PASS — Python 124件・coverage 89%・Web 9件・Pages fixture・Ruff・mypy・Secret・仕様同期 |
+| 次作業 | 変更PR merge後に次回予約実行の実TOP 5品質を確認 |
 
 ## v1.0公開準備の進行結果
 
@@ -29,6 +29,7 @@
 - 次回live 1回で偏重原因を確認できるよう、診断Schema 1.1へsource別採用媒体集計を追加した。記事title・URL・ID・Secretは記録しない。
 - PR #24 merge後、Pages本番Secretが注入された検証でdefault testが環境変数を分離せず失敗した原因を確認した。post-merge fixでcredential環境変数分離とLinux公開smoke一時path互換性を修正する。
 - 実live収集はUS 108・JP 129・KR 107件を確保したが、日本語助詞分離後の1文字候補がSchema検証例外となり公開を停止した。1文字断片を候補なしとして扱うregression修正後に再公開する。
+- PR #26 merge後の実live配布でUS 114・JP 124・KR 103件と3か国TOP 5の公開に成功した。一方、title先頭3語が文断片として表示される品質問題を確認し、`kiwipiepy`・`SudachiPy`と英語単語正規化による一つの短いイシュー概念抽出へ置き換える。
 - 7日すべて3か国100件未満で公開が安全に停止した。最大は8/3 US 34・KR 90、8/5 JP 26・KR 90で、NAVERは40/300回を使用した。
 
 ## keyword news v2決定

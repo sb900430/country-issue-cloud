@@ -41,162 +41,162 @@
       "sourcecountry": "United States"
     },
     {
-      "url": "https://wsj.com/fixture/us/005",
+      "url": "https://bloomberg.com/fixture/us/005",
       "title": "Semiconductor investment expands 005",
       "seendate": "20260806T050500Z",
-      "domain": "wsj.com",
+      "domain": "bloomberg.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://bloomberg.com/fixture/us/006",
+      "url": "https://cnbc.com/fixture/us/006",
       "title": "Interest rate outlook changes 006",
       "seendate": "20260806T060600Z",
-      "domain": "bloomberg.com",
+      "domain": "cnbc.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://cnbc.com/fixture/us/007",
+      "url": "https://marketwatch.com/fixture/us/007",
       "title": "Dollar volatility increases 007",
       "seendate": "20260806T070700Z",
-      "domain": "cnbc.com",
+      "domain": "marketwatch.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://marketwatch.com/fixture/us/008",
+      "url": "https://reuters.com/fixture/us/008",
       "title": "Climate policy affects markets 008",
       "seendate": "20260806T080800Z",
-      "domain": "marketwatch.com",
+      "domain": "reuters.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://reuters.com/fixture/us/009",
+      "url": "https://wsj.com/fixture/us/009",
       "title": "Housing demand slows 009",
       "seendate": "20260806T090900Z",
-      "domain": "reuters.com",
+      "domain": "wsj.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://wsj.com/fixture/us/010",
+      "url": "https://cnbc.com/fixture/us/010",
       "title": "Semiconductor investment expands 010",
       "seendate": "20260806T101000Z",
-      "domain": "wsj.com",
+      "domain": "cnbc.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://bloomberg.com/fixture/us/011",
+      "url": "https://marketwatch.com/fixture/us/011",
       "title": "Interest rate outlook changes 011",
       "seendate": "20260806T111100Z",
-      "domain": "bloomberg.com",
+      "domain": "marketwatch.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://cnbc.com/fixture/us/012",
+      "url": "https://reuters.com/fixture/us/012",
       "title": "Dollar volatility increases 012",
       "seendate": "20260806T121200Z",
-      "domain": "cnbc.com",
+      "domain": "reuters.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://marketwatch.com/fixture/us/013",
+      "url": "https://wsj.com/fixture/us/013",
       "title": "Climate policy affects markets 013",
       "seendate": "20260806T131300Z",
-      "domain": "marketwatch.com",
+      "domain": "wsj.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://reuters.com/fixture/us/014",
+      "url": "https://bloomberg.com/fixture/us/014",
       "title": "Housing demand slows 014",
       "seendate": "20260806T141400Z",
-      "domain": "reuters.com",
+      "domain": "bloomberg.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://wsj.com/fixture/us/015",
+      "url": "https://marketwatch.com/fixture/us/015",
       "title": "Semiconductor investment expands 015",
       "seendate": "20260806T151500Z",
-      "domain": "wsj.com",
+      "domain": "marketwatch.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://bloomberg.com/fixture/us/016",
+      "url": "https://reuters.com/fixture/us/016",
       "title": "Interest rate outlook changes 016",
       "seendate": "20260806T161600Z",
-      "domain": "bloomberg.com",
-      "language": "English",
-      "sourcecountry": "United States"
-    },
-    {
-      "url": "https://cnbc.com/fixture/us/017",
-      "title": "Dollar volatility increases 017",
-      "seendate": "20260806T171700Z",
-      "domain": "cnbc.com",
-      "language": "English",
-      "sourcecountry": "United States"
-    },
-    {
-      "url": "https://marketwatch.com/fixture/us/018",
-      "title": "Climate policy affects markets 018",
-      "seendate": "20260806T181800Z",
-      "domain": "marketwatch.com",
-      "language": "English",
-      "sourcecountry": "United States"
-    },
-    {
-      "url": "https://reuters.com/fixture/us/019",
-      "title": "Housing demand slows 019",
-      "seendate": "20260806T191900Z",
       "domain": "reuters.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://wsj.com/fixture/us/020",
-      "title": "Semiconductor investment expands 020",
-      "seendate": "20260806T202000Z",
+      "url": "https://wsj.com/fixture/us/017",
+      "title": "Dollar volatility increases 017",
+      "seendate": "20260806T171700Z",
       "domain": "wsj.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://bloomberg.com/fixture/us/021",
-      "title": "Interest rate outlook changes 021",
-      "seendate": "20260806T212100Z",
+      "url": "https://bloomberg.com/fixture/us/018",
+      "title": "Climate policy affects markets 018",
+      "seendate": "20260806T181800Z",
       "domain": "bloomberg.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://cnbc.com/fixture/us/022",
-      "title": "Dollar volatility increases 022",
-      "seendate": "20260806T222200Z",
+      "url": "https://cnbc.com/fixture/us/019",
+      "title": "Housing demand slows 019",
+      "seendate": "20260806T191900Z",
       "domain": "cnbc.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://marketwatch.com/fixture/us/023",
-      "title": "Climate policy affects markets 023",
-      "seendate": "20260806T232300Z",
-      "domain": "marketwatch.com",
+      "url": "https://reuters.com/fixture/us/020",
+      "title": "Semiconductor investment expands 020",
+      "seendate": "20260806T202000Z",
+      "domain": "reuters.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://reuters.com/fixture/us/024",
+      "url": "https://wsj.com/fixture/us/021",
+      "title": "Interest rate outlook changes 021",
+      "seendate": "20260806T212100Z",
+      "domain": "wsj.com",
+      "language": "English",
+      "sourcecountry": "United States"
+    },
+    {
+      "url": "https://bloomberg.com/fixture/us/022",
+      "title": "Dollar volatility increases 022",
+      "seendate": "20260806T222200Z",
+      "domain": "bloomberg.com",
+      "language": "English",
+      "sourcecountry": "United States"
+    },
+    {
+      "url": "https://cnbc.com/fixture/us/023",
+      "title": "Climate policy affects markets 023",
+      "seendate": "20260806T232300Z",
+      "domain": "cnbc.com",
+      "language": "English",
+      "sourcecountry": "United States"
+    },
+    {
+      "url": "https://marketwatch.com/fixture/us/024",
       "title": "Housing demand slows 024",
       "seendate": "20260806T002400Z",
-      "domain": "reuters.com",
+      "domain": "marketwatch.com",
       "language": "English",
       "sourcecountry": "United States"
     },
@@ -241,162 +241,162 @@
       "sourcecountry": "United States"
     },
     {
-      "url": "https://wsj.com/fixture/us/030",
+      "url": "https://bloomberg.com/fixture/us/030",
       "title": "Semiconductor investment expands 030",
       "seendate": "20260806T063000Z",
-      "domain": "wsj.com",
+      "domain": "bloomberg.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://bloomberg.com/fixture/us/031",
+      "url": "https://cnbc.com/fixture/us/031",
       "title": "Interest rate outlook changes 031",
       "seendate": "20260806T073100Z",
-      "domain": "bloomberg.com",
+      "domain": "cnbc.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://cnbc.com/fixture/us/032",
+      "url": "https://marketwatch.com/fixture/us/032",
       "title": "Dollar volatility increases 032",
       "seendate": "20260806T083200Z",
-      "domain": "cnbc.com",
+      "domain": "marketwatch.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://marketwatch.com/fixture/us/033",
+      "url": "https://reuters.com/fixture/us/033",
       "title": "Climate policy affects markets 033",
       "seendate": "20260806T093300Z",
-      "domain": "marketwatch.com",
+      "domain": "reuters.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://reuters.com/fixture/us/034",
+      "url": "https://wsj.com/fixture/us/034",
       "title": "Housing demand slows 034",
       "seendate": "20260806T103400Z",
-      "domain": "reuters.com",
+      "domain": "wsj.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://wsj.com/fixture/us/035",
+      "url": "https://cnbc.com/fixture/us/035",
       "title": "Semiconductor investment expands 035",
       "seendate": "20260806T113500Z",
-      "domain": "wsj.com",
+      "domain": "cnbc.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://bloomberg.com/fixture/us/036",
+      "url": "https://marketwatch.com/fixture/us/036",
       "title": "Interest rate outlook changes 036",
       "seendate": "20260806T123600Z",
-      "domain": "bloomberg.com",
+      "domain": "marketwatch.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://cnbc.com/fixture/us/037",
+      "url": "https://reuters.com/fixture/us/037",
       "title": "Dollar volatility increases 037",
       "seendate": "20260806T133700Z",
-      "domain": "cnbc.com",
+      "domain": "reuters.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://marketwatch.com/fixture/us/038",
+      "url": "https://wsj.com/fixture/us/038",
       "title": "Climate policy affects markets 038",
       "seendate": "20260806T143800Z",
-      "domain": "marketwatch.com",
+      "domain": "wsj.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://reuters.com/fixture/us/039",
+      "url": "https://bloomberg.com/fixture/us/039",
       "title": "Housing demand slows 039",
       "seendate": "20260806T153900Z",
-      "domain": "reuters.com",
+      "domain": "bloomberg.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://wsj.com/fixture/us/040",
+      "url": "https://marketwatch.com/fixture/us/040",
       "title": "Semiconductor investment expands 040",
       "seendate": "20260806T164000Z",
-      "domain": "wsj.com",
+      "domain": "marketwatch.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://bloomberg.com/fixture/us/041",
+      "url": "https://reuters.com/fixture/us/041",
       "title": "Interest rate outlook changes 041",
       "seendate": "20260806T174100Z",
-      "domain": "bloomberg.com",
-      "language": "English",
-      "sourcecountry": "United States"
-    },
-    {
-      "url": "https://cnbc.com/fixture/us/042",
-      "title": "Dollar volatility increases 042",
-      "seendate": "20260806T184200Z",
-      "domain": "cnbc.com",
-      "language": "English",
-      "sourcecountry": "United States"
-    },
-    {
-      "url": "https://marketwatch.com/fixture/us/043",
-      "title": "Climate policy affects markets 043",
-      "seendate": "20260806T194300Z",
-      "domain": "marketwatch.com",
-      "language": "English",
-      "sourcecountry": "United States"
-    },
-    {
-      "url": "https://reuters.com/fixture/us/044",
-      "title": "Housing demand slows 044",
-      "seendate": "20260806T204400Z",
       "domain": "reuters.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://wsj.com/fixture/us/045",
-      "title": "Semiconductor investment expands 045",
-      "seendate": "20260806T214500Z",
+      "url": "https://wsj.com/fixture/us/042",
+      "title": "Dollar volatility increases 042",
+      "seendate": "20260806T184200Z",
       "domain": "wsj.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://bloomberg.com/fixture/us/046",
-      "title": "Interest rate outlook changes 046",
-      "seendate": "20260806T224600Z",
+      "url": "https://bloomberg.com/fixture/us/043",
+      "title": "Climate policy affects markets 043",
+      "seendate": "20260806T194300Z",
       "domain": "bloomberg.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://cnbc.com/fixture/us/047",
-      "title": "Dollar volatility increases 047",
-      "seendate": "20260806T234700Z",
+      "url": "https://cnbc.com/fixture/us/044",
+      "title": "Housing demand slows 044",
+      "seendate": "20260806T204400Z",
       "domain": "cnbc.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://marketwatch.com/fixture/us/048",
-      "title": "Climate policy affects markets 048",
-      "seendate": "20260806T004800Z",
-      "domain": "marketwatch.com",
+      "url": "https://reuters.com/fixture/us/045",
+      "title": "Semiconductor investment expands 045",
+      "seendate": "20260806T214500Z",
+      "domain": "reuters.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://reuters.com/fixture/us/049",
+      "url": "https://wsj.com/fixture/us/046",
+      "title": "Interest rate outlook changes 046",
+      "seendate": "20260806T224600Z",
+      "domain": "wsj.com",
+      "language": "English",
+      "sourcecountry": "United States"
+    },
+    {
+      "url": "https://bloomberg.com/fixture/us/047",
+      "title": "Dollar volatility increases 047",
+      "seendate": "20260806T234700Z",
+      "domain": "bloomberg.com",
+      "language": "English",
+      "sourcecountry": "United States"
+    },
+    {
+      "url": "https://cnbc.com/fixture/us/048",
+      "title": "Climate policy affects markets 048",
+      "seendate": "20260806T004800Z",
+      "domain": "cnbc.com",
+      "language": "English",
+      "sourcecountry": "United States"
+    },
+    {
+      "url": "https://marketwatch.com/fixture/us/049",
       "title": "Housing demand slows 049",
       "seendate": "20260806T014900Z",
-      "domain": "reuters.com",
+      "domain": "marketwatch.com",
       "language": "English",
       "sourcecountry": "United States"
     },
@@ -441,162 +441,162 @@
       "sourcecountry": "United States"
     },
     {
-      "url": "https://wsj.com/fixture/us/055",
+      "url": "https://bloomberg.com/fixture/us/055",
       "title": "Semiconductor investment expands 055",
       "seendate": "20260806T075500Z",
-      "domain": "wsj.com",
+      "domain": "bloomberg.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://bloomberg.com/fixture/us/056",
+      "url": "https://cnbc.com/fixture/us/056",
       "title": "Interest rate outlook changes 056",
       "seendate": "20260806T085600Z",
-      "domain": "bloomberg.com",
+      "domain": "cnbc.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://cnbc.com/fixture/us/057",
+      "url": "https://marketwatch.com/fixture/us/057",
       "title": "Dollar volatility increases 057",
       "seendate": "20260806T095700Z",
-      "domain": "cnbc.com",
+      "domain": "marketwatch.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://marketwatch.com/fixture/us/058",
+      "url": "https://reuters.com/fixture/us/058",
       "title": "Climate policy affects markets 058",
       "seendate": "20260806T105800Z",
-      "domain": "marketwatch.com",
+      "domain": "reuters.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://reuters.com/fixture/us/059",
+      "url": "https://wsj.com/fixture/us/059",
       "title": "Housing demand slows 059",
       "seendate": "20260806T115900Z",
-      "domain": "reuters.com",
+      "domain": "wsj.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://wsj.com/fixture/us/060",
+      "url": "https://cnbc.com/fixture/us/060",
       "title": "Semiconductor investment expands 060",
       "seendate": "20260806T120000Z",
-      "domain": "wsj.com",
+      "domain": "cnbc.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://bloomberg.com/fixture/us/061",
+      "url": "https://marketwatch.com/fixture/us/061",
       "title": "Interest rate outlook changes 061",
       "seendate": "20260806T130100Z",
-      "domain": "bloomberg.com",
+      "domain": "marketwatch.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://cnbc.com/fixture/us/062",
+      "url": "https://reuters.com/fixture/us/062",
       "title": "Dollar volatility increases 062",
       "seendate": "20260806T140200Z",
-      "domain": "cnbc.com",
+      "domain": "reuters.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://marketwatch.com/fixture/us/063",
+      "url": "https://wsj.com/fixture/us/063",
       "title": "Climate policy affects markets 063",
       "seendate": "20260806T150300Z",
-      "domain": "marketwatch.com",
+      "domain": "wsj.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://reuters.com/fixture/us/064",
+      "url": "https://bloomberg.com/fixture/us/064",
       "title": "Housing demand slows 064",
       "seendate": "20260806T160400Z",
-      "domain": "reuters.com",
+      "domain": "bloomberg.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://wsj.com/fixture/us/065",
+      "url": "https://marketwatch.com/fixture/us/065",
       "title": "Semiconductor investment expands 065",
       "seendate": "20260806T170500Z",
-      "domain": "wsj.com",
+      "domain": "marketwatch.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://bloomberg.com/fixture/us/066",
+      "url": "https://reuters.com/fixture/us/066",
       "title": "Interest rate outlook changes 066",
       "seendate": "20260806T180600Z",
-      "domain": "bloomberg.com",
-      "language": "English",
-      "sourcecountry": "United States"
-    },
-    {
-      "url": "https://cnbc.com/fixture/us/067",
-      "title": "Dollar volatility increases 067",
-      "seendate": "20260806T190700Z",
-      "domain": "cnbc.com",
-      "language": "English",
-      "sourcecountry": "United States"
-    },
-    {
-      "url": "https://marketwatch.com/fixture/us/068",
-      "title": "Climate policy affects markets 068",
-      "seendate": "20260806T200800Z",
-      "domain": "marketwatch.com",
-      "language": "English",
-      "sourcecountry": "United States"
-    },
-    {
-      "url": "https://reuters.com/fixture/us/069",
-      "title": "Housing demand slows 069",
-      "seendate": "20260806T210900Z",
       "domain": "reuters.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://wsj.com/fixture/us/070",
-      "title": "Semiconductor investment expands 070",
-      "seendate": "20260806T221000Z",
+      "url": "https://wsj.com/fixture/us/067",
+      "title": "Dollar volatility increases 067",
+      "seendate": "20260806T190700Z",
       "domain": "wsj.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://bloomberg.com/fixture/us/071",
-      "title": "Interest rate outlook changes 071",
-      "seendate": "20260806T231100Z",
+      "url": "https://bloomberg.com/fixture/us/068",
+      "title": "Climate policy affects markets 068",
+      "seendate": "20260806T200800Z",
       "domain": "bloomberg.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://cnbc.com/fixture/us/072",
-      "title": "Dollar volatility increases 072",
-      "seendate": "20260806T001200Z",
+      "url": "https://cnbc.com/fixture/us/069",
+      "title": "Housing demand slows 069",
+      "seendate": "20260806T210900Z",
       "domain": "cnbc.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://marketwatch.com/fixture/us/073",
-      "title": "Climate policy affects markets 073",
-      "seendate": "20260806T011300Z",
-      "domain": "marketwatch.com",
+      "url": "https://reuters.com/fixture/us/070",
+      "title": "Semiconductor investment expands 070",
+      "seendate": "20260806T221000Z",
+      "domain": "reuters.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://reuters.com/fixture/us/074",
+      "url": "https://wsj.com/fixture/us/071",
+      "title": "Interest rate outlook changes 071",
+      "seendate": "20260806T231100Z",
+      "domain": "wsj.com",
+      "language": "English",
+      "sourcecountry": "United States"
+    },
+    {
+      "url": "https://bloomberg.com/fixture/us/072",
+      "title": "Dollar volatility increases 072",
+      "seendate": "20260806T001200Z",
+      "domain": "bloomberg.com",
+      "language": "English",
+      "sourcecountry": "United States"
+    },
+    {
+      "url": "https://cnbc.com/fixture/us/073",
+      "title": "Climate policy affects markets 073",
+      "seendate": "20260806T011300Z",
+      "domain": "cnbc.com",
+      "language": "English",
+      "sourcecountry": "United States"
+    },
+    {
+      "url": "https://marketwatch.com/fixture/us/074",
       "title": "Housing demand slows 074",
       "seendate": "20260806T021400Z",
-      "domain": "reuters.com",
+      "domain": "marketwatch.com",
       "language": "English",
       "sourcecountry": "United States"
     },
@@ -641,162 +641,162 @@
       "sourcecountry": "United States"
     },
     {
-      "url": "https://wsj.com/fixture/us/080",
+      "url": "https://bloomberg.com/fixture/us/080",
       "title": "Semiconductor investment expands 080",
       "seendate": "20260806T082000Z",
-      "domain": "wsj.com",
+      "domain": "bloomberg.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://bloomberg.com/fixture/us/081",
+      "url": "https://cnbc.com/fixture/us/081",
       "title": "Interest rate outlook changes 081",
       "seendate": "20260806T092100Z",
-      "domain": "bloomberg.com",
+      "domain": "cnbc.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://cnbc.com/fixture/us/082",
+      "url": "https://marketwatch.com/fixture/us/082",
       "title": "Dollar volatility increases 082",
       "seendate": "20260806T102200Z",
-      "domain": "cnbc.com",
+      "domain": "marketwatch.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://marketwatch.com/fixture/us/083",
+      "url": "https://reuters.com/fixture/us/083",
       "title": "Climate policy affects markets 083",
       "seendate": "20260806T112300Z",
-      "domain": "marketwatch.com",
+      "domain": "reuters.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://reuters.com/fixture/us/084",
+      "url": "https://wsj.com/fixture/us/084",
       "title": "Housing demand slows 084",
       "seendate": "20260806T122400Z",
-      "domain": "reuters.com",
+      "domain": "wsj.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://wsj.com/fixture/us/085",
+      "url": "https://cnbc.com/fixture/us/085",
       "title": "Semiconductor investment expands 085",
       "seendate": "20260806T132500Z",
-      "domain": "wsj.com",
+      "domain": "cnbc.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://bloomberg.com/fixture/us/086",
+      "url": "https://marketwatch.com/fixture/us/086",
       "title": "Interest rate outlook changes 086",
       "seendate": "20260806T142600Z",
-      "domain": "bloomberg.com",
+      "domain": "marketwatch.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://cnbc.com/fixture/us/087",
+      "url": "https://reuters.com/fixture/us/087",
       "title": "Dollar volatility increases 087",
       "seendate": "20260806T152700Z",
-      "domain": "cnbc.com",
+      "domain": "reuters.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://marketwatch.com/fixture/us/088",
+      "url": "https://wsj.com/fixture/us/088",
       "title": "Climate policy affects markets 088",
       "seendate": "20260806T162800Z",
-      "domain": "marketwatch.com",
+      "domain": "wsj.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://reuters.com/fixture/us/089",
+      "url": "https://bloomberg.com/fixture/us/089",
       "title": "Housing demand slows 089",
       "seendate": "20260806T172900Z",
-      "domain": "reuters.com",
+      "domain": "bloomberg.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://wsj.com/fixture/us/090",
+      "url": "https://marketwatch.com/fixture/us/090",
       "title": "Semiconductor investment expands 090",
       "seendate": "20260806T183000Z",
-      "domain": "wsj.com",
+      "domain": "marketwatch.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://bloomberg.com/fixture/us/091",
+      "url": "https://reuters.com/fixture/us/091",
       "title": "Interest rate outlook changes 091",
       "seendate": "20260806T193100Z",
-      "domain": "bloomberg.com",
-      "language": "English",
-      "sourcecountry": "United States"
-    },
-    {
-      "url": "https://cnbc.com/fixture/us/092",
-      "title": "Dollar volatility increases 092",
-      "seendate": "20260806T203200Z",
-      "domain": "cnbc.com",
-      "language": "English",
-      "sourcecountry": "United States"
-    },
-    {
-      "url": "https://marketwatch.com/fixture/us/093",
-      "title": "Climate policy affects markets 093",
-      "seendate": "20260806T213300Z",
-      "domain": "marketwatch.com",
-      "language": "English",
-      "sourcecountry": "United States"
-    },
-    {
-      "url": "https://reuters.com/fixture/us/094",
-      "title": "Housing demand slows 094",
-      "seendate": "20260806T223400Z",
       "domain": "reuters.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://wsj.com/fixture/us/095",
-      "title": "Semiconductor investment expands 095",
-      "seendate": "20260806T233500Z",
+      "url": "https://wsj.com/fixture/us/092",
+      "title": "Dollar volatility increases 092",
+      "seendate": "20260806T203200Z",
       "domain": "wsj.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://bloomberg.com/fixture/us/096",
-      "title": "Interest rate outlook changes 096",
-      "seendate": "20260806T003600Z",
+      "url": "https://bloomberg.com/fixture/us/093",
+      "title": "Climate policy affects markets 093",
+      "seendate": "20260806T213300Z",
       "domain": "bloomberg.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://cnbc.com/fixture/us/097",
-      "title": "Dollar volatility increases 097",
-      "seendate": "20260806T013700Z",
+      "url": "https://cnbc.com/fixture/us/094",
+      "title": "Housing demand slows 094",
+      "seendate": "20260806T223400Z",
       "domain": "cnbc.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://marketwatch.com/fixture/us/098",
-      "title": "Climate policy affects markets 098",
-      "seendate": "20260806T023800Z",
-      "domain": "marketwatch.com",
+      "url": "https://reuters.com/fixture/us/095",
+      "title": "Semiconductor investment expands 095",
+      "seendate": "20260806T233500Z",
+      "domain": "reuters.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://reuters.com/fixture/us/099",
+      "url": "https://wsj.com/fixture/us/096",
+      "title": "Interest rate outlook changes 096",
+      "seendate": "20260806T003600Z",
+      "domain": "wsj.com",
+      "language": "English",
+      "sourcecountry": "United States"
+    },
+    {
+      "url": "https://bloomberg.com/fixture/us/097",
+      "title": "Dollar volatility increases 097",
+      "seendate": "20260806T013700Z",
+      "domain": "bloomberg.com",
+      "language": "English",
+      "sourcecountry": "United States"
+    },
+    {
+      "url": "https://cnbc.com/fixture/us/098",
+      "title": "Climate policy affects markets 098",
+      "seendate": "20260806T023800Z",
+      "domain": "cnbc.com",
+      "language": "English",
+      "sourcecountry": "United States"
+    },
+    {
+      "url": "https://marketwatch.com/fixture/us/099",
       "title": "Housing demand slows 099",
       "seendate": "20260806T033900Z",
-      "domain": "reuters.com",
+      "domain": "marketwatch.com",
       "language": "English",
       "sourcecountry": "United States"
     },
@@ -841,122 +841,122 @@
       "sourcecountry": "United States"
     },
     {
-      "url": "https://wsj.com/fixture/us/105",
+      "url": "https://bloomberg.com/fixture/us/105",
       "title": "Semiconductor investment expands 105",
       "seendate": "20260806T094500Z",
-      "domain": "wsj.com",
+      "domain": "bloomberg.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://bloomberg.com/fixture/us/106",
+      "url": "https://cnbc.com/fixture/us/106",
       "title": "Interest rate outlook changes 106",
       "seendate": "20260806T104600Z",
-      "domain": "bloomberg.com",
+      "domain": "cnbc.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://cnbc.com/fixture/us/107",
+      "url": "https://marketwatch.com/fixture/us/107",
       "title": "Dollar volatility increases 107",
       "seendate": "20260806T114700Z",
-      "domain": "cnbc.com",
+      "domain": "marketwatch.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://marketwatch.com/fixture/us/108",
+      "url": "https://reuters.com/fixture/us/108",
       "title": "Climate policy affects markets 108",
       "seendate": "20260806T124800Z",
-      "domain": "marketwatch.com",
+      "domain": "reuters.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://reuters.com/fixture/us/109",
+      "url": "https://wsj.com/fixture/us/109",
       "title": "Housing demand slows 109",
       "seendate": "20260806T134900Z",
-      "domain": "reuters.com",
+      "domain": "wsj.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://wsj.com/fixture/us/110",
+      "url": "https://cnbc.com/fixture/us/110",
       "title": "Semiconductor investment expands 110",
       "seendate": "20260806T145000Z",
-      "domain": "wsj.com",
+      "domain": "cnbc.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://bloomberg.com/fixture/us/111",
+      "url": "https://marketwatch.com/fixture/us/111",
       "title": "Interest rate outlook changes 111",
       "seendate": "20260806T155100Z",
-      "domain": "bloomberg.com",
-      "language": "English",
-      "sourcecountry": "United States"
-    },
-    {
-      "url": "https://cnbc.com/fixture/us/112",
-      "title": "Dollar volatility increases 112",
-      "seendate": "20260806T165200Z",
-      "domain": "cnbc.com",
-      "language": "English",
-      "sourcecountry": "United States"
-    },
-    {
-      "url": "https://marketwatch.com/fixture/us/113",
-      "title": "Climate policy affects markets 113",
-      "seendate": "20260806T175300Z",
       "domain": "marketwatch.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://reuters.com/fixture/us/114",
-      "title": "Housing demand slows 114",
-      "seendate": "20260806T185400Z",
+      "url": "https://reuters.com/fixture/us/112",
+      "title": "Dollar volatility increases 112",
+      "seendate": "20260806T165200Z",
       "domain": "reuters.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://wsj.com/fixture/us/115",
-      "title": "Semiconductor investment expands 115",
-      "seendate": "20260806T195500Z",
+      "url": "https://wsj.com/fixture/us/113",
+      "title": "Climate policy affects markets 113",
+      "seendate": "20260806T175300Z",
       "domain": "wsj.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://bloomberg.com/fixture/us/116",
-      "title": "Interest rate outlook changes 116",
-      "seendate": "20260806T205600Z",
+      "url": "https://bloomberg.com/fixture/us/114",
+      "title": "Housing demand slows 114",
+      "seendate": "20260806T185400Z",
       "domain": "bloomberg.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://cnbc.com/fixture/us/117",
-      "title": "Dollar volatility increases 117",
-      "seendate": "20260806T215700Z",
-      "domain": "cnbc.com",
-      "language": "English",
-      "sourcecountry": "United States"
-    },
-    {
-      "url": "https://marketwatch.com/fixture/us/118",
-      "title": "Climate policy affects markets 118",
-      "seendate": "20260806T225800Z",
+      "url": "https://marketwatch.com/fixture/us/115",
+      "title": "Semiconductor investment expands 115",
+      "seendate": "20260806T195500Z",
       "domain": "marketwatch.com",
       "language": "English",
       "sourcecountry": "United States"
     },
     {
-      "url": "https://reuters.com/fixture/us/119",
+      "url": "https://reuters.com/fixture/us/116",
+      "title": "Interest rate outlook changes 116",
+      "seendate": "20260806T205600Z",
+      "domain": "reuters.com",
+      "language": "English",
+      "sourcecountry": "United States"
+    },
+    {
+      "url": "https://wsj.com/fixture/us/117",
+      "title": "Dollar volatility increases 117",
+      "seendate": "20260806T215700Z",
+      "domain": "wsj.com",
+      "language": "English",
+      "sourcecountry": "United States"
+    },
+    {
+      "url": "https://bloomberg.com/fixture/us/118",
+      "title": "Climate policy affects markets 118",
+      "seendate": "20260806T225800Z",
+      "domain": "bloomberg.com",
+      "language": "English",
+      "sourcecountry": "United States"
+    },
+    {
+      "url": "https://cnbc.com/fixture/us/119",
       "title": "Housing demand slows 119",
       "seendate": "20260806T235900Z",
-      "domain": "reuters.com",
+      "domain": "cnbc.com",
       "language": "English",
       "sourcecountry": "United States"
     }
