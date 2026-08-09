@@ -2,13 +2,13 @@
 
 | 項目 | 現在状態 |
 |---|---|
-| 現在目標 | 国別の単一イシュー概念keyword品質改善 |
-| 状態 | 韓国語・日本語形態素分析と英語単語正規化を実装・全回帰完了 |
+| 現在目標 | 実news配布下限を国別70件へ調整 |
+| 状態 | code・境界値test・韓日運用基準更新と全体検証が完了 |
 | 基準branch | `main` |
-| 作業branch | `codex/single-concept-keywords` |
-| 最終完了commit | `36d8ddb` — 日本語1文字候補修正PR #26 Rebase and merge |
-| 全体検証 | PASS — Python 124件・coverage 89%・Web 9件・Pages fixture・Ruff・mypy・Secret・仕様同期 |
-| 次作業 | 変更PR merge後に次回予約実行の実TOP 5品質を確認 |
+| 作業branch | `codex/lower-live-publish-threshold` |
+| 最終完了commit | `5dc8928` — 単一イシュー概念keyword PR #27 Rebase and merge |
+| 全体検証 | PASS — Python 126件・coverage 89%・Web 9件・Pages fixture・Ruff・mypy・Secret・仕様同期 |
+| 次作業 | 完了review後にDraft PRを作成 |
 
 ## v1.0公開準備の進行結果
 
@@ -31,6 +31,7 @@
 - 実live収集はUS 108・JP 129・KR 107件を確保したが、日本語助詞分離後の1文字候補がSchema検証例外となり公開を停止した。1文字断片を候補なしとして扱うregression修正後に再公開する。
 - PR #26 merge後の実live配布でUS 114・JP 124・KR 103件と3か国TOP 5の公開に成功した。一方、title先頭3語が文断片として表示される品質問題を確認し、`kiwipiepy`・`SudachiPy`と英語単語正規化による一つの短いイシュー概念抽出へ置き換える。
 - 7日すべて3か国100件未満で公開が安全に停止した。最大は8/3 US 34・KR 90、8/5 JP 26・KR 90で、NAVERは40/300回を使用した。
+- 2026-08-09の予約実行は重複・偏重除去後にUS 198・JP 103・KR 85件を確保したが、従来の100件配布gateにより配布しなかった。推奨収集目標100件以上と目標値150件は維持し、実配布下限だけを国別70件へ調整する。
 
 ## keyword news v2決定
 
@@ -39,11 +40,11 @@
 - main pushは国別120件fixture TOP 5を配布し、予約実行は直前24時間のGDELT・RSS・NAVER結果が基準通過時だけ既存正常Pagesを置換する。
 
 - 言語別の決定的複合名詞候補抽出、国別一般語・叙述語除外、入力候補限定の同義語統合を実装した。
-- 国別最低100件を強制し、document frequency・媒体多様性・最新時刻・IDでTOP 5を決定し、関連記事IDを最大20件接続する。
+- 国別配布下限70件を強制し、document frequency・媒体多様性・最新時刻・IDでTOP 5を決定し、関連記事IDを最大20件接続する。
 - 国別120件fixtureで期待複合名詞5件、決定性、一般語除外、国分離、原文根拠接続を検証する。
 
 - GDELT DOC APIを国別主source、既存公共RSS/APIを補助sourceへ変更する。
-- 重複排除後の国別150件を目標、最大250件、正常100件以上、部分成功50～99件とする。
+- 重複排除後の国別150件を目標、最大250件、推奨収集100件以上、配布可能70件以上、部分成功50～69件とする。
 - 言語別名詞・複合名詞抽出とstopword除外後、LLMは同義語・表示名統合だけを行う。
 - document frequencyと媒体多様性でkeyword TOP 5を決め、keyword別関連記事を最大20件提供する。
 - 既存v1の意味を維持し、Schema/API/静的JSONをv2として一緒に移行する。

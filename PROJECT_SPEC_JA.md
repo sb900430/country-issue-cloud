@@ -64,8 +64,8 @@ Androidアプリは廃止しない。keyword中心Webと公開URLの安定化後
 | 静的JSON応答時間目標 | 500ms以内 |
 | 最終正常データ | 48時間以内 |
 | 国別収集目標 | 重複排除後150件 |
-| 国別正常サンプル | 100件以上 |
-| 国別部分成功サンプル | 50～99件 |
+| 国別配布可能サンプル | 70件以上 |
+| 国別部分成功サンプル | 50～69件 |
 | keyword処理成功率 | 80%以上 |
 
 ### 初回リリースに含むもの
@@ -143,13 +143,13 @@ Androidアプリは廃止しない。keyword中心Webと公開URLの安定化後
 |---|---:|
 | 国別目標 | 重複排除後150件 |
 | 国別最大数 | 250件 |
-| 正常 | 100件以上、keyword 3件以上 |
-| 部分成功 | 50～99件、keyword 1件以上 |
+| 正常 | 70件以上、keyword 5件 |
+| 部分成功 | 50～69件、配布しない |
 | 単一媒体の最大反映 | 収集結果の20%または30件の小さい方 |
 | 媒体偏重警告 | 30%超 |
 | 重大な偏重 | 50%超 |
 
-100件以上を正常目標とするが適法性と透明性を優先し、実際の収集・重複排除後の記事数を画面に表示する。100件を満たすため24時間範囲を任意に延長しない。
+100件以上を推奨収集目標として維持するが、国別の配布下限は70件とする。適法性と透明性を優先し、実際の収集・重複排除後の記事数を画面に表示し、下限を満たすために24時間範囲を任意に延長しない。
 
 ### 出典ポリシー
 
@@ -190,7 +190,7 @@ GDELT・RSS・NewsData.ioが提供するtitle・短いsummary・原文URL・媒�
 
 言語別分析器はtitleから反復名詞と最大2形態素の短い複合名詞を抽出する。韓国語は`kiwipiepy`、日本語は`SudachiPy` core辞書、英語は正規化した単語・2語名詞表現規則に確定する。`経済`、`市場`、`政府`、`発表`、`見通し`、`投資`のように単独でイシューを識別しにくい一般語と国別stopwordをversion管理する。一つのtitleから複数候補を生成するが、画面labelは一つのイシュー概念だけを示し、文頭部分をそのまま候補にしない。
 
-同一記事で一つのkeywordが複数回出現してもdocument frequencyは1件と数える。100件基準で最低3件または全体の3%の大きい方と、異なる2媒体以上を満たす候補だけを順位へ含める。生の出現回数だけで順位を決めず、転載・類似記事と単一媒体集中を先に除外する。
+同一記事で一つのkeywordが複数回出現してもdocument frequencyは1件と数える。70件以上の運用サンプルで最低3件または全体の3%の大きい方と、異なる2媒体以上を満たす候補だけを順位へ含める。生の出現回数だけで順位を決めず、転載・類似記事と単一媒体集中を先に除外する。
 
 LLMは翻訳word cloudを作るものではなく、分析器が抽出した候補内で一国内の同義語・表記揺れを選択的に統合する限定的なtoolである。標準運用はLLMなしで決定的に動作し、表示名は原文に存在する短い単語・複合名詞だけを使う。
 
@@ -227,11 +227,13 @@ article_ratio      = document_frequency / 国の有効記事数
 keyword_score      = document_frequency優先、publisher_count・最新時刻・keyword_id順で同順位解消
 ```
 
-`success`：記事100件以上、keyword処理成功率80%以上、keyword 3件以上。
+`success`：3か国がそれぞれ記事70件以上、keyword処理成功率80%以上、keyword 5件をすべて満たす。
 
-`partial_success`：記事50～99件、keyword処理成功率70%以上、keyword 1件以上。
+`partial_success`：ちょうど2か国だけが上記配布基準を満たす。公開fileは生成しない。
 
-最低2か国が公開可能な場合に日付結果を保存し、失敗実行では`latest.json`を変更しない。
+`failed`：配布基準を満たす国が1か国以下。
+
+3か国すべてが配布可能な場合だけ日付結果を保存し、失敗実行では`latest.json`を変更しない。
 
 ---
 
@@ -894,7 +896,7 @@ v* tag → Pages URL検証 → GitHub Release。Android再開後のみAABとPlay
 
 2026-08-08の実sampleでtitle先頭3語が文断片として表示される限界を確認し、韓国語`kiwipiepy`・日本語`SudachiPy`の形態素分析と英語単語正規化へ置き換える。候補は一単語または最大2形態素の短い複合名詞に制限し、最低3記事・2媒体を満たさない候補はTOP 5から除外する。
 
-2026-08-08時点の順序3では既存v1を維持したままSchema 2.0、`/api/v2/keywords`、`data/v2`、独立JSON Repository、静的publisherを追加し、Web標準DataSourceをv2へ移行する。main pushは外部呼出し不要の国別120件fixture TOP 5を配布する。予約`publish-keyword-live`は直前24時間のGDELT・承認RSS・韓国NAVERを使い、3か国すべてが100件・TOP 5基準を満たす場合だけ新artifactを生成し、失敗時は最後の正常Pagesを維持する。NAVER Secretは`pages-production` Environmentだけで注入する。
+2026-08-08時点の順序3では既存v1を維持したままSchema 2.0、`/api/v2/keywords`、`data/v2`、独立JSON Repository、静的publisherを追加し、Web標準DataSourceをv2へ移行する。main pushは外部呼出し不要の国別120件fixture TOP 5を配布する。予約`publish-keyword-live`は直前24時間のGDELT・承認RSS・韓国NAVERを使い、3か国すべてが70件・TOP 5基準を満たす場合だけ新artifactを生成し、失敗時は最後の正常Pagesを維持する。NAVER Secretは`pages-production` Environmentだけで注入する。
 
 順序4では配布結果に関係なく現在の公開URLのHTML・Schema 2.0・TOP5契約をretry付きで確認する`public-smoke` jobを追加する。運用Runbookと日付別観察表へ予約実行・手動retry・既存Pages維持結果を記録し、異なるJST日付7日分の証跡が揃った後だけ連続運用gateを完了する。
 
@@ -907,6 +909,8 @@ v* tag → Pages URL検証 → GitHub Release。Android再開後のみAABとPlay
 GDELTの最小1件公開requestでもHTTP 429を再現した。HTTP errorは本文・URL・Secretなしで`rate_limited`、`client_error`、`server_error`、`timeout`などに分類し、一つの国で429が発生した場合は同じbatchの残りGDELT requestを`circuit_open_rate_limited`として即時停止する。RSSとNAVERは独立して継続する。
 
 2026-08-08に米国・日本の補完sourceとしてNewsData.io無料Latest News APIを採用した。`NEWSDATA_API_KEY`はlocal `.env`と`pages-production` Environment Secretだけから注入し、US `country=us&language=en`・JP `country=jp&language=ja`へ`category=business`をそれぞれ適用する。mock pagination・response検証と日40回・月1,200回ledgerを実装し、直近24時間の限定実接続でUS・JP各100件を確保した。
+
+2026-08-09の予約実行では重複・偏重除去後にUS 198件・JP 103件・KR 85件を確保したが、従来の100件gateにより全体配布が停止した。100件以上の推奨収集目標と150件の目標値は維持し、実配布下限だけを国別70件へ下げる。3か国すべてが70件以上で各国TOP 5を完成した場合のみ配布し、未達時は既存の正常Pagesを維持する。
 
 配布障害対応は上記機能PRへ混在させない。GDELT利用条件・query偏り・形態素分析library選定が実装中に変わる場合はADRを更新する。
 
