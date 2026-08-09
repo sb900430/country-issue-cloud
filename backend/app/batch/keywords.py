@@ -18,6 +18,7 @@ _LATIN_WORD = re.compile(r"[A-Za-z][A-Za-z'-]*")
 _MIN_DOCUMENT_RATIO = 0.03
 _MIN_DOCUMENT_FREQUENCY = 3
 _MIN_PUBLISHER_COUNT = 2
+_MIN_ARTICLE_COUNT = 70
 _GENERAL_TERMS = {
     CountryCode.US: {
         "after",
@@ -287,8 +288,8 @@ class KeywordRanker:
     def analyze(
         self, country: CountryCode, articles: list[CollectedArticle]
     ) -> CountryKeywordAnalysis:
-        if len(articles) < 100:
-            raise ValueError("keyword analysis requires at least 100 articles")
+        if len(articles) < _MIN_ARTICLE_COUNT:
+            raise ValueError(f"keyword analysis requires at least {_MIN_ARTICLE_COUNT} articles")
         if any(article.country is not country for article in articles):
             raise ValueError("keyword analysis cannot mix countries")
 

@@ -31,9 +31,11 @@ TOPICS = {
 }
 
 
-def _feed(country: CountryCode, source_index: int, published_at: datetime) -> bytes:
+def _feed(
+    country: CountryCode, source_index: int, published_at: datetime, count: int = 20
+) -> bytes:
     items = ""
-    for index in range(20):
+    for index in range(count):
         suffix = sha256(f"{country}:{source_index}:{index}".encode()).hexdigest()[:24]
         items += (
             f"<item><title>{TOPICS[country][index % 5]} {suffix}</title>"
@@ -84,6 +86,52 @@ def test_live_keyword_batch_publishes_three_country_top_five(tmp_path: Path) -> 
     assert (tmp_path / "site" / "data" / "v2" / "latest.json").exists()
 
 
+def test_live_keyword_batch_publishes_at_seventy_articles_per_country(
+    tmp_path: Path,
+) -> None:
+    end = datetime(2026, 8, 9, 0, tzinfo=UTC)
+    sources = [
+        RssSource(
+            source_id=f"{country.value}-{index}",
+            country=country,
+            publisher=f"{country.value} Publisher {index}",
+            feed_url=f"https://example.com/{country.value}/{index}.xml",
+            include_summary=False,
+        )
+        for country in CountryCode
+        for index in range(5)
+    ]
+    payloads = {
+        source.feed_url: _feed(
+            source.country, index % 5, end - timedelta(hours=1), count=14
+        )
+        for index, source in enumerate(sources)
+    }
+    site_dir = tmp_path / "site" / "data" / "v2"
+
+    result = run_live_keyword_batch(
+        sources,
+        [],
+        [],
+        [],
+        payloads.__getitem__,
+        lambda _url, _headers: b"{}",
+        None,
+        None,
+        None,
+        end - timedelta(hours=24),
+        end,
+        end.date(),
+        tmp_path / "data",
+        site_dir,
+    )
+
+    assert result.status is IssueStatus.SUCCESS
+    assert all(result.countries[country].article_count == 70 for country in CountryCode)
+    assert all(len(result.countries[country].top_keywords) == 5 for country in CountryCode)
+    assert (site_dir / "latest.json").exists()
+
+
 def test_live_keyword_batch_does_not_publish_partial_three_country_data(
     tmp_path: Path,
 ) -> None:
@@ -123,4 +171,57 @@ def test_live_keyword_batch_does_not_publish_partial_three_country_data(
     )
 
     assert result.status is IssueStatus.PARTIAL_SUCCESS
+    assert not (site_dir / "latest.json").exists()
+
+
+def test_live_keyword_batch_does_not_publish_when_one_country_has_sixty_nine_articles(
+    tmp_path: Path,
+) -> None:
+    end = datetime(2026, 8, 9, 0, tzinfo=UTC)
+    sources = [
+        RssSource(
+            source_id=f"{country.value}-{index}",
+            country=country,
+            publisher=f"{country.value} Publisher {index}",
+            feed_url=f"https://example.com/{country.value}/{index}.xml",
+            include_summary=False,
+        )
+        for country in CountryCode
+        for index in range(6)
+    ]
+    payloads = {
+        source.feed_url: _feed(
+            source.country,
+            index % 6,
+            end - timedelta(hours=1),
+            count=(
+                12
+                if source.country is not CountryCode.KR
+                or int(source.source_id.rsplit("-", 1)[1]) < 3
+                else 11
+            ),
+        )
+        for index, source in enumerate(sources)
+    }
+    site_dir = tmp_path / "site" / "data" / "v2"
+
+    result = run_live_keyword_batch(
+        sources,
+        [],
+        [],
+        [],
+        payloads.__getitem__,
+        lambda _url, _headers: b"{}",
+        None,
+        None,
+        None,
+        end - timedelta(hours=24),
+        end,
+        end.date(),
+        tmp_path / "data",
+        site_dir,
+    )
+
+    assert result.status is IssueStatus.PARTIAL_SUCCESS
+    assert result.countries[CountryCode.KR].article_count == 69
     assert not (site_dir / "latest.json").exists()

@@ -28,7 +28,7 @@
 - 응답의 title, URL, domain/publisher, source country, language, publication time 등 공개 metadata만 수집한다.
 - 기사 본문과 이미지를 대상 언론사에서 추가 crawl하지 않는다.
 - URL·정규화 title·유사도 순으로 GDELT 내부 및 보조 RSS와 중복 제거한다.
-- 국가별 중복 제거 후 150건을 목표로 하며 100건 이상을 정상, 50~99건을 부분 성공으로 처리한다.
+- 국가별 중복 제거 후 150건을 목표로 하며 100건 이상을 권장 수집량, 70건 이상을 게시 가능, 50~69건을 부분 성공으로 처리한다.
 - 공개 화면과 프로젝트 정보에 `Data source: GDELT Project`와 공식 site link를 표시한다.
 - 호출 timeout, 제한된 1회 retry, query별 기사 수, 응답 지연과 HTTP 상태를 기록하되 원문 응답 전체는 log에 남기지 않는다.
 - 무료 endpoint의 429를 줄이기 위해 국가 요청을 최소 60초 간격으로 직렬화하며, 현재 v1 예약 배치에서는 `--enable-gdelt`를 지정하지 않는다.
@@ -39,7 +39,7 @@
 - responseのtitle、URL、domain/publisher、source country、language、publication timeなど公開metadataだけを収集する。
 - 記事本文と画像を対象報道機関から追加crawlしない。
 - URL・正規化title・類似度順でGDELT内部および補助RSSと重複排除する。
-- 国別重複排除後150件を目標とし、100件以上を正常、50～99件を部分成功として扱う。
+- 国別重複排除後150件を目標とし、100件以上を推奨収集量、70件以上を配布可能、50～69件を部分成功として扱う。
 - 公開画面とproject情報に`Data source: GDELT Project`と公式site linkを表示する。
 - request timeout、制限付き1回retry、query別記事数、response遅延、HTTP statusを記録し、raw response全体はlogへ残さない。
 - 無料endpointの429を減らすため国requestを最低60秒間隔で直列化し、現在のv1予約batchでは`--enable-gdelt`を指定しない。
