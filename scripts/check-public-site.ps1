@@ -30,6 +30,21 @@ try {
                     Out-Null
                 Invoke-WebRequest -Uri $entry.Value -OutFile $destination -TimeoutSec 20
             }
+            $dateIndexPath = Join-Path $temporary "data/v2/dates.json"
+            $dateValues = @(Get-Content -LiteralPath $dateIndexPath -Raw | ConvertFrom-Json)
+            if ($dateValues.Count -lt 1 -or $dateValues.Count -gt 7) {
+                throw "Public date index must contain between one and seven dates."
+            }
+            foreach ($dateValue in $dateValues) {
+                if ($dateValue -notmatch '^\d{4}-\d{2}-\d{2}$') {
+                    throw "Public date index contains an invalid date."
+                }
+                $datedDestination = Join-Path $temporary "data/v2/$dateValue.json"
+                Invoke-WebRequest `
+                    -Uri ($base + "data/v2/$dateValue.json") `
+                    -OutFile $datedDestination `
+                    -TimeoutSec 20
+            }
             & (Join-Path $PSScriptRoot "check-public-artifact.ps1") -Path $temporary
             $index = Get-Content -LiteralPath (Join-Path $temporary "index.html") -Raw
             foreach ($required in @('data-countries', 'data-issues', 'data-dialog')) {

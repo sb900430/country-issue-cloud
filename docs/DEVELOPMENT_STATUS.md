@@ -2,15 +2,19 @@
 
 | 항목 | 현재 상태 |
 |---|---|
-| 현재 목표 | 실제 키워드 품질·7일 이력·관리자 진단 강화 |
-| 상태 | 구현·한일 문서 동기화·전체 검증 완료 |
+| 현재 목표 | PR #29 병합 후 공개 smoke 계약 수정 |
+| 상태 | 수정·실제 공개 smoke·전체 검증 완료 |
 | 기준 브랜치 | `main` |
-| 작업 브랜치 | `codex/live-keyword-quality-hardening` |
-| 마지막 완료 커밋 | `5dc8928` — 단일 이슈 개념 키워드 PR #27 Rebase and merge |
+| 작업 브랜치 | `codex/post-merge-fix-week-03-public-smoke` |
+| 마지막 완료 커밋 | `832b79a` — 실제 키워드 품질 강화 PR #29 Rebase and merge |
 | 전체 검증 | PASS — Python 137개·coverage 88%·웹 9개·Pages fixture/preserve·Ruff·mypy·Secret·명세 동기화 |
-| 다음 작업 | 완료 리뷰 후 Draft PR 생성 |
+| 다음 작업 | post-merge fix 완료 리뷰 후 Draft PR 생성 |
 
 ## v1.0 공개 준비 진행 결과
+
+- PR #29 병합 후 `main` 로컬 전체 검증과 fixture/preserve smoke는 통과했으나 Pages `public-smoke`가 날짜별 JSON을 로컬로 받지 않은 채 강화된 artifact 검사를 실행해 실패했다.
+- `dates.json`의 1~7개 안전한 날짜를 검증하고 모든 날짜 JSON을 받은 뒤 전체 계약을 검사하도록 수정했다. 현재 실제 공개 Pages smoke는 통과한다.
+- `actions/deploy-pages`를 공식 Node.js 24 대응 v5.0.0 immutable SHA로 갱신해 남은 Node.js 20 경고를 제거한다.
 
 - 2026-08-10 실제 실행의 US 139·JP 117·KR 72건 결과에서 실적·주가·이동평균, 날짜·출시, 억원·특징주 같은 반복 템플릿 일반어와 관련 기사 중복을 확인했다.
 - 후보 기준을 최소 4건 또는 5%·2매체로 강화하고 날짜·단위·템플릿 일반어 제거, TOP5 관련 기사 Jaccard 중복 제거를 구현했다.
