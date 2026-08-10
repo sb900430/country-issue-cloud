@@ -695,7 +695,7 @@ VPS/EC2 systemdまたはcontainer scheduler → 同じbatch entry
 - 公式`actions/deploy-pages@v4`の内部待機上限である10分に合わせ、deploy jobも最大10分に制限する。`deployment_queued`状態で上限に達した場合は既存の正常なPages配布を維持し、GitHub Pagesの状態と実行logを確認して時間を置いた後、手動で一度だけ再試行する。同一commitの即時重複実行や代替配布方式への切替は行わない。
 - Pages artifactには直近7日の公開可能JSON、静的Web、policy pageだけを含める。
 - live buildは管理者用の選択記事と診断artifactを7日保持する。公開PagesとGitへ含めず、生成失敗時も可能な診断fileをuploadする。
-- GitHub ActionsはNode.js 24互換majorの`actions/cache@v6`、`astral-sh/setup-uv@v9`、`actions/upload-artifact@v7`、`actions/upload-pages-artifact@v5`を使用する。
+- GitHub ActionsはNode.js 24互換majorの`actions/cache@v6`、`astral-sh/setup-uv@v9`、`actions/upload-artifact@v7`、`actions/upload-pages-artifact@v5`、`actions/deploy-pages@v5`を使用する。公開smokeは`dates.json`に列挙されたすべての日付JSONを取得し、直近7日artifact契約を検証する。
 - VPS/EC2後続配布は初回設定と反復配布を分離し、`/health`、`/ready`、rollback、直近2 release保管を適用する。
 
 運用指標は、batch時間、国・source別記事数/失敗率、LLM呼出・token・費用・再試行・成功率、Actions実行・Pages配布成否、最終公開成功時刻、後続API modeのrequest数・error率・応答時間とする。24時間遅延で案内、48時間遅延でWeb警告を表示する。運用RunbookにはActions予約遅延・無効化、手動再実行、Pages artifact rollback、source認証/形式変更、LLM費用急増、JSON復旧を含める。VPS/EC2再開時にservice再起動、証明書障害、server rollbackを追加する。

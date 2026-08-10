@@ -66,6 +66,7 @@ foreach ($required in @(
     'Upload administrator collection evidence',
     'actions/upload-artifact@v7',
     'actions/upload-pages-artifact@v5',
+    'actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128',
     'astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9',
     'retention-days: 7',
     'AdminOutputDirectory'
@@ -88,6 +89,11 @@ foreach ($required in @(
 foreach ($required in @('https', 'data/v2/latest.json', 'data/v2/dates.json', 'data-dialog')) {
     if (-not $publicSmoke.Contains($required)) {
         throw "Public smoke script is missing a required contract check: $required"
+    }
+}
+foreach ($required in @('ConvertFrom-Json', 'data/v2/$dateValue.json')) {
+    if (-not $publicSmoke.Contains($required)) {
+        throw "Public smoke must download every indexed dated keyword file: $required"
     }
 }
 if (-not $publicSmoke.Contains('[System.IO.Path]::GetTempPath()')) {

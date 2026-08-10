@@ -2,15 +2,19 @@
 
 | 項目 | 現在状態 |
 |---|---|
-| 現在目標 | 実keyword品質・7日履歴・管理者診断の強化 |
-| 状態 | 実装・韓日文書同期・全体検証が完了 |
+| 現在目標 | PR #29 merge後の公開smoke契約修正 |
+| 状態 | 修正・実公開smoke・全体検証が完了 |
 | 基準branch | `main` |
-| 作業branch | `codex/live-keyword-quality-hardening` |
-| 最終完了commit | `5dc8928` — 単一イシュー概念keyword PR #27 Rebase and merge |
+| 作業branch | `codex/post-merge-fix-week-03-public-smoke` |
+| 最終完了commit | `832b79a` — 実keyword品質強化 PR #29 Rebase and merge |
 | 全体検証 | PASS — Python 137件・coverage 88%・Web 9件・Pages fixture/preserve・Ruff・mypy・Secret・仕様同期 |
-| 次作業 | 完了review後にDraft PRを作成 |
+| 次作業 | post-merge fix完了review後にDraft PRを作成 |
 
 ## v1.0公開準備の進行結果
+
+- PR #29 merge後、`main` local全体検証とfixture/preserve smokeは通過したが、Pages `public-smoke`が日付別JSONをlocalへ取得せず、強化済みartifact検査を実行して失敗した。
+- `dates.json`の1～7件の安全な日付を検証し、全日付JSONを取得した後に全契約を検査するよう修正した。現在の実公開Pages smokeは通過する。
+- `actions/deploy-pages`を公式Node.js 24対応v5.0.0 immutable SHAへ更新し、残存Node.js 20警告を除去する。
 
 - 2026-08-10実行のUS 139・JP 117・KR 72件で、決算・株価・移動平均、日付・発売、億ウォン・特徴株などの反復template一般語と関連記事重複を確認した。
 - 候補基準を最低4件または5%・2媒体へ強化し、日付・単位・template一般語除外とTOP5関連記事Jaccard重複除外を実装した。

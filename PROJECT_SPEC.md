@@ -737,7 +737,7 @@ deploy/
 - 공식 `actions/deploy-pages@v4`의 내부 대기 상한인 10분에 맞춰 deploy job도 최대 10분으로 제한한다. `deployment_queued` 상태로 제한이 끝나면 기존 정상 Pages 배포를 유지하고, GitHub Pages 상태와 실행 로그를 확인한 뒤 시간을 두고 수동으로 한 번만 재시도한다. 같은 commit의 즉시 중복 실행과 대체 배포 방식 전환은 하지 않는다.
 - Pages artifact에는 최근 7일의 공개 가능 JSON, 정적 웹, 정책 페이지만 포함한다.
 - live build는 관리자용 선택 기사와 진단 artifact를 7일 보관한다. 공개 Pages와 Git에는 넣지 않고, 생성 실패 때도 가능한 진단 파일을 업로드한다.
-- GitHub Actions는 Node.js 24 호환 major인 `actions/cache@v6`, `astral-sh/setup-uv@v9`, `actions/upload-artifact@v7`, `actions/upload-pages-artifact@v5`를 사용한다.
+- GitHub Actions는 Node.js 24 호환 major인 `actions/cache@v6`, `astral-sh/setup-uv@v9`, `actions/upload-artifact@v7`, `actions/upload-pages-artifact@v5`, `actions/deploy-pages@v5`를 사용한다. 공개 smoke는 `dates.json`에 열거된 모든 날짜 JSON을 내려받아 최근 7일 artifact 계약을 검증한다.
 - VPS/EC2 후속 배포는 최초 설정과 반복 배포를 분리하고 `/health`, `/ready`, 롤백과 최근 2개 릴리스 보관을 적용한다.
 
 운영 지표:
