@@ -15,10 +15,11 @@ from app.schemas.issues import CountryCode
 
 _NUMBER_SUFFIX = re.compile(r"\s+\d{3,}$")
 _LATIN_WORD = re.compile(r"[A-Za-z][A-Za-z'-]*")
-_MIN_DOCUMENT_RATIO = 0.03
-_MIN_DOCUMENT_FREQUENCY = 3
+_MIN_DOCUMENT_RATIO = 0.05
+_MIN_DOCUMENT_FREQUENCY = 4
 _MIN_PUBLISHER_COUNT = 2
 _MIN_ARTICLE_COUNT = 70
+_MAX_RELATED_ARTICLE_JACCARD = 0.5
 _GENERAL_TERMS = {
     CountryCode.US: {
         "after",
@@ -31,6 +32,7 @@ _GENERAL_TERMS = {
         "changes",
         "demand",
         "economy",
+        "earning",
         "expand",
         "expands",
         "government",
@@ -39,11 +41,19 @@ _GENERAL_TERMS = {
         "increases",
         "market",
         "markets",
+        "average",
+        "day",
+        "moving",
         "news",
         "outlook",
         "policy",
         "report",
+        "result",
         "says",
+        "share",
+        "stock",
+        "price",
+        "quarterly",
         "slow",
         "slows",
         "today",
@@ -69,6 +79,8 @@ _GENERAL_TERMS = {
         "速報",
         "上昇",
         "需要",
+        "発売",
+        "開催",
     },
     CountryCode.KR: {
         "감소",
@@ -92,6 +104,11 @@ _GENERAL_TERMS = {
         "증가",
         "투자",
         "확대",
+        "억원",
+        "출시",
+        "특징주",
+        "호실적",
+        "규모",
     },
 }
 
@@ -233,7 +250,7 @@ class LanguageKeywordExtractor:
                 evidence = title[left.start : right.end].strip()
                 if country is CountryCode.US:
                     evidence = evidence.casefold()
-                if len(evidence) < 2:
+                if len(evidence) < 2 or _is_invalid_candidate(country, label):
                     continue
                 normalized = _normalize(label)
                 candidates[normalized] = KeywordCandidate(
@@ -247,7 +264,11 @@ class LanguageKeywordExtractor:
                 evidence = title[unit.start : unit.end][:120].strip()
                 if country is CountryCode.US:
                     evidence = evidence.casefold()
-                if len(label) < 2 or len(evidence) < 2:
+                if (
+                    len(label) < 2
+                    or len(evidence) < 2
+                    or _is_invalid_candidate(country, label)
+                ):
                     continue
                 normalized = _normalize(label)
                 candidates[normalized] = KeywordCandidate(
@@ -328,9 +349,22 @@ class KeywordRanker:
             )
         ranked.sort(key=lambda item: (-item[0], -item[1], -item[2].timestamp(), item[3]))
 
+        selected: list[tuple[int, int, datetime, str, str]] = []
+        for ranked_item in ranked:
+            key = ranked_item[4]
+            if any(
+                _related_article_jaccard(grouped_articles[key], grouped_articles[item[4]])
+                >= _MAX_RELATED_ARTICLE_JACCARD
+                for item in selected
+            ):
+                continue
+            selected.append(ranked_item)
+            if len(selected) == 5:
+                break
+
         top_keywords: list[RankedKeyword] = []
         for rank, (frequency, publisher_count, _latest, keyword_id, key) in enumerate(
-            ranked[:5], 1
+            selected, 1
         ):
             label = self.resolver.display_label(grouped_labels[key])
             related = sorted(
@@ -370,6 +404,29 @@ def _english_lemma(value: str) -> str:
 
 def _normalize(value: str) -> str:
     return " ".join(unicodedata.normalize("NFKC", value).casefold().split())
+
+
+def _is_invalid_candidate(country: CountryCode, label: str) -> bool:
+    normalized = _normalize(label)
+    if normalized in _GENERAL_TERMS[country]:
+        return True
+    if country is CountryCode.JP:
+        if re.fullmatch(r"\d{1,4}[年月日]", normalized):
+            return True
+        return re.fullmatch(r"[年月日春夏秋冬]{2,}", normalized) is not None
+    if country is CountryCode.KR:
+        compact = normalized.replace(" ", "")
+        return re.fullmatch(r"(?:억|조|만)?원(?:규모)?", compact) is not None
+    return False
+
+
+def _related_article_jaccard(
+    left: dict[str, CollectedArticle], right: dict[str, CollectedArticle]
+) -> float:
+    left_ids = set(left)
+    right_ids = set(right)
+    union = left_ids | right_ids
+    return len(left_ids & right_ids) / len(union) if union else 0.0
 
 
 def _keyword_id(country: CountryCode, label: str) -> str:

@@ -5,6 +5,8 @@ from zoneinfo import ZoneInfo
 
 from app.batch.http_client import HttpsFeedClient
 from app.batch.keyword_fixture import publish_keyword_fixture
+from app.batch.keyword_history import restore_keyword_history
+from app.batch.keyword_publishing import KeywordStaticJsonPublisher
 from app.batch.live import run_live_batch, run_live_keyword_batch
 from app.batch.publishing import StaticJsonPublisher
 from app.batch.source_config import (
@@ -15,6 +17,7 @@ from app.batch.source_config import (
 )
 from app.core.settings import get_settings
 from app.repositories.json_issue_repository import JsonIssueRepository
+from app.repositories.json_keyword_repository import JsonKeywordRepository
 from app.schemas.issues import IssueResult
 
 
@@ -56,6 +59,14 @@ def main() -> int:
     keyword_live.add_argument("--skip-rss", action="store_true")
     keyword_live.add_argument("--single-attempt", action="store_true")
     keyword_live.add_argument("--enable-newsdata", action="store_true")
+    restore_history = subparsers.add_parser("restore-keyword-history")
+    restore_history.add_argument("--base-url", required=True)
+    restore_history.add_argument("--data-dir", type=Path, required=True)
+    restore_history.add_argument("--target-date", type=date.fromisoformat, required=True)
+    restore_history.add_argument("--include-latest", action="store_true")
+    publish_existing = subparsers.add_parser("publish-existing-keyword-data")
+    publish_existing.add_argument("--data-dir", type=Path, required=True)
+    publish_existing.add_argument("--site-data-dir", type=Path, required=True)
     arguments = parser.parse_args()
 
     if arguments.command == "publish-fixture":
@@ -153,6 +164,23 @@ def main() -> int:
             )
         )
         return 0 if keyword_result.status.value == "success" else 1
+    if arguments.command == "restore-keyword-history":
+        restored = restore_keyword_history(
+            arguments.base_url,
+            JsonKeywordRepository(arguments.data_dir),
+            arguments.target_date,
+            HttpsFeedClient(max_attempts=2, retry_delay_seconds=5).fetch,
+            include_latest=arguments.include_latest,
+        )
+        print(f"restored keyword history: {len(restored)} dates")
+        return 0
+    if arguments.command == "publish-existing-keyword-data":
+        keyword_repository = JsonKeywordRepository(arguments.data_dir)
+        outputs = KeywordStaticJsonPublisher(
+            keyword_repository.published_dir, arguments.site_data_dir
+        ).publish()
+        print(f"published existing keyword data: {len(outputs)} files")
+        return 0
     return 2
 
 

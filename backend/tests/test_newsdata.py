@@ -1,4 +1,5 @@
 import json
+from dataclasses import replace
 from datetime import UTC, date, datetime
 from hashlib import sha256
 from pathlib import Path
@@ -124,6 +125,58 @@ def test_newsdata_collector_requires_policy_review_after_due_date(tmp_path: Path
 
     with pytest.raises(ValueError, match="policy review"):
         collector.collect(WINDOW_START, WINDOW_END, 10)
+
+
+def test_newsdata_collector_rejects_blocked_publishers_and_irrelevant_titles(
+    tmp_path: Path,
+) -> None:
+    configured = replace(
+        source(),
+        country=CountryCode.JP,
+        api_country="jp",
+        language="ja",
+        blocked_publishers=("Pr Times",),
+        required_title_terms=("金融", "半導体"),
+    )
+    payload = {
+        "status": "success",
+        "results": [
+            {
+                "article_id": "blocked",
+                "title": "金融セミナーを開催",
+                "link": "https://prtimes.example/blocked",
+                "pubDate": "2026-08-08 03:00:00",
+                "source_name": "Pr Times",
+            },
+            {
+                "article_id": "irrelevant",
+                "title": "2026年夏のベストTシャツ",
+                "link": "https://lifestyle.example/irrelevant",
+                "pubDate": "2026-08-08 03:00:00",
+                "source_name": "Lifestyle",
+            },
+            {
+                "article_id": "accepted",
+                "title": "半導体輸出が増加",
+                "link": "https://business.example/accepted",
+                "pubDate": "2026-08-08 03:00:00",
+                "source_name": "Business News",
+            },
+        ],
+    }
+    collector = NewsDataCollector(
+        configured,
+        lambda _url, _headers: json.dumps(payload).encode(),
+        "test-api-key",
+        NewsDataUsageLedger(tmp_path / "usage.json", NewsDataUsagePolicy()),
+        today=lambda: date(2026, 8, 8),
+    )
+
+    articles = collector.collect(WINDOW_START, WINDOW_END, 10)
+
+    assert [article.title for article in articles] == ["半導体輸出が増加"]
+    assert collector.last_diagnostics["publisher_rejected"] == 1
+    assert collector.last_diagnostics["relevance_rejected"] == 1
 
 
 def test_newsdata_target_survives_deduplication_and_publisher_balance(tmp_path: Path) -> None:

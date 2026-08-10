@@ -153,10 +153,11 @@ Android 앱은 폐기하지 않는다. 키워드 중심 웹과 공개 URL의 안
 
 ### 출처 정책
 
-- 주 소스는 GDELT Project DOC API의 Article List이며 `sourcecountry`, `sourcelang`, 직전 24시간, `maxrecords=250`을 국가별로 독립 적용한다.
+- GDELT Project DOC API Article List는 장기 주 소스 후보지만 반복 HTTP 429가 확인된 동안 운영 설정에서 비활성으로 둔다. 제한된 단일 요청으로 정상 응답과 이용조건을 다시 확인한 뒤에만 `sourcecountry`, `sourcelang`, 직전 24시간, `maxrecords=250`을 국가별로 독립 적용해 재활성화한다.
 - 1차 운영 뉴스 소스는 무료 구성으로 고정한다. 한국은 NAVER API HUB 뉴스 검색의 무료 호출 한도 안에서 보강하며, 유료 전환·종량제 확장은 사용자 승인 전에는 사용하지 않는다.
 - NAVER 호출은 애플리케이션과 NAVER Console 양쪽에서 일 300회·월 9,000회로 제한하고, 어느 한도든 도달하면 추가 호출을 자동 중단한다. 사용량 50%·80%에서 알림을 보내며 무료 정책 변경 전에는 유료 초과 사용이나 자동 한도 증설을 허용하지 않는다.
 - 미국·일본 경제뉴스 보강은 NewsData.io Latest News API 무료 플랜의 `country`·`language`·`business` 필터를 국가별로 독립 적용한다. 호출은 애플리케이션에서 일 40회·월 1,200회로 제한하고, 국가별 목표·상한 150건과 최대 20페이지만 순회하며 유료 초과 사용과 자동 유료 전환을 금지한다. 무료 플랜의 지연 데이터와 제목·링크·매체·발행시각만 사용한다.
+- NewsData.io 결과는 국가별 차단 매체 목록을 적용하고, 일본 결과는 버전 관리된 경제 관련 제목 용어 중 하나 이상을 포함해야 한다. 주식 시세 자동 생성·기업 실적 재배포·보도자료 배포 플랫폼처럼 반복 템플릿 비중이 높은 매체는 표본에서 제외하며 제외 건수를 진단에 남긴다.
 - 경제 범위는 버전 관리되는 국가별 경제 주제 query 묶음으로 제한하고 query별 수집량과 편향을 기록한다. 특정 기업·사건 이름을 미리 넣어 결과를 유도하지 않는다.
 - 기존 중앙은행·정부기관 RSS와 조건부 공공 API는 보조 소스로 유지하며 주 소스 결과와 함께 중복 제거한다.
 - NewsAPI, GNews, Mediastack, World News API 등 개발 전용 또는 유료 전환이 필요한 집계 API는 운영 의존성으로 두지 않는다.
@@ -166,7 +167,7 @@ Android 앱은 폐기하지 않는다. 키워드 중심 웹과 공개 URL의 안
 - 이용조건은 90일마다 재확인하고 승인·등록·앱 ID가 필요한 소스는 확인 전 비활성으로 둔다.
 
 ```yaml
-ALL: GDELT DOC API Article List를 국가별 주 소스로 사용
+ALL: GDELT DOC API Article List는 429 안정성 재검증 전까지 일시 비활성
 US supplementary: Federal Reserve RSS; BLS RSS 비활성, BEA API 조건부
 JP supplementary: BOJ RSS; METI Atom 비활성, e-Stat API 조건부
 KR supplementary: 한국은행·금융위원회·중소벤처기업부 RSS
@@ -190,7 +191,7 @@ GDELT·RSS·NewsData.io가 제공한 제목·짧은 요약·원문 URL·매체·
 
 언어별 분석기는 제목에서 반복 명사와 최대 2개 형태소의 짧은 복합명사를 추출한다. 한국어는 `kiwipiepy`, 일본어는 `SudachiPy` core 사전, 영어는 정규화된 단어·2단어 명사 표현 규칙으로 확정한다. `경제`, `시장`, `정부`, `발표`, `전망`, `투자`처럼 단독으로 이슈를 식별하기 어려운 일반어와 국가별 불용어를 버전 관리한다. 한 제목에서 여러 후보를 만들되 화면 label은 하나의 이슈 개념만 나타내며 문장 앞부분을 그대로 후보로 사용하지 않는다.
 
-동일 기사에서 한 키워드가 여러 번 등장해도 문서 빈도는 1건으로 계산한다. 70건 이상의 운영 표본에서 최소 3건 또는 전체의 3% 중 큰 값과 서로 다른 2개 이상 매체를 충족한 후보만 순위에 포함한다. 원시 출현 횟수만으로 순위를 정하지 않으며, 재전송·유사 기사와 단일 매체 집중을 먼저 제거한다.
+동일 기사에서 한 키워드가 여러 번 등장해도 문서 빈도는 1건으로 계산한다. 70건 이상의 운영 표본에서 최소 4건 또는 전체의 5% 중 큰 값과 서로 다른 2개 이상 매체를 충족한 후보만 순위에 포함한다. 날짜·요일·월/분기 표현, 통화 단위, 보도자료 관용어, 출시·실적·주가·이동평균 같은 반복 템플릿 일반어를 제외한다. TOP 5 사이의 관련 기사 집합 Jaccard 유사도가 0.5 이상이면 후순위 후보를 버려 서로 다른 다섯 이슈를 보장한다. 원시 출현 횟수만으로 순위를 정하지 않으며, 재전송·유사 기사와 단일 매체 집중을 먼저 제거한다.
 
 LLM은 번역 워드클라우드를 만드는 도구가 아니라 분석기가 추출한 후보 안에서 한 국가의 동의어와 표기 변형을 선택적으로 통합하는 제한적 도구다. 기본 운영은 LLM 없이 결정적으로 동작하고 표시명은 원문에 존재하는 짧은 단어·복합명사만 사용한다.
 
@@ -234,6 +235,8 @@ keyword_score      = document_frequency 우선, publisher_count·최신 시각·
 `failed`: 게시 기준을 충족한 국가가 1개 이하.
 
 세 국가 모두 게시 가능할 때만 날짜 결과를 저장하며 실패 실행은 `latest.json`을 바꾸지 않는다.
+
+기사 수 70건은 표본량 게이트일 뿐 품질 통과를 의미하지 않는다. 위 빈도·매체·일반어·중복 이슈 기준을 모두 만족하는 키워드 5개를 만들 수 없으면 그 국가는 실패이며 새 공개 파일을 만들지 않는다.
 
 ---
 
@@ -517,7 +520,9 @@ delete_expired(retention_days)
 
 JSON을 SQLite/PostgreSQL로 바꿔도 Router, Service, 웹 API 계약과 보류된 Android API 계약은 유지한다.
 
-정식 웹 UI는 정적 HTML/CSS/Vanilla JS로 만들고 DataSource에 관계없이 같은 응답 Schema와 상태 정의를 사용한다. 키워드 전환 후 기본 설정은 `DATA_MODE=static`, `DATA_BASE_URL=./data/v2`이며 후속 서버에서는 `DATA_MODE=api`, `API_BASE_URL=https://.../api/v2`로 교체한다. 모바일 우선 반응형 레이아웃, 포인트 컬러 하나, 단순한 클라우드 디자인을 적용한다. 생성된 운영 JSON은 Pages 배포 artifact에는 포함하지만 소스 브랜치에는 커밋하지 않는다.
+정식 웹 UI는 정적 HTML/CSS/Vanilla JS로 만들고 DataSource에 관계없이 같은 응답 Schema와 상태 정의를 사용한다. 키워드 전환 후 기본 설정은 `DATA_MODE=static`, `DATA_BASE_URL=./data/v2`이며 후속 서버에서는 `DATA_MODE=api`, `API_BASE_URL=https://.../api/v2`로 교체한다. 모바일 우선 반응형 레이아웃, 포인트 컬러 하나, 단순한 클라우드 디자인을 적용한다. 생성된 운영 JSON은 Pages 배포 artifact에는 포함하지만 소스 브랜치에는 커밋하지 않는다. 매 실행은 현재 공개 사이트에서 직전 6개 날짜를 Schema 2.0으로 재검증해 복원한 뒤 오늘 결과를 더하여 최대 7개 날짜만 원자적으로 게시한다. `main` push는 외부 API를 호출하지 않고 기존 공개 `latest.json`과 날짜 이력을 복원해 웹 코드만 재배포하며, 복원 실패 시 기존 Pages 배포를 유지한다.
+
+관리자 확인용으로 최종 선택 기사 전체의 ID·제목·원문 HTTPS URL·매체·발행 시각과 수집 진단을 별도 Actions artifact에 저장한다. 이 artifact는 7일 보관하고 Pages와 Git에는 포함하지 않으며 Secret, 인증 header, 원문 API 응답, 기사 본문은 포함하지 않는다.
 
 ---
 
@@ -548,7 +553,7 @@ JSON을 SQLite/PostgreSQL로 바꿔도 Router, Service, 웹 API 계약과 보류
 | 09:30 | 여전히 없을 때 마지막 재시도 |
 | 10:00 | 상태 점검과 연속 실패 알림 후보 |
 
-1차 운영은 매일 09:00 JST/KST(`0 0 * * *` UTC)를 기본으로 하고 10:00·12:00 JST/KST를 보충 schedule로 둔다. `main` push는 외부 API를 호출하거나 당일 시도권을 소비하지 않고 fixture artifact를 검증·배포하며, 예약 실행만 기본 `live` mode를 사용한다. 날짜별 live-attempt marker를 GitHub Actions cache에 저장하고, 같은 JST 날짜 marker가 있으면 기본·보충 live 실행은 외부 수집과 배포를 건너뛴다. marker는 의존성 설치와 전체 검증이 끝난 뒤 생성하며, cache 영속화가 성공한 다음에만 `publish-live`를 시작한다. cache 저장이 실패하거나 marker가 없으면 외부 수집을 시작하지 않는다. 따라서 외부 호출 단계 전 실패만 보충하고, 외부 호출 시도권을 영속화한 실행은 성공·실패·runner 중단과 무관하게 자동 재호출하지 않는다. 사용자 판단에 따른 수동 `force_live_retry=true`만 중복 방지 예외로 허용한다. workflow concurrency로 동시 실행을 막고, 예약 실행 지연·공개 저장소 장기 비활동 중단 가능성을 운영 점검에 포함한다. 후속 VPS/EC2에서는 같은 pipeline entry를 systemd timer의 `Persistent=true`와 OS 파일 잠금으로 실행한다.
+1차 운영은 매일 09:00 JST/KST(`0 0 * * *` UTC)를 기본으로 하고 10:00·12:00 JST/KST를 보충 schedule로 둔다. `main` push는 외부 API를 호출하거나 당일 시도권을 소비하지 않고 현재 공개 데이터를 복원한 `preserve` artifact를 검증·배포하며, 예약 실행만 기본 `live` mode를 사용한다. 날짜별 live-attempt marker를 GitHub Actions cache에 저장하고, 같은 JST 날짜 marker가 있으면 기본·보충 live 실행은 외부 수집과 배포를 건너뛴다. marker는 의존성 설치와 전체 검증이 끝난 뒤 생성하며, cache 영속화가 성공한 다음에만 `publish-live`를 시작한다. cache 저장이 실패하거나 marker가 없으면 외부 수집을 시작하지 않는다. 따라서 외부 호출 단계 전 실패만 보충하고, 외부 호출 시도권을 영속화한 실행은 성공·실패·runner 중단과 무관하게 자동 재호출하지 않는다. 사용자 판단에 따른 수동 `force_live_retry=true`만 중복 방지 예외로 허용한다. workflow concurrency로 동시 실행을 막고, 예약 실행 지연·공개 저장소 장기 비활동 중단 가능성을 운영 점검에 포함한다. 후속 VPS/EC2에서는 같은 pipeline entry를 systemd timer의 `Persistent=true`와 OS 파일 잠금으로 실행한다.
 
 ```text
 python -m app.batch.pipeline_entry
@@ -731,6 +736,8 @@ deploy/
 - 생성과 Schema 검증이 실패하면 기존 Pages 배포를 유지하고 실패한 artifact를 게시하지 않는다.
 - 공식 `actions/deploy-pages@v4`의 내부 대기 상한인 10분에 맞춰 deploy job도 최대 10분으로 제한한다. `deployment_queued` 상태로 제한이 끝나면 기존 정상 Pages 배포를 유지하고, GitHub Pages 상태와 실행 로그를 확인한 뒤 시간을 두고 수동으로 한 번만 재시도한다. 같은 commit의 즉시 중복 실행과 대체 배포 방식 전환은 하지 않는다.
 - Pages artifact에는 최근 7일의 공개 가능 JSON, 정적 웹, 정책 페이지만 포함한다.
+- live build는 관리자용 선택 기사와 진단 artifact를 7일 보관한다. 공개 Pages와 Git에는 넣지 않고, 생성 실패 때도 가능한 진단 파일을 업로드한다.
+- GitHub Actions는 Node.js 24 호환 major인 `actions/cache@v6`, `astral-sh/setup-uv@v9`, `actions/upload-artifact@v7`, `actions/upload-pages-artifact@v5`를 사용한다.
 - VPS/EC2 후속 배포는 최초 설정과 반복 배포를 분리하고 `/health`, `/ready`, 롤백과 최근 2개 릴리스 보관을 적용한다.
 
 운영 지표:

@@ -9,6 +9,7 @@ sources:
       query_version: 2026-08-08.v1
       source_country: us
       source_language: en
+      blocked_publishers: [Ticker Report, Markets Daily, Watch List News, The Lincolnian Online]
       enabled: true
       terms_status: approved_free_delayed_attribution
       terms_checked_at: 2026-08-08
@@ -24,9 +25,9 @@ sources:
       source_country: UnitedStates
       source_language: English
       allowed_domains: [wsj.com, bloomberg.com, cnbc.com, marketwatch.com, nytimes.com, fortune.com, businessinsider.com, reuters.com]
-      enabled: true
-      terms_status: approved_free_attribution_required
-      terms_checked_at: 2026-08-07
+      enabled: false
+      terms_status: temporarily_disabled_rate_limited
+      terms_checked_at: 2026-08-10
       terms_review_due_at: 2026-11-05
       allowed_fields: [title, url, publisher, published_at]
     - id: federal_reserve_all_releases
@@ -92,6 +93,8 @@ sources:
       query_version: 2026-08-08.v1
       source_country: jp
       source_language: ja
+      blocked_publishers: [Pr Times]
+      required_title_terms: [経済, 金融, 金利, 株, 株価, 為替, 円, ドル, 貿易, 輸出, 輸入, 物価, 雇用, 賃金, 景気, GDP, 半導体, 企業, 業績, 決算, 市場, 銀行, 産業, 不動産, 税, 関税, 債券, 国債, 原油, エネルギー]
       enabled: true
       terms_status: approved_free_delayed_attribution
       terms_checked_at: 2026-08-08
@@ -107,9 +110,9 @@ sources:
       source_country: Japan
       source_language: Japanese
       allowed_domains: [nikkei.com, toyokeizai.net, diamond.jp, businessinsider.jp, jiji.com, newswitch.jp]
-      enabled: true
-      terms_status: approved_free_attribution_required
-      terms_checked_at: 2026-08-07
+      enabled: false
+      terms_status: temporarily_disabled_rate_limited
+      terms_checked_at: 2026-08-10
       terms_review_due_at: 2026-11-05
       allowed_fields: [title, url, publisher, published_at]
     - id: meti_news_releases
@@ -189,9 +192,9 @@ sources:
       source_country: SouthKorea
       source_language: Korean
       allowed_domains: [hankyung.com, mk.co.kr, sedaily.com, edaily.co.kr, fnnews.com, heraldcorp.com, mt.co.kr, asiae.co.kr]
-      enabled: true
-      terms_status: approved_free_attribution_required
-      terms_checked_at: 2026-08-07
+      enabled: false
+      terms_status: temporarily_disabled_rate_limited
+      terms_checked_at: 2026-08-10
       terms_review_due_at: 2026-11-05
       allowed_fields: [title, url, publisher, published_at]
     - id: bok_all_releases

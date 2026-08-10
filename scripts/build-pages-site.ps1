@@ -1,8 +1,10 @@
 [CmdletBinding()]
 param(
-    [ValidateSet("fixture", "live")][string]$Mode = "fixture",
+    [ValidateSet("fixture", "live", "preserve")][string]$Mode = "fixture",
     [Parameter(Mandatory = $true)][string]$OutputDirectory,
-    [string]$AttemptMarkerPath
+    [string]$AttemptMarkerPath,
+    [string]$RuntimeDirectory,
+    [string]$AdminOutputDirectory
 )
 
 $ErrorActionPreference = "Stop"
@@ -30,7 +32,24 @@ if (
 }
 $frontendPath = Join-Path $projectRoot "frontend"
 $dataPath = Join-Path $outputPath "data/v2"
-$runtimePath = Join-Path $env:TEMP ("country-issue-cloud-pages-" + [guid]::NewGuid())
+$runtimePath = if ([string]::IsNullOrWhiteSpace($RuntimeDirectory)) {
+    Join-Path $env:TEMP ("country-issue-cloud-pages-" + [guid]::NewGuid())
+} else {
+    [System.IO.Path]::GetFullPath($RuntimeDirectory)
+}
+$runtimeLeaf = Split-Path -Leaf $runtimePath
+$runtimeInProject = $runtimePath.StartsWith(
+    $projectPath.TrimEnd('\') + '\', [System.StringComparison]::OrdinalIgnoreCase
+)
+$runtimeInTemp = $runtimePath.StartsWith(
+    $tempPath.TrimEnd('\') + '\', [System.StringComparison]::OrdinalIgnoreCase
+)
+if (
+    -not [string]::IsNullOrWhiteSpace($RuntimeDirectory) -and
+    ($runtimeLeaf -ne "pages-data" -or (-not $runtimeInProject -and -not $runtimeInTemp))
+) {
+    throw "Runtime directory must end with 'pages-data' under the project or temp directory."
+}
 $uvCommand = Get-Command uv -ErrorAction SilentlyContinue
 if (-not $uvCommand) {
     $uvCommand = Join-Path $projectRoot ".tools/uv/bin/uv.exe"
@@ -52,7 +71,7 @@ if ($Mode -eq "fixture") {
         --evaluation-dir (Join-Path $projectRoot "sample-data/evaluation") `
         --data-dir $runtimePath `
         --site-data-dir $dataPath
-} else {
+} elseif ($Mode -eq "live") {
     if ([string]::IsNullOrWhiteSpace($AttemptMarkerPath)) {
         throw "Live mode requires an attempt marker path."
     }
@@ -75,9 +94,39 @@ if ($Mode -eq "fixture") {
         --site-data-dir $dataPath `
         --lookback-hours 24 `
         --enable-newsdata
+} else {
+    & $uvCommand run --project (Join-Path $projectRoot "backend") python -m app.batch.cli publish-existing-keyword-data `
+        --data-dir $runtimePath `
+        --site-data-dir $dataPath
 }
-if ($LASTEXITCODE -ne 0) {
-    throw "Pages data generation failed with exit code $LASTEXITCODE"
+$generationExitCode = $LASTEXITCODE
+if ($Mode -eq "live" -and -not [string]::IsNullOrWhiteSpace($AdminOutputDirectory)) {
+    $adminPath = [System.IO.Path]::GetFullPath($AdminOutputDirectory)
+    $adminLeaf = Split-Path -Leaf $adminPath
+    if (
+        $adminLeaf -ne "admin" -or
+        -not $adminPath.StartsWith(
+            $projectPath.TrimEnd('\') + '\',
+            [System.StringComparison]::OrdinalIgnoreCase
+        )
+    ) {
+        throw "Admin output directory must end with 'admin' under the project directory."
+    }
+    if (Test-Path -LiteralPath $adminPath) {
+        Remove-Item -LiteralPath $adminPath -Recurse -Force
+    }
+    New-Item -ItemType Directory -Path $adminPath | Out-Null
+    $diagnostics = Join-Path $runtimePath "runtime/collection-diagnostics.json"
+    $articles = Join-Path $runtimePath "runtime/admin/selected-articles.json"
+    if (Test-Path -LiteralPath $diagnostics) {
+        Copy-Item -LiteralPath $diagnostics -Destination $adminPath
+    }
+    if (Test-Path -LiteralPath $articles) {
+        Copy-Item -LiteralPath $articles -Destination $adminPath
+    }
+}
+if ($generationExitCode -ne 0) {
+    throw "Pages data generation failed with exit code $generationExitCode"
 }
 
 & (Join-Path $PSScriptRoot "check-public-artifact.ps1") -Path $outputPath

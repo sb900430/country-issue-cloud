@@ -153,10 +153,11 @@ Androidアプリは廃止しない。keyword中心Webと公開URLの安定化後
 
 ### 出典ポリシー
 
-- 主sourceはGDELT Project DOC APIのArticle Listとし、`sourcecountry`、`sourcelang`、直前24時間、`maxrecords=250`を国別に独立適用する。
+- GDELT Project DOC API Article Listは長期的な主source候補だが、反復HTTP 429が確認されている間は運用設定で無効とする。制限付き単一requestで正常応答と利用条件を再確認した後だけ、`sourcecountry`、`sourcelang`、直前24時間、`maxrecords=250`を国別に独立適用して再有効化する。
 - 初回運用のnews sourceは無料構成に固定する。韓国はNAVER API HUB news検索の無料呼出上限内で補完し、有料移行・従量課金拡張は利用者承認前に使わない。
 - NAVER呼出はapplicationとNAVER Consoleの両方で日300回・月9,000回に制限し、いずれかの上限到達時に追加呼出を自動停止する。使用量50%・80%で通知し、無料policy変更前は有料超過利用や自動上限拡張を許可しない。
 - 米国・日本の経済news補完はNewsData.io Latest News API無料planの`country`・`language`・`business` filterを国別に独立適用する。呼出はapplicationで日40回・月1,200回に制限し、国別目標・上限150件と最大20pageだけを巡回して、有料超過利用と自動有料移行を禁止する。無料planの遅延dataとtitle・link・媒体・公開時刻だけを使用する。
+- NewsData.io結果には国別の遮断媒体listを適用し、日本の結果はversion管理された経済関連title用語のいずれかを含む必要がある。株価自動生成・企業決算転載・プレスリリース配信platformのように反復template比率が高い媒体はsampleから除外し、除外件数を診断へ残す。
 - 経済範囲はversion管理された国別経済topic query群で制限し、query別収集量と偏りを記録する。特定企業・事件名を事前投入して結果を誘導しない。
 - 既存の中央銀行・政府機関RSSと条件付き公共APIは補助sourceとして維持し、主source結果とまとめて重複排除する。
 - NewsAPI、GNews、Mediastack、World News APIなど開発専用または有料移行が必要な集約APIは本番依存にしない。
@@ -166,7 +167,7 @@ Androidアプリは廃止しない。keyword中心Webと公開URLの安定化後
 - 利用条件は90日ごとに再確認し、承認・登録・app IDが必要なsourceは確認前に無効とする。
 
 ```yaml
-ALL: GDELT DOC API Article Listを国別主sourceとして使用
+ALL: GDELT DOC API Article Listは429安定性の再検証まで一時無効
 US supplementary: Federal Reserve RSS；BLS RSS無効、BEA API条件付き
 JP supplementary: BOJ RSS；METI Atom無効、e-Stat API条件付き
 KR supplementary: 韓国銀行・金融委員会・中小ベンチャー企業部RSS
@@ -190,7 +191,7 @@ GDELT・RSS・NewsData.ioが提供するtitle・短いsummary・原文URL・媒�
 
 言語別分析器はtitleから反復名詞と最大2形態素の短い複合名詞を抽出する。韓国語は`kiwipiepy`、日本語は`SudachiPy` core辞書、英語は正規化した単語・2語名詞表現規則に確定する。`経済`、`市場`、`政府`、`発表`、`見通し`、`投資`のように単独でイシューを識別しにくい一般語と国別stopwordをversion管理する。一つのtitleから複数候補を生成するが、画面labelは一つのイシュー概念だけを示し、文頭部分をそのまま候補にしない。
 
-同一記事で一つのkeywordが複数回出現してもdocument frequencyは1件と数える。70件以上の運用サンプルで最低3件または全体の3%の大きい方と、異なる2媒体以上を満たす候補だけを順位へ含める。生の出現回数だけで順位を決めず、転載・類似記事と単一媒体集中を先に除外する。
+同一記事で一つのkeywordが複数回出現してもdocument frequencyは1件と数える。70件以上の運用sampleで最低4件または全体の5%の大きい方と、異なる2媒体以上を満たす候補だけを順位へ含める。日付・曜日・月/四半期表現、通貨単位、プレスリリース慣用語、発売・決算・株価・移動平均のような反復template一般語を除外する。TOP 5間の関連記事集合Jaccard類似度が0.5以上なら後順位候補を除外し、異なる5イシューを保証する。生の出現回数だけで順位を決めず、転載・類似記事と単一媒体集中を先に除外する。
 
 LLMは翻訳word cloudを作るものではなく、分析器が抽出した候補内で一国内の同義語・表記揺れを選択的に統合する限定的なtoolである。標準運用はLLMなしで決定的に動作し、表示名は原文に存在する短い単語・複合名詞だけを使う。
 
@@ -234,6 +235,8 @@ keyword_score      = document_frequency優先、publisher_count・最新時刻�
 `failed`：配布基準を満たす国が1か国以下。
 
 3か国すべてが配布可能な場合だけ日付結果を保存し、失敗実行では`latest.json`を変更しない。
+
+記事数70件はsample量gateにすぎず、品質通過を意味しない。上記の頻度・媒体・一般語・重複イシュー基準をすべて満たすkeyword 5件を作れない国は失敗とし、新しい公開fileを作成しない。
 
 ---
 
@@ -493,7 +496,9 @@ save(result)
 delete_expired(retention_days)
 ```
 
-JSONをSQLite/PostgreSQLへ変更してもRouter、Service、Web API契約、保留中のAndroid API契約を維持する。正式Web UIは静的HTML/CSS/Vanilla JSで作り、DataSourceに関係なく同じresponse Schemaと状態定義を使う。keyword移行後の標準設定は`DATA_MODE=static`、`DATA_BASE_URL=./data/v2`で、後続serverでは`DATA_MODE=api`、`API_BASE_URL=https://.../api/v2`へ切り替える。mobile-first responsive layout、アクセントカラー一色、簡潔なクラウドデザインを適用する。生成した運用JSONはPages配布artifactへ含めるがsource branchへcommitしない。
+JSONをSQLite/PostgreSQLへ変更してもRouter、Service、Web API契約、保留中のAndroid API契約を維持する。正式Web UIは静的HTML/CSS/Vanilla JSで作り、DataSourceに関係なく同じresponse Schemaと状態定義を使う。keyword移行後の標準設定は`DATA_MODE=static`、`DATA_BASE_URL=./data/v2`で、後続serverでは`DATA_MODE=api`、`API_BASE_URL=https://.../api/v2`へ切り替える。mobile-first responsive layout、アクセントカラー一色、簡潔なクラウドデザインを適用する。生成した運用JSONはPages配布artifactへ含めるがsource branchへcommitしない。各実行は現在の公開siteから直前6日分をSchema 2.0で再検証して復元し、当日結果を加えて最大7日だけをatomicに配布する。`main` pushは外部APIを呼ばず、既存公開`latest.json`と日付履歴を復元してWeb codeだけを再配布し、復元失敗時は既存Pages配布を維持する。
+
+管理者確認用として最終選択記事全件のID・title・原文HTTPS URL・媒体・公開時刻と収集診断を別Actions artifactへ保存する。このartifactは7日保持し、PagesとGitへ含めず、Secret、認証header、raw API response、記事本文を含めない。
 
 ---
 
@@ -524,7 +529,7 @@ JSONをSQLite/PostgreSQLへ変更してもRouter、Service、Web API契約、保
 | 09:30 | 最終再試行 |
 | 10:00 | 状態確認と連続失敗通知候補 |
 
-初回運用は毎日09:00 JST/KST（UTC `0 0 * * *`）を標準とし、10:00・12:00 JST/KSTを補完scheduleとする。`main` pushは外部APIを呼び出さず当日の試行権も消費せず、fixture artifactを検証・配布し、予約実行だけが標準`live` modeを使う。日付別live-attempt markerをGitHub Actions cacheへ保存し、同じJST日付のmarkerがある場合は標準・補完live実行で外部収集と配布をskipする。markerは依存導入と全検証の完了後に生成し、cache永続化が成功した後だけ`publish-live`を開始する。cache保存に失敗するかmarkerが存在しない場合は外部収集を開始しない。これにより外部呼出段階前の失敗だけを補完し、外部呼出試行権を永続化した実行は成功・失敗・runner中断に関係なく自動再呼出しない。利用者判断による手動`force_live_retry=true`だけを重複防止の例外として許可する。workflow concurrencyで同時実行を防ぎ、予約遅延・公開repositoryの長期非activityによる停止可能性を運用点検へ含める。後続VPS/EC2では同じpipeline entryをsystemd timerの`Persistent=true`とOS file lockで実行する。
+初回運用は毎日09:00 JST/KST（UTC `0 0 * * *`）を標準とし、10:00・12:00 JST/KSTを補完scheduleとする。`main` pushは外部APIを呼び出さず当日の試行権も消費せず、現在の公開dataを復元した`preserve` artifactを検証・配布し、予約実行だけが標準`live` modeを使う。日付別live-attempt markerをGitHub Actions cacheへ保存し、同じJST日付のmarkerがある場合は標準・補完live実行で外部収集と配布をskipする。markerは依存導入と全検証の完了後に生成し、cache永続化が成功した後だけ`publish-live`を開始する。cache保存に失敗するかmarkerが存在しない場合は外部収集を開始しない。これにより外部呼出段階前の失敗だけを補完し、外部呼出試行権を永続化した実行は成功・失敗・runner中断に関係なく自動再呼出しない。利用者判断による手動`force_live_retry=true`だけを重複防止の例外として許可する。workflow concurrencyで同時実行を防ぎ、予約遅延・公開repositoryの長期非activityによる停止可能性を運用点検へ含める。後続VPS/EC2では同じpipeline entryをsystemd timerの`Persistent=true`とOS file lockで実行する。
 
 ```text
 python -m app.batch.pipeline_entry
@@ -689,6 +694,8 @@ VPS/EC2 systemdまたはcontainer scheduler → 同じbatch entry
 - 生成またはSchema検証に失敗した場合は既存Pages配布を維持し、失敗artifactを公開しない。
 - 公式`actions/deploy-pages@v4`の内部待機上限である10分に合わせ、deploy jobも最大10分に制限する。`deployment_queued`状態で上限に達した場合は既存の正常なPages配布を維持し、GitHub Pagesの状態と実行logを確認して時間を置いた後、手動で一度だけ再試行する。同一commitの即時重複実行や代替配布方式への切替は行わない。
 - Pages artifactには直近7日の公開可能JSON、静的Web、policy pageだけを含める。
+- live buildは管理者用の選択記事と診断artifactを7日保持する。公開PagesとGitへ含めず、生成失敗時も可能な診断fileをuploadする。
+- GitHub ActionsはNode.js 24互換majorの`actions/cache@v6`、`astral-sh/setup-uv@v9`、`actions/upload-artifact@v7`、`actions/upload-pages-artifact@v5`を使用する。
 - VPS/EC2後続配布は初回設定と反復配布を分離し、`/health`、`/ready`、rollback、直近2 release保管を適用する。
 
 運用指標は、batch時間、国・source別記事数/失敗率、LLM呼出・token・費用・再試行・成功率、Actions実行・Pages配布成否、最終公開成功時刻、後続API modeのrequest数・error率・応答時間とする。24時間遅延で案内、48時間遅延でWeb警告を表示する。運用RunbookにはActions予約遅延・無効化、手動再実行、Pages artifact rollback、source認証/形式変更、LLM費用急増、JSON復旧を含める。VPS/EC2再開時にservice再起動、証明書障害、server rollbackを追加する。

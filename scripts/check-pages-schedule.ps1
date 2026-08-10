@@ -13,13 +13,13 @@ foreach ($cron in @('0 0 * * *', '0 1 * * *', '0 3 * * *')) {
     }
 }
 foreach ($required in @(
-    'actions/cache/restore@v4',
+    'actions/cache/restore@v6',
     'lookup-only: true',
-    'actions/cache/save@v4',
+    'actions/cache/save@v6',
     "Persist today's live-attempt marker before collection",
     'force_live_retry',
     'if [[ "${{ github.event_name }}" == "schedule" ]]',
-    'mode="fixture"',
+    'mode="preserve"',
     'environment: pages-production',
     'NAVER_CLIENT_ID: ${{ secrets.NAVER_CLIENT_ID }}',
     'NAVER_CLIENT_SECRET: ${{ secrets.NAVER_CLIENT_SECRET }}',
@@ -34,10 +34,12 @@ if (-not $workflow.Contains('mode="live"')) {
     throw "Scheduled Pages runs must select live data mode."
 }
 $claimIndex = $workflow.IndexOf("Claim today's live attempt")
+$restoreIndex = $workflow.IndexOf("Restore previous public keyword history")
 $saveIndex = $workflow.IndexOf("Persist today's live-attempt marker before collection")
 $buildIndex = $workflow.IndexOf("Build validated Pages artifact")
 if (
-    $claimIndex -lt 0 -or
+    $restoreIndex -lt 0 -or
+    $claimIndex -lt $restoreIndex -or
     $saveIndex -lt $claimIndex -or
     $buildIndex -lt $saveIndex
 ) {
@@ -46,13 +48,31 @@ if (
 if (-not $builder.Contains('Live attempt marker must be persisted before collection starts.')) {
     throw "The Pages builder must reject live collection without a persisted marker."
 }
-foreach ($required in @('publish-keyword-fixture', 'publish-keyword-live', 'data/v2')) {
+foreach ($required in @(
+    'publish-keyword-fixture',
+    'publish-keyword-live',
+    'publish-existing-keyword-data',
+    'data/v2'
+)) {
     if (-not $builder.Contains($required)) {
         throw "Pages builder is missing the v2 keyword path: $required"
     }
 }
 if (-not $builder.Contains('--enable-newsdata')) {
     throw "The live Pages builder must enable the NewsData supplement."
+}
+foreach ($required in @(
+    'restore-keyword-history',
+    'Upload administrator collection evidence',
+    'actions/upload-artifact@v7',
+    'actions/upload-pages-artifact@v5',
+    'astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9',
+    'retention-days: 7',
+    'AdminOutputDirectory'
+)) {
+    if (-not $workflow.Contains($required) -and -not $builder.Contains($required)) {
+        throw "Pages workflow is missing history or administrator evidence safeguard: $required"
+    }
 }
 foreach ($required in @(
     'public-smoke:',

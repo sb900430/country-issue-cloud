@@ -2,15 +2,21 @@
 
 | 項目 | 現在状態 |
 |---|---|
-| 現在目標 | 実news配布下限を国別70件へ調整 |
-| 状態 | code・境界値test・韓日運用基準更新と全体検証が完了 |
+| 現在目標 | 実keyword品質・7日履歴・管理者診断の強化 |
+| 状態 | 実装・韓日文書同期・全体検証が完了 |
 | 基準branch | `main` |
-| 作業branch | `codex/lower-live-publish-threshold` |
+| 作業branch | `codex/live-keyword-quality-hardening` |
 | 最終完了commit | `5dc8928` — 単一イシュー概念keyword PR #27 Rebase and merge |
-| 全体検証 | PASS — Python 126件・coverage 89%・Web 9件・Pages fixture・Ruff・mypy・Secret・仕様同期 |
+| 全体検証 | PASS — Python 137件・coverage 88%・Web 9件・Pages fixture/preserve・Ruff・mypy・Secret・仕様同期 |
 | 次作業 | 完了review後にDraft PRを作成 |
 
 ## v1.0公開準備の進行結果
+
+- 2026-08-10実行のUS 139・JP 117・KR 72件で、決算・株価・移動平均、日付・発売、億ウォン・特徴株などの反復template一般語と関連記事重複を確認した。
+- 候補基準を最低4件または5%・2媒体へ強化し、日付・単位・template一般語除外とTOP5関連記事Jaccard重複除外を実装した。
+- NewsData.io遮断媒体と日本経済title gateを追加し、反復429のGDELTを一時無効化した。RSS XML一時errorは一度再parseする。
+- live実行は最終選択記事metadataと収集診断を7日管理者artifactへ残し、公開履歴の直前6日を復元して当日結果と共に最大7日を配布する。`main` pushはfixtureではなく公開dataを維持する。
+- GitHub ActionsのNode.js 20警告対象actionをNode.js 24互換majorへ更新した。
 
 - 公開Pagesで3か国切替、TOP5、tile・cloud切替、詳細dialog、関連記事20件linkを確認し、console errorがないことを確認した。
 - 配布成否に関係なく現在の公開HTMLと`data/v2`契約を確認する`public-smoke` jobとretry可能な検査scriptを追加した。

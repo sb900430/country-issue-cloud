@@ -84,6 +84,7 @@ def test_live_keyword_batch_publishes_three_country_top_five(tmp_path: Path) -> 
     assert all(result.countries[country].article_count == 100 for country in CountryCode)
     assert all(len(result.countries[country].top_keywords) == 5 for country in CountryCode)
     assert (tmp_path / "site" / "data" / "v2" / "latest.json").exists()
+    assert (tmp_path / "data" / "runtime" / "admin" / "selected-articles.json").exists()
 
 
 def test_live_keyword_batch_publishes_at_seventy_articles_per_country(
@@ -172,6 +173,7 @@ def test_live_keyword_batch_does_not_publish_partial_three_country_data(
 
     assert result.status is IssueStatus.PARTIAL_SUCCESS
     assert not (site_dir / "latest.json").exists()
+    assert (tmp_path / "data" / "runtime" / "admin" / "selected-articles.json").exists()
 
 
 def test_live_keyword_batch_does_not_publish_when_one_country_has_sixty_nine_articles(

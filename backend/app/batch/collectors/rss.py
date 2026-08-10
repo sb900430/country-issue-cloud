@@ -36,7 +36,10 @@ class RssCollector:
     def collect(
         self, window_start: datetime, window_end: datetime, limit: int
     ) -> list[CollectedArticle]:
-        root = ElementTree.fromstring(self.fetch(self.source.feed_url))
+        try:
+            root = ElementTree.fromstring(self.fetch(self.source.feed_url))
+        except ElementTree.ParseError:
+            root = ElementTree.fromstring(self.fetch(self.source.feed_url))
         articles: list[CollectedArticle] = []
         for title, url, summary, raw_published_at in self._entries(root):
             if not title or not url or not raw_published_at:

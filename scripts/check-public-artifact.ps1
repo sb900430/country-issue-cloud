@@ -37,4 +37,29 @@ foreach ($country in @("US", "JP", "KR")) {
         throw "Public artifact must contain five keywords for $country."
     }
 }
+$dateValues = @(Get-Content -LiteralPath $dates -Raw | ConvertFrom-Json)
+if ($dateValues.Count -lt 1 -or $dateValues.Count -gt 7) {
+    throw "Public artifact must contain between one and seven dates."
+}
+if ($dateValues[0] -ne $payload.date) {
+    throw "Public artifact latest date must be first in dates.json."
+}
+foreach ($dateValue in $dateValues) {
+    if ($dateValue -notmatch '^\d{4}-\d{2}-\d{2}$') {
+        throw "Public artifact contains an invalid date index."
+    }
+    $datedPath = Join-Path $resolved "data/v2/$dateValue.json"
+    if (-not (Test-Path -LiteralPath $datedPath)) {
+        throw "Public artifact is missing dated keyword data: $dateValue"
+    }
+    $datedPayload = Get-Content -LiteralPath $datedPath -Raw | ConvertFrom-Json
+    if ($datedPayload.schema_version -ne "2.0" -or $datedPayload.date -ne $dateValue) {
+        throw "Public artifact contains invalid dated keyword data: $dateValue"
+    }
+    foreach ($country in @("US", "JP", "KR")) {
+        if ($datedPayload.countries.$country.top_keywords.Count -ne 5) {
+            throw "Dated public artifact must contain five keywords for $country."
+        }
+    }
+}
 Write-Host "PASS: Public Pages artifact contains required JSON and no secret patterns."
