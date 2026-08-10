@@ -27,6 +27,8 @@ class SourceEntry(BaseModel):
     source_country: str | None = None
     source_language: str | None = None
     allowed_domains: tuple[str, ...] = ()
+    blocked_publishers: tuple[str, ...] = ()
+    required_title_terms: tuple[str, ...] = ()
     terms_review_due_at: date | None = None
     enabled: bool = False
     terms_status: str
@@ -183,6 +185,8 @@ def load_newsdata_sources(path: Path) -> list[NewsDataSource]:
                     category=entry.query or "",
                     query_version=entry.query_version or "",
                     free_policy_review_due_at=entry.terms_review_due_at or date.min,
+                    blocked_publishers=entry.blocked_publishers,
+                    required_title_terms=entry.required_title_terms,
                 )
             )
     return result

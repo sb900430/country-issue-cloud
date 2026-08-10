@@ -2,15 +2,21 @@
 
 | 항목 | 현재 상태 |
 |---|---|
-| 현재 목표 | 실제 뉴스 게시 하한을 국가별 70건으로 조정 |
-| 상태 | 코드·경계값 테스트·한일 운영 기준 갱신과 전체 검증 완료 |
+| 현재 목표 | 실제 키워드 품질·7일 이력·관리자 진단 강화 |
+| 상태 | 구현·한일 문서 동기화·전체 검증 완료 |
 | 기준 브랜치 | `main` |
-| 작업 브랜치 | `codex/lower-live-publish-threshold` |
+| 작업 브랜치 | `codex/live-keyword-quality-hardening` |
 | 마지막 완료 커밋 | `5dc8928` — 단일 이슈 개념 키워드 PR #27 Rebase and merge |
-| 전체 검증 | PASS — Python 126개·coverage 89%·웹 9개·Pages fixture·Ruff·mypy·Secret·명세 동기화 |
+| 전체 검증 | PASS — Python 137개·coverage 88%·웹 9개·Pages fixture/preserve·Ruff·mypy·Secret·명세 동기화 |
 | 다음 작업 | 완료 리뷰 후 Draft PR 생성 |
 
 ## v1.0 공개 준비 진행 결과
+
+- 2026-08-10 실제 실행의 US 139·JP 117·KR 72건 결과에서 실적·주가·이동평균, 날짜·출시, 억원·특징주 같은 반복 템플릿 일반어와 관련 기사 중복을 확인했다.
+- 후보 기준을 최소 4건 또는 5%·2매체로 강화하고 날짜·단위·템플릿 일반어 제거, TOP5 관련 기사 Jaccard 중복 제거를 구현했다.
+- NewsData.io 차단 매체와 일본 경제 제목 gate를 추가하고 반복 429의 GDELT를 일시 비활성화했으며 RSS XML 일시 오류는 1회 재파싱한다.
+- live 실행은 최종 선택 기사 metadata와 수집 진단을 7일 관리자 artifact로 남기고, 공개 이력 직전 6일을 복원해 오늘 결과와 함께 최대 7일을 게시한다. `main` push는 fixture 대신 공개 데이터를 보존한다.
+- GitHub Actions의 Node.js 20 경고 대상 action을 Node.js 24 호환 major로 갱신했다.
 
 - 공개 Pages에서 세 국가 전환, TOP5, 타일·클라우드 전환, 상세 dialog와 관련 기사 20개 링크를 확인했고 console 오류가 없었다.
 - 배포 성공·실패와 관계없이 현재 공개 HTML과 `data/v2` 계약을 확인하는 `public-smoke` job과 재시도 가능한 검사 스크립트를 추가했다.

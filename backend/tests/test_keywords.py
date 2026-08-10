@@ -60,6 +60,33 @@ def test_general_terms_do_not_become_candidates(country: CountryCode, title: str
     assert candidates == ()
 
 
+@pytest.mark.parametrize(
+    ("country", "title", "blocked"),
+    [
+        (
+            CountryCode.US,
+            "Quarterly earnings results and stock price moving average",
+            {"earning result", "stock price", "moving average"},
+        ),
+        (CountryCode.JP, "2026年8月に新商品を発売", {"2026年", "8月", "発売", "年8月"}),
+        (
+            CountryCode.KR,
+            "[특징주] 400억원 규모 신상품 출시 호실적",
+            {"특징주", "억원", "원규모", "출시", "호실적"},
+        ),
+    ],
+)
+def test_template_dates_units_and_section_labels_are_not_candidates(
+    country: CountryCode, title: str, blocked: set[str]
+) -> None:
+    labels = {
+        candidate.label
+        for candidate in LanguageKeywordExtractor().extract(_article("article", country, title))
+    }
+
+    assert labels.isdisjoint(blocked)
+
+
 def test_english_normalization_keeps_s_ending_singular_words() -> None:
     candidates = LanguageKeywordExtractor().extract(
         _article("article", CountryCode.US, "Analysis report exports 001")
@@ -164,5 +191,32 @@ def test_ranker_excludes_rare_and_single_publisher_words() -> None:
     assert labels == set(topics)
     assert "monopoly" not in labels
     assert "scarcity" not in labels
-    assert all(keyword.document_frequency >= 4 for keyword in result.top_keywords)
+    assert all(keyword.document_frequency >= 6 for keyword in result.top_keywords)
     assert all(keyword.publisher_count >= 2 for keyword in result.top_keywords)
+
+
+def test_ranker_does_not_publish_two_keywords_backed_by_the_same_articles() -> None:
+    topics = (
+        "supply chain resilience",
+        "semiconductor",
+        "inflation",
+        "currency",
+        "export",
+        "housing",
+    )
+    articles = [
+        _article(
+            f"article-{index:03d}",
+            CountryCode.US,
+            f"{topics[index % len(topics)]} {index:03d}",
+            publisher=f"publisher-{index % 5}",
+            offset=index,
+        )
+        for index in range(120)
+    ]
+
+    result = KeywordRanker().analyze(CountryCode.US, articles)
+
+    labels = {keyword.label for keyword in result.top_keywords}
+    assert not {"supply chain", "chain resilience"} <= labels
+    assert len(labels) == 5

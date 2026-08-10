@@ -2,6 +2,7 @@ from collections.abc import Callable, Mapping
 from datetime import date, datetime
 from pathlib import Path
 
+from app.batch.admin_export import write_selected_article_export
 from app.batch.collection import CollectionRunner
 from app.batch.collection_diagnostics import write_collection_diagnostics
 from app.batch.collectors.base import Collector
@@ -156,6 +157,13 @@ def run_live_keyword_batch(
     )
     write_collection_diagnostics(
         data_dir / "runtime" / "collection-diagnostics.json",
+        target_date,
+        window_start,
+        window_end,
+        collections,
+    )
+    write_selected_article_export(
+        data_dir / "runtime" / "admin" / "selected-articles.json",
         target_date,
         window_start,
         window_end,

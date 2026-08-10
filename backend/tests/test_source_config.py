@@ -85,14 +85,12 @@ def test_project_source_registry_has_feeds_for_every_country() -> None:
     } <= source_ids
 
 
-def test_project_source_registry_has_gdelt_for_every_country() -> None:
+def test_project_source_registry_keeps_rate_limited_gdelt_disabled() -> None:
     project_root = Path(__file__).parents[2]
 
     sources = load_gdelt_sources(project_root / "config" / "sources.example.yml")
 
-    assert {source.country for source in sources} == set(CountryCode)
-    assert all(source.endpoint.startswith("https://") for source in sources)
-    assert all(source.allowed_domains for source in sources)
+    assert sources == []
 
 
 def test_project_source_registry_has_naver_supplement_for_korea() -> None:
@@ -129,3 +127,8 @@ def test_project_source_registry_has_newsdata_supplements_for_us_and_japan() -> 
     assert {source.country for source in sources} == {CountryCode.US, CountryCode.JP}
     assert {source.api_country for source in sources} == {"us", "jp"}
     assert all(source.category == "business" for source in sources)
+    us = next(source for source in sources if source.country is CountryCode.US)
+    jp = next(source for source in sources if source.country is CountryCode.JP)
+    assert "Ticker Report" in us.blocked_publishers
+    assert "Pr Times" in jp.blocked_publishers
+    assert {"金融", "半導体", "物価"} <= set(jp.required_title_terms)

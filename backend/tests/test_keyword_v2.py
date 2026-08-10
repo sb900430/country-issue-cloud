@@ -1,4 +1,5 @@
-from datetime import date
+import json
+from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 
 import pytest
@@ -125,3 +126,41 @@ def test_keyword_publisher_rejects_missing_or_orphan_latest(tmp_path: Path) -> N
 
     with pytest.raises(ValueError, match="no matching dated result"):
         KeywordStaticJsonPublisher(data_dir / "keyword-published", site_dir).publish()
+
+
+def test_keyword_publisher_keeps_only_latest_seven_dates(tmp_path: Path) -> None:
+    data_dir = tmp_path / "data"
+    site_dir = tmp_path / "site" / "data" / "v2"
+    fixture = publish_keyword_fixture(
+        PROJECT_ROOT / "sample-data" / "evaluation", data_dir, site_dir
+    )
+    repository = JsonKeywordRepository(data_dir)
+    first_date = date(2026, 8, 1)
+
+    for offset in range(8):
+        target_date = first_date + timedelta(days=offset)
+        repository.save(
+            fixture.model_copy(
+                update={
+                    "date": target_date,
+                    "generated_at": datetime.combine(
+                        target_date, datetime.min.time(), tzinfo=UTC
+                    ),
+                }
+            )
+        )
+
+    KeywordStaticJsonPublisher(
+        data_dir / "keyword-published", site_dir
+    ).publish()
+
+    assert json.loads((site_dir / "dates.json").read_text(encoding="utf-8")) == [
+        "2026-08-08",
+        "2026-08-07",
+        "2026-08-06",
+        "2026-08-05",
+        "2026-08-04",
+        "2026-08-03",
+        "2026-08-02",
+    ]
+    assert not (site_dir / "2026-08-01.json").exists()

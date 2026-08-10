@@ -8,7 +8,7 @@
 
 | Source | 사용자가 해야 할 일 / 利用者が行うこと | 저장할 값 / 保存値 | 현재 코드 상태 / 現在のコード状態 | 활성화 조건 / 有効化条件 |
 |---|---|---|---|---|
-| GDELT DOC API (US/JP/KR) | 별도 등록 없음, attribution·이용조건 확인 / 登録不要、attribution・利用条件確認 | 없음 / なし | adapter·국가 query·120건 fixture 구현, v1 예약 실행은 기본 비활성 / adapter・国query・120件fixture実装、v1予約実行は標準無効 | v2 producer 전환 + 국가별 live 표본 재검증 / v2 producer移行 + 国別live sample再検証 |
+| GDELT DOC API (US/JP/KR) | 별도 등록 없음, attribution·이용조건 확인 / 登録不要、attribution・利用条件確認 | 없음 / なし | adapter·국가 query·120건 fixture 구현, 반복 HTTP 429로 운영 일시 비활성 / adapter・国query・120件fixture実装、反復HTTP 429で運用一時無効 | 제한된 단일 요청 정상화·이용조건 재확인 후 재활성 / 制限付き単一request正常化・利用条件再確認後に再有効化 |
 | NAVER API HUB (KR) | NAVER Cloud 계정에서 application 등록 / NAVER Cloudアカウントでapplication登録 | `NAVER_CLIENT_ID`, `NAVER_CLIENT_SECRET` | 전용 adapter·사용량 차단 구현, 명시 flag로 활성 / 専用adapter・利用量停止を実装、明示flagで有効化 | Console 한도·알림 설정 + 제한 실연동 / Console上限・通知設定 + 制限付き実接続 |
 | NewsData.io (US/JP) | Free 계정의 기본 API key 발급 / Freeアカウントのdefault API key発行 | `NEWSDATA_API_KEY` | 전용 adapter·일 40회·월 1,200회 차단 구현 / 専用adapter・日40回・月1,200回停止を実装 | 제한 실연동 완료, Pages Secret 필요 / 限定実接続完了、Pages Secretが必要 |
 | BEA API (US) | 이메일로 API key 신청, 약관 동의 / emailでAPI key申請、規約同意 | `BEA_API_KEY` | 전용 API adapter 미구현 / 専用API adapter未実装 | key 등록 + adapter·fixture·실연동 검증 / key登録 + adapter・fixture・実接続検証 |
@@ -21,6 +21,10 @@
 ## 1.1 GDELT 주 소스 전환 / GDELT主source移行
 
 공식 자료: [GDELT Project](https://www.gdeltproject.org/), [DOC 2.0 API](https://blog.gdeltproject.org/gdelt-doc-2-0-api-debuts/)
+
+현재 운영 설정은 반복 HTTP 429로 GDELT를 비활성화한다. 자동 재시도나 우회 endpoint를 추가하지 말고, 운영일과 분리된 제한 검증에서 국가별 단일 요청이 정상화되고 이용조건을 다시 확인했을 때만 `config/sources.example.yml`의 세 GDELT 항목을 활성화한다.
+
+現在の運用設定では反復HTTP 429のためGDELTを無効化する。自動retryや迂回endpointを追加せず、運用日と分離した制限付き検証で国別単一requestが正常化し、利用条件を再確認した場合だけ`config/sources.example.yml`の3件のGDELT項目を有効化する。
 
 - 국가별로 `sourcecountry`와 `sourcelang`을 함께 적용하고 직전 24시간 Article List를 최대 250건 요청한다.
 - 경제 범위 query는 설정 파일에서 version 관리하며, 동일한 기준일에는 결정적으로 재현할 수 있어야 한다.

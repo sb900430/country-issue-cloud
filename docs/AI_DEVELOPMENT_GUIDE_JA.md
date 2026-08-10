@@ -15,8 +15,8 @@
 | 後続運用 | VPS/EC2 + FastAPI、DataSource設定だけ切替 |
 | Android（保留） | 再開時にRetrofit、Kotlinx Serialization、ViewModel、Flow、Room、DataStore、Hiltを再検証 |
 | 日時 | サーバーはUTC保存、`Asia/Tokyo`表示 |
-| ニュース収集目標 | GDELT主source、公共RSS/API補助、国別150件目標・250件上限 |
-| keyword分析 | 言語別名詞・複合名詞抽出 → stopword除外 → 制限付きLLM同義語統合 → code順位 |
+| ニュース収集目標 | NewsData.io・NAVERと公共RSS/API、GDELTは429解消まで保留、国別150件目標・250件上限 |
+| keyword分析 | 言語別名詞・複合名詞抽出 → 5%・4件・2媒体gate → 一般語・重複イシュー除外 → code順位 |
 
 正確なversionはscaffold時点の公式安定版を確認して固定し、lockfileまたはversion catalogへ記録する。依存関係を無断追加せず、標準機能で解決困難な場合だけADRへ導入理由を残す。
 

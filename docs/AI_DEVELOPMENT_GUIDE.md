@@ -15,8 +15,8 @@
 | 후속 운영 | VPS/EC2 + FastAPI, DataSource 설정만 전환 |
 | Android(보류) | 재개 시 Retrofit, Kotlinx Serialization, ViewModel, Flow, Room, DataStore, Hilt 재검증 |
 | 날짜·시간 | 서버 UTC 저장, `Asia/Tokyo` 표시 |
-| 뉴스 수집 목표 | GDELT 주 소스, 공공 RSS/API 보조, 국가별 150건 목표·250건 상한 |
-| 키워드 분석 | 언어별 명사·복합명사 추출 → 불용어 제거 → 제한적 LLM 동의어 통합 → 코드 순위 |
+| 뉴스 수집 목표 | NewsData.io·NAVER와 공공 RSS/API, GDELT 429 해소 전 보류, 국가별 150건 목표·250건 상한 |
+| 키워드 분석 | 언어별 명사·복합명사 추출 → 5%·4건·2매체 gate → 일반어·중복 이슈 제거 → 코드 순위 |
 
 정확한 라이브러리 버전은 스캐폴드 시점의 공식 안정 버전을 확인해 고정하고 lockfile 또는 version catalog에 기록한다. 의존성을 임의로 추가하지 말고 표준 기능으로 해결하기 어려운 경우에만 도입 이유를 ADR에 남긴다.
 

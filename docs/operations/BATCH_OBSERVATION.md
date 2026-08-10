@@ -5,6 +5,7 @@
 | JST date | Scheduled run | Result | Published data date | US / JP / KR articles | Existing Pages preserved | Note |
 |---|---|---|---|---|---|---|
 | 2026-08-08 | Not applicable — v2 merged after 09:00 | Fixture deploy verified | 2026-08-07 | 120 / 120 / 120 | Yes | Public UI, TOP5, layout switch and 20 related links passed |
+| 2026-08-10 | 09:00 scheduled run | Published, quality review failed | 2026-08-10 | 139 / 117 / 72 | No — new live data published | Repetitive template terms, date/unit fragments and overlapping related-article sets found; GDELT returned 429 and is temporarily disabled by the follow-up fix |
 
 ## Initial historical pipeline check / 초기 소급 동작 확인 / 初回遡及動作確認
 

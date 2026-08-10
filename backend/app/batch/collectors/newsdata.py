@@ -27,6 +27,8 @@ class NewsDataSource:
     category: str
     query_version: str
     free_policy_review_due_at: date
+    blocked_publishers: tuple[str, ...] = ()
+    required_title_terms: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
         if self.endpoint != NEWSDATA_ENDPOINT:
@@ -90,6 +92,8 @@ class NewsDataCollector:
             "duplicate_rejected": 0,
             "date_rejected": 0,
             "title_rejected": 0,
+            "publisher_rejected": 0,
+            "relevance_rejected": 0,
             "limit_rejected": 0,
             "accepted": 0,
         }
@@ -122,10 +126,21 @@ class NewsDataCollector:
                 if not title:
                     self.last_diagnostics["title_rejected"] += 1
                     continue
+                publisher = item.source_name or item.source_id or self._domain(item.link)
+                if publisher.casefold().strip() in {
+                    value.casefold().strip() for value in self.source.blocked_publishers
+                }:
+                    self.last_diagnostics["publisher_rejected"] += 1
+                    continue
+                if self.source.required_title_terms and not any(
+                    term.casefold() in title.casefold()
+                    for term in self.source.required_title_terms
+                ):
+                    self.last_diagnostics["relevance_rejected"] += 1
+                    continue
                 seen_urls.add(item.link)
                 stable_id = item.article_id or item.link
                 article_id = sha256(f"{self.source_id}:{stable_id}".encode()).hexdigest()[:24]
-                publisher = item.source_name or item.source_id or self._domain(item.link)
                 articles.append(
                     CollectedArticle(
                         article_id=article_id,

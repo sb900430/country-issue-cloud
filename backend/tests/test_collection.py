@@ -88,6 +88,25 @@ def test_feed_collector_supports_atom_and_skips_malformed_dates() -> None:
     assert result[0].summary == "Official summary"
 
 
+def test_rss_collector_retries_one_transient_malformed_xml_response() -> None:
+    responses = iter(
+        (
+            b"<html>temporary gateway response",
+            b"""<rss><channel><item><title>Recovered headline</title>
+            <link>https://example.com/recovered</link>
+            <pubDate>Wed, 05 Aug 2026 23:00:00 GMT</pubDate>
+            </item></channel></rss>""",
+        )
+    )
+    source = RssSource("rss-us", CountryCode.US, "Example", "https://example.com/feed.xml")
+
+    result = RssCollector(source, lambda _url: next(responses)).collect(
+        WINDOW_START, WINDOW_END, 10
+    )
+
+    assert [item.title for item in result] == ["Recovered headline"]
+
+
 def test_feed_collector_supports_dc_and_compact_dates_and_upgrades_links() -> None:
     feed = b"""<rss xmlns:dc="http://purl.org/dc/elements/1.1/"><channel>
     <item><title>DC date</title><link>http://example.com/dc</link>

@@ -58,6 +58,13 @@ class JsonKeywordRepository:
         )
         self._atomic_write(self._published_dir / "latest.json", content)
 
+    def save_history(self, result: KeywordResult) -> None:
+        self._published_dir.mkdir(parents=True, exist_ok=True)
+        self._atomic_write(
+            self._published_dir / f"keywords_{result.date.isoformat()}.json",
+            result.model_dump_json(indent=2),
+        )
+
     def _read(self, path: Path) -> KeywordResult | None:
         if not path.exists():
             return None
