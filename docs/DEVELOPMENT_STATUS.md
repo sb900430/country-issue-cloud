@@ -2,15 +2,17 @@
 
 | 항목 | 현재 상태 |
 |---|---|
-| 현재 목표 | PR #29 병합 후 공개 smoke 계약 수정 |
-| 상태 | 수정·실제 공개 smoke·전체 검증 완료 |
+| 현재 목표 | 운영 결과 기반 국가별 금지 키워드 관리 |
+| 상태 | 구현·문서·전체 검증·변경 검토 완료 |
 | 기준 브랜치 | `main` |
-| 작업 브랜치 | `codex/post-merge-fix-week-03-public-smoke` |
-| 마지막 완료 커밋 | `832b79a` — 실제 키워드 품질 강화 PR #29 Rebase and merge |
-| 전체 검증 | PASS — Python 137개·coverage 88%·웹 9개·Pages fixture/preserve·Ruff·mypy·Secret·명세 동기화 |
-| 다음 작업 | post-merge fix 완료 리뷰 후 Draft PR 생성 |
+| 작업 브랜치 | `codex/keyword-blocklist` |
+| 마지막 완료 커밋 | `82f34e7` — 공개 smoke 계약 수정 PR #30 Rebase and merge |
+| 전체 검증 | PASS — Python 141개·coverage 88%·웹 9개·Ruff·mypy·Secret·명세 동기화 |
+| 다음 작업 | 후보 커밋 완료 리뷰 후 원격 push·Draft PR 생성 |
 
 ## v1.0 공개 준비 진행 결과
+
+- 운영 표본에서 경제 이슈와 무관한 정치인·정당명이 후보로 남는 문제에 대응해 국가별 YAML 금지 키워드 관리 기능을 추가했다. `config/keyword-blocklist.yml`의 `exact`·`contains` 규칙을 문서 빈도 계산 전에 적용하고, 최초 한국 규칙으로 `국힘`, `오세훈`을 등록했다. 설정 누락·Schema 오류·중복 규칙은 배치를 실패시켜 기존 정상 배포를 보존한다.
 
 - PR #29 병합 후 `main` 로컬 전체 검증과 fixture/preserve smoke는 통과했으나 Pages `public-smoke`가 날짜별 JSON을 로컬로 받지 않은 채 강화된 artifact 검사를 실행해 실패했다.
 - `dates.json`의 1~7개 안전한 날짜를 검증하고 모든 날짜 JSON을 받은 뒤 전체 계약을 검사하도록 수정했다. 현재 실제 공개 Pages smoke는 통과한다.

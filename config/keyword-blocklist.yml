@@ -1,0 +1,19 @@
+schema_version: "1.0"
+countries:
+  US: []
+  JP: []
+  KR:
+    - term: "국힘"
+      match: "contains"
+      category: "politics"
+      reason_ko: "정당 약칭으로 경제 이슈 키워드에서 제외"
+      reason_ja: "政党の略称のため経済issue keywordから除外"
+      added_on: "2026-08-11"
+      enabled: true
+    - term: "오세훈"
+      match: "contains"
+      category: "politics"
+      reason_ko: "정치인 이름으로 경제 이슈 키워드에서 제외"
+      reason_ja: "政治家名のため経済issue keywordから除外"
+      added_on: "2026-08-11"
+      enabled: true
