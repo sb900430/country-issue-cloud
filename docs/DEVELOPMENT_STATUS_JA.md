@@ -2,15 +2,17 @@
 
 | 項目 | 現在状態 |
 |---|---|
-| 現在目標 | PR #29 merge後の公開smoke契約修正 |
-| 状態 | 修正・実公開smoke・全体検証が完了 |
+| 現在目標 | 運用結果に基づく国別禁止keyword管理 |
+| 状態 | 実装・文書・全体検証・変更review完了 |
 | 基準branch | `main` |
-| 作業branch | `codex/post-merge-fix-week-03-public-smoke` |
-| 最終完了commit | `832b79a` — 実keyword品質強化 PR #29 Rebase and merge |
-| 全体検証 | PASS — Python 137件・coverage 88%・Web 9件・Pages fixture/preserve・Ruff・mypy・Secret・仕様同期 |
-| 次作業 | post-merge fix完了review後にDraft PRを作成 |
+| 作業branch | `codex/keyword-blocklist` |
+| 最終完了commit | `82f34e7` — 公開smoke契約修正 PR #30 Rebase and merge |
+| 全体検証 | PASS — Python 141件・coverage 88%・Web 9件・Ruff・mypy・Secret・仕様同期 |
+| 次作業 | 候補commit完了review後にremote push・Draft PR作成 |
 
 ## v1.0公開準備の進行結果
+
+- 運用sampleで経済イシューと無関係な政治家名・政党名が候補に残る問題へ対応し、国別YAML禁止keyword管理機能を追加した。`config/keyword-blocklist.yml`の`exact`・`contains`規則をdocument frequency計算前に適用し、最初の韓国規則として`국힘`、`오세훈`を登録した。設定欠落・Schema不正・重複規則はbatchを失敗させ、既存正常配布を保護する。
 
 - PR #29 merge後、`main` local全体検証とfixture/preserve smokeは通過したが、Pages `public-smoke`が日付別JSONをlocalへ取得せず、強化済みartifact検査を実行して失敗した。
 - `dates.json`の1～7件の安全な日付を検証し、全日付JSONを取得した後に全契約を検査するよう修正した。現在の実公開Pages smokeは通過する。

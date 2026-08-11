@@ -16,7 +16,7 @@
 | Android(보류) | 재개 시 Retrofit, Kotlinx Serialization, ViewModel, Flow, Room, DataStore, Hilt 재검증 |
 | 날짜·시간 | 서버 UTC 저장, `Asia/Tokyo` 표시 |
 | 뉴스 수집 목표 | NewsData.io·NAVER와 공공 RSS/API, GDELT 429 해소 전 보류, 국가별 150건 목표·250건 상한 |
-| 키워드 분석 | 언어별 명사·복합명사 추출 → 5%·4건·2매체 gate → 일반어·중복 이슈 제거 → 코드 순위 |
+| 키워드 분석 | 언어별 명사·복합명사 추출 → 국가별 YAML 금지어 → 5%·4건·2매체 gate → 일반어·중복 이슈 제거 → 코드 순위 |
 
 정확한 라이브러리 버전은 스캐폴드 시점의 공식 안정 버전을 확인해 고정하고 lockfile 또는 version catalog에 기록한다. 의존성을 임의로 추가하지 말고 표준 기능으로 해결하기 어려운 경우에만 도입 이유를 ADR에 남긴다.
 

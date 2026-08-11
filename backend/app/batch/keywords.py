@@ -10,6 +10,7 @@ from kiwipiepy import Kiwi  # type: ignore[import-untyped]
 from pydantic import BaseModel, ConfigDict, Field
 from sudachipy import dictionary, tokenizer  # type: ignore[import-untyped]
 
+from app.batch.keyword_blocklist import KeywordBlocklist
 from app.batch.models import CollectedArticle
 from app.schemas.issues import CountryCode
 
@@ -302,9 +303,11 @@ class KeywordRanker:
         self,
         extractor: LanguageKeywordExtractor | None = None,
         resolver: CandidateSynonymResolver | None = None,
+        blocklist: KeywordBlocklist | None = None,
     ) -> None:
         self.extractor = extractor or LanguageKeywordExtractor()
         self.resolver = resolver or CandidateSynonymResolver()
+        self.blocklist = blocklist or KeywordBlocklist.load()
 
     def analyze(
         self, country: CountryCode, articles: list[CollectedArticle]
@@ -320,6 +323,8 @@ class KeywordRanker:
         for article in articles:
             seen_in_article: set[str] = set()
             for candidate in self.extractor.extract(article):
+                if self.blocklist.blocks(country, candidate.label):
+                    continue
                 key = self.resolver.group_key(candidate.label)
                 if key in seen_in_article:
                     continue
