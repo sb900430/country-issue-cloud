@@ -1,6 +1,6 @@
 import json
 from dataclasses import replace
-from datetime import UTC, date, datetime
+from datetime import UTC, date, datetime, timedelta
 from hashlib import sha256
 from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
@@ -94,10 +94,72 @@ def test_newsdata_collector_paginates_filters_and_maps_articles(tmp_path: Path) 
         "language": ["en"],
         "category": ["business"],
         "size": ["10"],
+        "removeduplicate": ["1"],
     }
     assert parse_qs(urlsplit(requested[1]).query)["page"] == ["next-token"]
     assert collector.last_diagnostics["url_rejected"] == 1
     assert collector.last_diagnostics["accepted"] == 2
+
+
+def test_newsdata_collector_shifts_window_for_free_plan_delay(tmp_path: Path) -> None:
+    configured = replace(source(), availability_delay_hours=12)
+    payload = {
+        "status": "success",
+        "results": [
+            {
+                "article_id": "delayed-article",
+                "title": "Delayed market outlook",
+                "link": "https://publisher.example/delayed",
+                "pubDate": (WINDOW_START - timedelta(hours=6)).strftime(
+                    "%Y-%m-%d %H:%M:%S"
+                ),
+                "source_name": "Example Business",
+            },
+            {
+                "article_id": "not-yet-available",
+                "title": "Current market outlook",
+                "link": "https://publisher.example/current",
+                "pubDate": (WINDOW_END - timedelta(hours=1)).strftime(
+                    "%Y-%m-%d %H:%M:%S"
+                ),
+                "source_name": "Example Business",
+            },
+        ],
+    }
+    collector = NewsDataCollector(
+        configured,
+        lambda _url, _headers: json.dumps(payload).encode(),
+        "test-api-key",
+        NewsDataUsageLedger(tmp_path / "usage.json", NewsDataUsagePolicy()),
+        today=lambda: date(2026, 8, 8),
+    )
+
+    articles = collector.collect(WINDOW_START, WINDOW_END, 10)
+
+    assert [article.title for article in articles] == ["Delayed market outlook"]
+    assert collector.last_diagnostics["availability_delay_hours"] == 12
+    assert collector.last_diagnostics["date_rejected"] == 1
+
+
+def test_newsdata_collector_requests_domain_diversity_filters(tmp_path: Path) -> None:
+    requested: list[str] = []
+    configured = replace(
+        source(), excluded_domains=("investing.com",), max_pages_per_collection=25
+    )
+
+    collector = NewsDataCollector(
+        configured,
+        lambda url, _headers: requested.append(url)
+        or b'{"status":"success","results":[]}',
+        "test-api-key",
+        NewsDataUsageLedger(tmp_path / "usage.json", NewsDataUsagePolicy()),
+        today=lambda: date(2026, 8, 8),
+    )
+
+    assert collector.collect(WINDOW_START, WINDOW_END, 10) == []
+    parameters = parse_qs(urlsplit(requested[0]).query)
+    assert parameters["excludedomain"] == ["investing.com"]
+    assert parameters["removeduplicate"] == ["1"]
 
 
 def test_newsdata_usage_ledger_stops_at_self_imposed_limit(tmp_path: Path) -> None:

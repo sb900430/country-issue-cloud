@@ -2,15 +2,17 @@
 
 | 項目 | 現在状態 |
 |---|---|
-| 現在目標 | 運用結果に基づく国別禁止keyword管理 |
-| 状態 | 実装・文書・全体検証・変更review完了 |
+| 現在目標 | 日本・韓国の実news収集量安定化 |
+| 状態 | 実装・文書・全体検証・完了review PASS |
 | 基準branch | `main` |
-| 作業branch | `codex/keyword-blocklist` |
-| 最終完了commit | `82f34e7` — 公開smoke契約修正 PR #30 Rebase and merge |
-| 全体検証 | PASS — Python 141件・coverage 88%・Web 9件・Ruff・mypy・Secret・仕様同期 |
-| 次作業 | 候補commit完了review後にremote push・Draft PR作成 |
+| 作業branch | `codex/live-source-volume` |
+| 最終完了commit | `7c147c0` — 国別keyword禁止list PR #31 Rebase and merge |
+| 全体検証 | PASS — Python 145件・coverage 88%・Web 9件・Ruff・mypy・Secret・仕様同期 |
+| 次作業 | remote push・Draft PR作成後、次回予約実行の収集量を観察 |
 
 ## v1.0公開準備の進行結果
+
+- 2026-08-12の予約実行はUS 108件・JP 40件・KR 70件となり、日本が70件の配布下限を下回った。NewsData.io無料planの12時間遅延をsource別収集時間窓へ反映し、米国15・日本25pageへ日40回予算を配分した。日本requestでは`investing.com`とprovider重複を先に除外する。韓国NAVERは目標量が残る場合に5 queryの2page目まで巡回し、承認domainのHTTP linkをHTTPSへ変換する。実応答を確認したJPX 2件・金融庁1件の公式RSSを日本補助sourceへ追加し、媒体別20%/30件制限は維持する。
 
 - 運用sampleで経済イシューと無関係な政治家名・政党名が候補に残る問題へ対応し、国別YAML禁止keyword管理機能を追加した。`config/keyword-blocklist.yml`の`exact`・`contains`規則をdocument frequency計算前に適用し、最初の韓国規則として`국힘`、`오세훈`を登録した。設定欠落・Schema不正・重複規則はbatchを失敗させ、既存正常配布を保護する。
 

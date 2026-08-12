@@ -82,6 +82,9 @@ def test_project_source_registry_has_feeds_for_every_country() -> None:
         "bea_news_releases",
         "mof_japan_updates",
         "statistics_japan_updates",
+        "jpx_market_news",
+        "jpx_news_releases",
+        "fsa_japan_updates",
     } <= source_ids
 
 
@@ -116,7 +119,8 @@ def test_project_source_registry_has_naver_supplement_for_korea() -> None:
         "mbn.mk.co.kr",
         "yonhapnewstv.co.kr",
     } <= set(sources[0].allowed_domains)
-    assert sources[0].query_version == "2026-08-08.v4"
+    assert sources[0].query_version == "2026-08-12.v5"
+    assert sources[0].max_pages_per_query == 2
 
 
 def test_project_source_registry_has_newsdata_supplements_for_us_and_japan() -> None:
@@ -132,3 +136,8 @@ def test_project_source_registry_has_newsdata_supplements_for_us_and_japan() -> 
     assert "Ticker Report" in us.blocked_publishers
     assert "Pr Times" in jp.blocked_publishers
     assert {"金融", "半導体", "物価"} <= set(jp.required_title_terms)
+    assert us.availability_delay_hours == 12
+    assert us.max_pages_per_collection == 15
+    assert jp.availability_delay_hours == 12
+    assert jp.max_pages_per_collection == 25
+    assert jp.excluded_domains == ("investing.com",)

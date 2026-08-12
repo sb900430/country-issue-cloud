@@ -148,6 +148,32 @@ NAVER専用収集adapterはv2予約`publish-keyword-live`で韓国経済news補�
 7. ConsoleのApplication一覧から**上限および通知**を開き、日次上限`300`、月次上限`9000`を保存し、使用量`50%`、`80%`通知と通知対象を有効にする。このConsole hard limitを複数実行環境の利用量を合算する最終停止線とする。
 8. `NAVER_PAID_OVERAGE_ENABLED=false`を維持する。無料policyが変更されても、利用者承認と韓日仕様変更前に有料超過呼出や自動上限拡張を適用しない。
 
+### 운영 수집량 설정 / 運用収集量設定
+
+- 한국은 `경제`, `금융`, `산업`, `증권`, `부동산` query의 `start=1`을 먼저 순회한다. 목표량이 남을 때만 같은 순서로 `start=101`을 순회하며 최대 10회 요청한다.
+- 각 요청 후 승인 domain·발행시간·중복 기준을 통과한 누적량을 확인하고 250건 상한에 도달하면 뒤 query를 호출하지 않는다.
+- 승인 domain에서 반환된 HTTP 원문 링크는 동일 host의 HTTPS로 변환한다. host가 allowlist와 일치하지 않거나 userinfo가 포함된 URL은 계속 거부한다.
+- query version과 페이지 수는 `config/sources.example.yml`에서 관리하며, 변경 후 mock pagination과 사용량 ledger 테스트를 통과해야 한다.
+
+- 韓国は`経済`、`金融`、`産業`、`証券`、`不動産` queryの`start=1`を先に巡回する。目標量が残る場合だけ同じ順序で`start=101`を巡回し、最大10 requestとする。
+- 各request後に承認domain・公開時刻・重複基準を通過した累積量を確認し、250件上限到達時は後続queryを呼び出さない。
+- 承認domainから返されたHTTP原文linkは同一hostのHTTPSへ変換する。hostがallowlistと一致しない場合やuserinfoを含むURLは引き続き拒否する。
+- query versionとpage数は`config/sources.example.yml`で管理し、変更後にmock paginationと利用量ledger testを通過させる。
+
+## 3.1 NewsData.io 운영 설정 / NewsData.io運用設定
+
+- 무료 플랜의 12시간 제공 지연을 반영해 24시간 수집 길이는 유지하고 범위를 `실행-36시간 ~ 실행-12시간`으로 이동한다.
+- 일 40회·월 1,200회 자체 hard stop 안에서 미국 최대 15페이지, 일본 최대 25페이지를 허용하며 국가별 150건에 도달하면 조기 중단한다.
+- 일본은 `excludedomain=investing.com`, `removeduplicate=1`을 요청해 특정 매체 편중과 제공자 판정 중복을 페이지 수집 전에 줄인다.
+- 일본의 공식 보조 RSS는 JPX 시장뉴스·보도자료와 금융청 새소식을 포함한다. Secret은 필요 없으며 `config/sources.example.yml`의 약관 확인일과 90일 재검토일을 유지한다.
+- 매체별 20% 또는 30건 제한과 국가별 게시 하한 70건은 수집량을 늘리더라도 완화하지 않는다.
+
+- 無料planの12時間提供遅延を反映し、24時間の収集長は維持したまま範囲を`実行-36時間～実行-12時間`へ移動する。
+- 日40回・月1,200回の独自hard stop内で米国最大15page、日本最大25pageを許可し、国別150件到達時に早期停止する。
+- 日本は`excludedomain=investing.com`、`removeduplicate=1`をrequestし、特定媒体への偏りとprovider判定の重複をpage収集前に減らす。
+- 日本の公式補助RSSにはJPX市場news・news releaseと金融庁新着情報を含める。Secretは不要で、`config/sources.example.yml`の規約確認日と90日後の再確認日を維持する。
+- 媒体別20%または30件制限と国別配布下限70件は、収集量を増やしても緩和しない。
+
 ## 4. BEA API 등록 / BEA API登録
 
 공식 자료: [BEA API Key 신청](https://apps.bea.gov/api/signup/), [BEA API User Guide](https://apps.bea.gov/api/_pdf/bea_web_service_api_user_guide.pdf)
