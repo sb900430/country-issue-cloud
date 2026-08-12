@@ -136,6 +136,7 @@ Android 앱은 폐기하지 않는다. 키워드 중심 웹과 공개 URL의 안
 - 서비스 시간대: `Asia/Tokyo`
 - 배치: 매일 08:00
 - 수집 범위: 실행 시각 기준 직전 24시간
+- 무료 플랜의 제공 지연이 명시된 소스는 24시간 길이를 유지한 채 시작·종료 시각을 지연시간만큼 함께 이동한다. NewsData.io는 12시간 지연을 적용해 `실행-36시간 ~ 실행-12시간`을 수집한다.
 - 내부 시간: UTC, 표시: 타임존 포함 ISO 8601
 - 발행 시각이 없거나 현재보다 10분 이상 미래인 기사는 제외한다.
 
@@ -155,9 +156,9 @@ Android 앱은 폐기하지 않는다. 키워드 중심 웹과 공개 URL의 안
 
 - GDELT Project DOC API Article List는 장기 주 소스 후보지만 반복 HTTP 429가 확인된 동안 운영 설정에서 비활성으로 둔다. 제한된 단일 요청으로 정상 응답과 이용조건을 다시 확인한 뒤에만 `sourcecountry`, `sourcelang`, 직전 24시간, `maxrecords=250`을 국가별로 독립 적용해 재활성화한다.
 - 1차 운영 뉴스 소스는 무료 구성으로 고정한다. 한국은 NAVER API HUB 뉴스 검색의 무료 호출 한도 안에서 보강하며, 유료 전환·종량제 확장은 사용자 승인 전에는 사용하지 않는다.
-- NAVER 호출은 애플리케이션과 NAVER Console 양쪽에서 일 300회·월 9,000회로 제한하고, 어느 한도든 도달하면 추가 호출을 자동 중단한다. 사용량 50%·80%에서 알림을 보내며 무료 정책 변경 전에는 유료 초과 사용이나 자동 한도 증설을 허용하지 않는다.
-- 미국·일본 경제뉴스 보강은 NewsData.io Latest News API 무료 플랜의 `country`·`language`·`business` 필터를 국가별로 독립 적용한다. 호출은 애플리케이션에서 일 40회·월 1,200회로 제한하고, 국가별 목표·상한 150건과 최대 20페이지만 순회하며 유료 초과 사용과 자동 유료 전환을 금지한다. 무료 플랜의 지연 데이터와 제목·링크·매체·발행시각만 사용한다.
-- NewsData.io 결과는 국가별 차단 매체 목록을 적용하고, 일본 결과는 버전 관리된 경제 관련 제목 용어 중 하나 이상을 포함해야 한다. 주식 시세 자동 생성·기업 실적 재배포·보도자료 배포 플랫폼처럼 반복 템플릿 비중이 높은 매체는 표본에서 제외하며 제외 건수를 진단에 남긴다.
+- NAVER 호출은 애플리케이션과 NAVER Console 양쪽에서 일 300회·월 9,000회로 제한하고, 어느 한도든 도달하면 추가 호출을 자동 중단한다. 사용량 50%·80%에서 알림을 보내며 무료 정책 변경 전에는 유료 초과 사용이나 자동 한도 증설을 허용하지 않는다. 운영 query는 첫 페이지를 모두 순회한 뒤 기사 목표가 남은 경우에만 `start=101` 두 번째 페이지를 순회하고 목표량에 도달하면 즉시 중단한다. 승인 domain의 HTTP 원문 링크는 동일 host의 HTTPS로 올려 공개한다.
+- 미국·일본 경제뉴스 보강은 NewsData.io Latest News API 무료 플랜의 `country`·`language`·`business` 필터를 국가별로 독립 적용한다. 호출은 애플리케이션에서 일 40회·월 1,200회로 제한하고, 국가별 목표·상한 150건을 유지한다. 미국은 최대 15페이지, 기사 부족도가 높은 일본은 최대 25페이지로 배분하며 목표량 도달 시 조기 중단한다. 무료 플랜의 12시간 제공 지연에 맞춰 각 실행의 24시간 범위를 12시간 이전으로 이동하고, 제목·링크·매체·발행시각만 사용한다. 유료 초과 사용과 자동 유료 전환은 금지한다.
+- NewsData.io 결과는 국가별 차단 매체 목록을 적용하고, 일본 결과는 버전 관리된 경제 관련 제목 용어 중 하나 이상을 포함해야 한다. 주식 시세 자동 생성·기업 실적 재배포·보도자료 배포 플랫폼처럼 반복 템플릿 비중이 높은 매체는 표본에서 제외하며 제외 건수를 진단에 남긴다. 일본에서 과다 노출된 `investing.com`은 API 요청의 `excludedomain`에서 먼저 제외하고 제공자 중복 제거를 요청해 다른 매체가 페이지를 차지할 기회를 확보한다.
 - 경제 범위는 버전 관리되는 국가별 경제 주제 query 묶음으로 제한하고 query별 수집량과 편향을 기록한다. 특정 기업·사건 이름을 미리 넣어 결과를 유도하지 않는다.
 - 기존 중앙은행·정부기관 RSS와 조건부 공공 API는 보조 소스로 유지하며 주 소스 결과와 함께 중복 제거한다.
 - NewsAPI, GNews, Mediastack, World News API 등 개발 전용 또는 유료 전환이 필요한 집계 API는 운영 의존성으로 두지 않는다.
@@ -169,7 +170,7 @@ Android 앱은 폐기하지 않는다. 키워드 중심 웹과 공개 URL의 안
 ```yaml
 ALL: GDELT DOC API Article List는 429 안정성 재검증 전까지 일시 비활성
 US supplementary: Federal Reserve RSS; BLS RSS 비활성, BEA API 조건부
-JP supplementary: BOJ RSS; METI Atom 비활성, e-Stat API 조건부
+JP supplementary: BOJ·재무성·통계국·JPX·금융청 RSS; METI Atom 비활성, e-Stat API 조건부
 KR supplementary: 한국은행·금융위원회·중소벤처기업부 RSS
 KR news supplement: NAVER API HUB 무료 호출 한도 내 사용
 US/JP news supplement: NewsData.io Latest News API 무료 플랜을 국가별 독립 사용
@@ -969,6 +970,8 @@ v* 태그 → Pages URL 검증 → GitHub Release. Android 재개 후에만 AAB�
 GDELT 최소 1건 공개 요청에서도 HTTP 429를 재현했다. HTTP 오류는 본문·URL·Secret 없이 `rate_limited`, `client_error`, `server_error`, `timeout` 등으로 분류하고, 한 국가에서 429가 발생하면 같은 배치의 나머지 GDELT 요청을 `circuit_open_rate_limited`로 즉시 차단한다. RSS와 NAVER는 독립적으로 계속 실행한다.
 
 2026-08-08 미국·일본 보강 소스로 NewsData.io 무료 Latest News API를 채택했다. `NEWSDATA_API_KEY`는 로컬 `.env`와 `pages-production` Environment Secret에서만 주입하고, US `country=us&language=en`·JP `country=jp&language=ja`에 `category=business`를 각각 적용한다. mock pagination·응답 검증과 일 40회·월 1,200회 ledger를 구현했으며 최근 24시간 제한 실연동에서 US·JP 각각 100건을 확보했다.
+
+2026-08-12 운영 진단에서 US 108·JP 40·KR 70건으로 일본이 게시 하한에 미달했다. NewsData.io 무료 데이터의 12시간 지연과 일본 결과의 `investing.com` 집중을 함께 해소하기 위해 소스별 24시간 범위를 12시간 이전으로 이동하고, 미국 15·일본 25페이지 배분, `excludedomain=investing.com`, 제공자 중복 제거를 적용한다. 한국 NAVER는 5개 경제 query의 첫 페이지 이후 목표가 남을 때 두 번째 페이지까지 순회하고 승인 domain의 HTTP 링크를 HTTPS로 올린다. 일본 보조 소스에는 실응답을 확인한 JPX 시장뉴스·보도자료와 금융청 새소식 RSS를 추가하며 매체별 20%/30건 제한은 유지한다.
 
 2026-08-09 예약 실행에서 중복·편중 제거 후 US 198건·JP 103건·KR 85건을 확보했지만 기존 100건 게이트로 전체 게시가 중단됐다. 100건 이상 권장 수집 목표와 150건 목표치는 유지하고, 실제 게시 하한만 국가별 70건으로 낮춘다. 세 국가 모두 70건 이상이고 각 국가가 TOP 5를 완성해야 게시하며, 미달 시 기존 정상 Pages를 유지한다.
 

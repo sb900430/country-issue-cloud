@@ -9,6 +9,8 @@ sources:
       query_version: 2026-08-08.v1
       source_country: us
       source_language: en
+      availability_delay_hours: 12
+      max_pages_per_collection: 15
       blocked_publishers: [Ticker Report, Markets Daily, Watch List News, The Lincolnian Online]
       enabled: true
       terms_status: approved_free_delayed_attribution
@@ -93,6 +95,9 @@ sources:
       query_version: 2026-08-08.v1
       source_country: jp
       source_language: ja
+      availability_delay_hours: 12
+      max_pages_per_collection: 25
+      excluded_domains: [investing.com]
       blocked_publishers: [Pr Times]
       required_title_terms: [経済, 金融, 金利, 株, 株価, 為替, 円, ドル, 貿易, 輸出, 輸入, 物価, 雇用, 賃金, 景気, GDP, 半導体, 企業, 業績, 決算, 市場, 銀行, 産業, 不動産, 税, 関税, 債券, 国債, 原油, エネルギー]
       enabled: true
@@ -160,6 +165,36 @@ sources:
       terms_checked_at: 2026-08-08
       terms_review_due_at: 2026-11-06
       allowed_fields: [title, url, publisher, published_at]
+    - id: jpx_market_news
+      type: rss
+      publisher: Japan Exchange Group
+      feed_url: https://www.jpx.co.jp/rss/markets_news.xml
+      enabled: true
+      terms_status: approved_official_rss
+      terms_checked_at: 2026-08-12
+      terms_review_due_at: 2026-11-10
+      allowed_fields: [title, url, publisher, published_at]
+      source_role: supplementary
+    - id: jpx_news_releases
+      type: rss
+      publisher: Japan Exchange Group
+      feed_url: https://www.jpx.co.jp/rss/jpx-news.xml
+      enabled: true
+      terms_status: approved_official_rss
+      terms_checked_at: 2026-08-12
+      terms_review_due_at: 2026-11-10
+      allowed_fields: [title, url, publisher, published_at]
+      source_role: supplementary
+    - id: fsa_japan_updates
+      type: rss
+      publisher: Financial Services Agency Japan
+      feed_url: https://www.fsa.go.jp/fsaNewsListAll_rss2.xml
+      enabled: true
+      terms_status: approved_official_rss
+      terms_checked_at: 2026-08-12
+      terms_review_due_at: 2026-11-10
+      allowed_fields: [title, url, publisher, published_at]
+      source_role: supplementary
     - id: e_stat_api
       type: api
       publisher: Statistics Bureau of Japan
@@ -175,7 +210,8 @@ sources:
       publisher: NAVER API HUB
       endpoint: https://naverapihub.apigw.ntruss.com/search/v1/news
       queries: [경제, 금융, 산업, 증권, 부동산]
-      query_version: 2026-08-08.v4
+      query_version: 2026-08-12.v5
+      max_pages_per_query: 2
       allowed_domains: [hankyung.com, mk.co.kr, sedaily.com, edaily.co.kr, fnnews.com, heraldcorp.com, mt.co.kr, asiae.co.kr, newsis.com, news1.kr, ajunews.com, ebn.co.kr, yna.co.kr, segye.com, ytn.co.kr, econovill.com, donga.com, metroseoul.co.kr, hansbiz.co.kr, g-enews.com, ekn.kr, dailian.co.kr, munhwa.com, mbn.mk.co.kr, yonhapnewstv.co.kr]
       enabled: true
       terms_status: approved_free_period

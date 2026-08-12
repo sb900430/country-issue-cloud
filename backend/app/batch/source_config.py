@@ -27,8 +27,12 @@ class SourceEntry(BaseModel):
     source_country: str | None = None
     source_language: str | None = None
     allowed_domains: tuple[str, ...] = ()
+    excluded_domains: tuple[str, ...] = ()
     blocked_publishers: tuple[str, ...] = ()
     required_title_terms: tuple[str, ...] = ()
+    availability_delay_hours: int = Field(default=0, ge=0, le=48)
+    max_pages_per_collection: int = Field(default=20, ge=1, le=40)
+    max_pages_per_query: int = Field(default=1, ge=1, le=10)
     terms_review_due_at: date | None = None
     enabled: bool = False
     terms_status: str
@@ -149,6 +153,7 @@ def load_naver_sources(path: Path) -> list[NaverSource]:
                         domain.lower().removeprefix("www.") for domain in entry.allowed_domains
                     ),
                     free_policy_review_due_at=entry.terms_review_due_at or date.min,
+                    max_pages_per_query=entry.max_pages_per_query,
                 )
             )
     return result
@@ -187,6 +192,12 @@ def load_newsdata_sources(path: Path) -> list[NewsDataSource]:
                     free_policy_review_due_at=entry.terms_review_due_at or date.min,
                     blocked_publishers=entry.blocked_publishers,
                     required_title_terms=entry.required_title_terms,
+                    excluded_domains=tuple(
+                        domain.lower().removeprefix("www.")
+                        for domain in entry.excluded_domains
+                    ),
+                    availability_delay_hours=entry.availability_delay_hours,
+                    max_pages_per_collection=entry.max_pages_per_collection,
                 )
             )
     return result

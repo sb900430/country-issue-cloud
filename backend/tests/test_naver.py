@@ -112,6 +112,76 @@ def test_naver_collector_cycles_queries_and_deduplicates_urls(tmp_path: Path) ->
     assert collector.last_rejected_domain_counts == {}
 
 
+def test_naver_collector_fetches_second_pages_and_stops_at_target(tmp_path: Path) -> None:
+    source = NaverSource(
+        source_id="naver-kr",
+        endpoint="https://naverapihub.apigw.ntruss.com/search/v1/news",
+        queries=("경제", "금융"),
+        query_version="test.v2",
+        allowed_domains=("mk.co.kr",),
+        free_policy_review_due_at=date(2099, 1, 1),
+        max_pages_per_query=2,
+    )
+    requested_starts: list[int] = []
+
+    def fetch(url: str, _headers: object) -> bytes:
+        parameters = parse_qs(urlsplit(url).query)
+        start = int(parameters["start"][0])
+        query = parameters["query"][0]
+        requested_starts.append(start)
+        return json.dumps(
+            {
+                "items": [
+                    {
+                        "title": f"경제 기사 {start}",
+                        "originallink": (
+                            f"https://www.mk.co.kr/news/economy/{start}?topic={query}"
+                        ),
+                        "pubDate": "Thu, 06 Aug 2026 23:00:00 +0000",
+                    }
+                ]
+            }
+        ).encode()
+
+    collector = NaverCollector(
+        source,
+        fetch,
+        "client-id",
+        "client-secret",
+        NaverUsageLedger(tmp_path / "usage.json", NaverUsagePolicy()),
+    )
+
+    articles = collector.collect(WINDOW_START, WINDOW_END, 3)
+
+    assert len(articles) == 3
+    assert requested_starts == [1, 1, 101]
+
+
+def test_naver_collector_upgrades_approved_http_article_links(tmp_path: Path) -> None:
+    payload = {
+        "items": [
+            {
+                "title": "원화 환율 변동",
+                "originallink": "http://www.mk.co.kr/news/economy/1",
+                "pubDate": "Thu, 06 Aug 2026 23:00:00 +0000",
+            }
+        ]
+    }
+    collector = NaverCollector(
+        _source(),
+        lambda _url, _headers: json.dumps(payload).encode(),
+        "client-id",
+        "client-secret",
+        NaverUsageLedger(tmp_path / "usage.json", NaverUsagePolicy()),
+    )
+
+    articles = collector.collect(WINDOW_START, WINDOW_END, 10)
+
+    assert len(articles) == 1
+    assert articles[0].url == "https://www.mk.co.kr/news/economy/1"
+    assert articles[0].publisher == "mk.co.kr"
+
+
 def test_naver_collector_reports_top_rejected_domains(tmp_path: Path) -> None:
     payload = {
         "items": [

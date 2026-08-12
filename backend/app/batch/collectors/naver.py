@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from datetime import date, datetime
 from email.utils import parsedate_to_datetime
 from hashlib import sha256
-from urllib.parse import urlencode, urlsplit
+from urllib.parse import urlencode, urlsplit, urlunsplit
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
@@ -28,12 +28,15 @@ class NaverSource:
     query_version: str
     allowed_domains: tuple[str, ...]
     free_policy_review_due_at: date
+    max_pages_per_query: int = 1
 
     def __post_init__(self) -> None:
         if self.endpoint != "https://naverapihub.apigw.ntruss.com/search/v1/news":
             raise ValueError("NAVER endpoint is not approved")
         if not self.queries or not self.allowed_domains:
             raise ValueError("NAVER source requires queries and allowed domains")
+        if not 1 <= self.max_pages_per_query <= 10:
+            raise ValueError("NAVER pages per query must be between 1 and 10")
 
 
 class NaverArticle(BaseModel):
@@ -97,60 +100,68 @@ class NaverCollector:
         rejected_domains: Counter[str] = Counter()
         articles: list[CollectedArticle] = []
         seen_urls: set[str] = set()
-        for query in self.source.queries:
-            self.usage_ledger.reserve_request()
-            payload = self.fetch(self._request_url(query), self.headers)
-            response = self._parse_response(payload)
-            self.last_diagnostics["response_items"] += len(response)
-            for index, item in enumerate(response):
-                domain = self._approved_domain(item.originallink)
-                if domain is None:
-                    self.last_diagnostics["domain_rejected"] += 1
-                    rejected_domains[self._response_domain(item.originallink)] += 1
-                    continue
-                if item.originallink in seen_urls:
-                    self.last_diagnostics["duplicate_rejected"] += 1
-                    continue
-                try:
-                    published_at = parsedate_to_datetime(item.pubDate)
-                except (TypeError, ValueError):
-                    self.last_diagnostics["date_rejected"] += 1
-                    continue
-                if published_at.tzinfo is None or not window_start <= published_at <= window_end:
-                    self.last_diagnostics["date_rejected"] += 1
-                    continue
-                title = self._plain_text(item.title)
-                if not title:
-                    self.last_diagnostics["title_rejected"] += 1
-                    continue
-                seen_urls.add(item.originallink)
-                article_id = sha256(f"{self.source_id}:{item.originallink}".encode()).hexdigest()[
-                    :24
-                ]
-                articles.append(
-                    CollectedArticle(
-                        article_id=article_id,
-                        country=self.country,
-                        title=title,
-                        url=item.originallink,
-                        publisher=domain,
-                        published_at=published_at,
-                    )
+        for page_index in range(self.source.max_pages_per_query):
+            for query in self.source.queries:
+                self.usage_ledger.reserve_request()
+                payload = self.fetch(
+                    self._request_url(query, 1 + page_index * NAVER_MAX_RESULTS_PER_REQUEST),
+                    self.headers,
                 )
-                self.last_diagnostics["accepted"] += 1
-                if len(articles) >= target_limit:
-                    self.last_diagnostics["limit_rejected"] += len(response) - index - 1
-                    self._store_rejected_domains(rejected_domains)
-                    return articles
+                response = self._parse_response(payload)
+                self.last_diagnostics["response_items"] += len(response)
+                for index, item in enumerate(response):
+                    domain = self._approved_domain(item.originallink)
+                    if domain is None:
+                        self.last_diagnostics["domain_rejected"] += 1
+                        rejected_domains[self._response_domain(item.originallink)] += 1
+                        continue
+                    normalized_url = self._normalized_article_url(item.originallink)
+                    if normalized_url in seen_urls:
+                        self.last_diagnostics["duplicate_rejected"] += 1
+                        continue
+                    try:
+                        published_at = parsedate_to_datetime(item.pubDate)
+                    except (TypeError, ValueError):
+                        self.last_diagnostics["date_rejected"] += 1
+                        continue
+                    if (
+                        published_at.tzinfo is None
+                        or not window_start <= published_at <= window_end
+                    ):
+                        self.last_diagnostics["date_rejected"] += 1
+                        continue
+                    title = self._plain_text(item.title)
+                    if not title:
+                        self.last_diagnostics["title_rejected"] += 1
+                        continue
+                    seen_urls.add(normalized_url)
+                    article_id = sha256(
+                        f"{self.source_id}:{normalized_url}".encode()
+                    ).hexdigest()[:24]
+                    articles.append(
+                        CollectedArticle(
+                            article_id=article_id,
+                            country=self.country,
+                            title=title,
+                            url=normalized_url,
+                            publisher=domain,
+                            published_at=published_at,
+                        )
+                    )
+                    self.last_diagnostics["accepted"] += 1
+                    if len(articles) >= target_limit:
+                        self.last_diagnostics["limit_rejected"] += len(response) - index - 1
+                        self._store_rejected_domains(rejected_domains)
+                        return articles
         self._store_rejected_domains(rejected_domains)
         return articles
 
-    def _request_url(self, query: str) -> str:
+    def _request_url(self, query: str, start: int) -> str:
         parameters = urlencode(
             {
                 "query": query,
                 "display": NAVER_MAX_RESULTS_PER_REQUEST,
-                "start": 1,
+                "start": start,
                 "sort": "date",
                 "format": "json",
             }
@@ -173,7 +184,7 @@ class NaverCollector:
 
     def _approved_domain(self, url: str) -> str | None:
         parsed = urlsplit(url)
-        if parsed.scheme != "https" or not parsed.hostname:
+        if parsed.scheme not in {"http", "https"} or not parsed.hostname or parsed.username:
             return None
         domain = parsed.hostname.lower().removeprefix("www.")
         return next(
@@ -184,6 +195,11 @@ class NaverCollector:
             ),
             None,
         )
+
+    @staticmethod
+    def _normalized_article_url(url: str) -> str:
+        parsed = urlsplit(url)
+        return urlunsplit(("https", parsed.netloc, parsed.path, parsed.query, ""))
 
     @staticmethod
     def _response_domain(url: str) -> str:

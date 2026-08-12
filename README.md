@@ -46,7 +46,7 @@ Set-Location .\preview-site
 python -m http.server 8080
 ```
 
-The v2 Pages client reads `data/v2` keyword JSON. A push to `main` builds a network-free three-country 120-article fixture artifact with five keywords and related articles. Scheduled runs collect the preceding 24 hours through GDELT, approved RSS, and NAVER for Korea, then publish only when the v2 quality threshold is met; a failed collection leaves the last successful Pages deployment unchanged. The workflow runs at 00:00 UTC (09:00 JST/KST), with 10:00 and 12:00 JST/KST catch-up candidates. A date-keyed attempt marker prevents an automatic second external collection after the live stage has been claimed; only an explicit manual `force_live_retry` can override it.
+The v2 Pages client reads `data/v2` keyword JSON. A push to `main` builds a network-free three-country 120-article fixture artifact with five keywords and related articles. Scheduled runs collect a 24-hour source window through approved RSS, NewsData.io for the US and Japan, and NAVER for Korea, then publish only when the v2 quality threshold is met. NewsData.io's free-tier window is shifted by its 12-hour delivery delay; NAVER uses a target-aware second page, and JPX/FSA RSS supplements Japanese publisher diversity. A failed collection leaves the last successful Pages deployment unchanged. The workflow runs at 00:00 UTC (09:00 JST/KST), with 10:00 and 12:00 JST/KST catch-up candidates. A date-keyed attempt marker prevents an automatic second external collection after the live stage has been claimed; only an explicit manual `force_live_retry` can override it.
 
 ## Documentation
 

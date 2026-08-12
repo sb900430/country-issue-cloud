@@ -1,7 +1,7 @@
 import json
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
-from datetime import UTC, date, datetime
+from datetime import UTC, date, datetime, timedelta
 from hashlib import sha256
 from urllib.parse import urlencode, urlsplit
 
@@ -14,7 +14,6 @@ from app.schemas.issues import CountryCode
 NEWSDATA_ENDPOINT = "https://newsdata.io/api/1/latest"
 NEWSDATA_FREE_PAGE_SIZE = 10
 NEWSDATA_MAX_RESULTS_TOTAL = 150
-NEWSDATA_MAX_PAGES_PER_COLLECTION = 20
 
 
 @dataclass(frozen=True)
@@ -29,6 +28,9 @@ class NewsDataSource:
     free_policy_review_due_at: date
     blocked_publishers: tuple[str, ...] = ()
     required_title_terms: tuple[str, ...] = ()
+    excluded_domains: tuple[str, ...] = ()
+    availability_delay_hours: int = 0
+    max_pages_per_collection: int = 20
 
     def __post_init__(self) -> None:
         if self.endpoint != NEWSDATA_ENDPOINT:
@@ -37,6 +39,12 @@ class NewsDataSource:
             raise ValueError("NewsData supplement is limited to US and JP")
         if self.category != "business":
             raise ValueError("NewsData source must remain scoped to business news")
+        if not 0 <= self.availability_delay_hours <= 48:
+            raise ValueError("NewsData availability delay must be between 0 and 48 hours")
+        if not 1 <= self.max_pages_per_collection <= 40:
+            raise ValueError("NewsData page limit must be between 1 and 40")
+        if len(self.excluded_domains) > 5:
+            raise ValueError("NewsData supports at most five excluded domains")
 
 
 class NewsDataArticle(BaseModel):
@@ -96,14 +104,21 @@ class NewsDataCollector:
             "relevance_rejected": 0,
             "limit_rejected": 0,
             "accepted": 0,
+            "availability_delay_hours": self.source.availability_delay_hours,
         }
+        effective_window_start = window_start - timedelta(
+            hours=self.source.availability_delay_hours
+        )
+        effective_window_end = window_end - timedelta(
+            hours=self.source.availability_delay_hours
+        )
         articles: list[CollectedArticle] = []
         seen_urls: set[str] = set()
         page: str | None = None
         request_count = 0
         while (
             len(articles) < target_limit
-            and request_count < NEWSDATA_MAX_PAGES_PER_COLLECTION
+            and request_count < self.source.max_pages_per_collection
         ):
             self.usage_ledger.reserve_request()
             request_count += 1
@@ -119,7 +134,10 @@ class NewsDataCollector:
                     self.last_diagnostics["duplicate_rejected"] += 1
                     continue
                 published_at = self._parse_datetime(item.pubDate)
-                if published_at is None or not window_start <= published_at <= window_end:
+                if (
+                    published_at is None
+                    or not effective_window_start <= published_at <= effective_window_end
+                ):
                     self.last_diagnostics["date_rejected"] += 1
                     continue
                 title = " ".join(item.title.split())
@@ -167,7 +185,10 @@ class NewsDataCollector:
             "language": self.source.language,
             "category": self.source.category,
             "size": NEWSDATA_FREE_PAGE_SIZE,
+            "removeduplicate": 1,
         }
+        if self.source.excluded_domains:
+            parameters["excludedomain"] = ",".join(self.source.excluded_domains)
         if page:
             parameters["page"] = page
         return f"{self.source.endpoint}?{urlencode(parameters)}"

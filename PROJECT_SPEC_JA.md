@@ -136,6 +136,7 @@ Androidアプリは廃止しない。keyword中心Webと公開URLの安定化後
 - サービスタイムゾーン：`Asia/Tokyo`
 - バッチ：毎日08:00
 - 収集範囲：実行時刻から直前24時間
+- 無料planの提供遅延が明示されたsourceは24時間の長さを維持し、開始・終了時刻を遅延時間分だけ同時に移動する。NewsData.ioには12時間遅延を適用し、`実行-36時間～実行-12時間`を収集する。
 - 内部時刻：UTC、表示：タイムゾーン付きISO 8601
 - 公開時刻がない記事、または現在より10分以上未来の記事は除外する。
 
@@ -155,9 +156,9 @@ Androidアプリは廃止しない。keyword中心Webと公開URLの安定化後
 
 - GDELT Project DOC API Article Listは長期的な主source候補だが、反復HTTP 429が確認されている間は運用設定で無効とする。制限付き単一requestで正常応答と利用条件を再確認した後だけ、`sourcecountry`、`sourcelang`、直前24時間、`maxrecords=250`を国別に独立適用して再有効化する。
 - 初回運用のnews sourceは無料構成に固定する。韓国はNAVER API HUB news検索の無料呼出上限内で補完し、有料移行・従量課金拡張は利用者承認前に使わない。
-- NAVER呼出はapplicationとNAVER Consoleの両方で日300回・月9,000回に制限し、いずれかの上限到達時に追加呼出を自動停止する。使用量50%・80%で通知し、無料policy変更前は有料超過利用や自動上限拡張を許可しない。
-- 米国・日本の経済news補完はNewsData.io Latest News API無料planの`country`・`language`・`business` filterを国別に独立適用する。呼出はapplicationで日40回・月1,200回に制限し、国別目標・上限150件と最大20pageだけを巡回して、有料超過利用と自動有料移行を禁止する。無料planの遅延dataとtitle・link・媒体・公開時刻だけを使用する。
-- NewsData.io結果には国別の遮断媒体listを適用し、日本の結果はversion管理された経済関連title用語のいずれかを含む必要がある。株価自動生成・企業決算転載・プレスリリース配信platformのように反復template比率が高い媒体はsampleから除外し、除外件数を診断へ残す。
+- NAVER呼出はapplicationとNAVER Consoleの両方で日300回・月9,000回に制限し、いずれかの上限到達時に追加呼出を自動停止する。使用量50%・80%で通知し、無料policy変更前は有料超過利用や自動上限拡張を許可しない。運用queryは1page目をすべて巡回し、記事目標が残る場合だけ`start=101`の2page目を巡回して目標量到達時に即時停止する。承認domainのHTTP原文linkは同一hostのHTTPSへupgradeして公開する。
+- 米国・日本の経済news補完はNewsData.io Latest News API無料planの`country`・`language`・`business` filterを国別に独立適用する。呼出はapplicationで日40回・月1,200回に制限し、国別目標・上限150件を維持する。米国は最大15page、記事不足度が高い日本は最大25pageへ配分し、目標量到達時に早期停止する。無料planの12時間提供遅延に合わせて各実行の24時間範囲を12時間前へ移動し、title・link・媒体・公開時刻だけを使う。有料超過利用と自動有料移行は禁止する。
+- NewsData.io結果には国別の遮断媒体listを適用し、日本の結果はversion管理された経済関連title用語のいずれかを含む必要がある。株価自動生成・企業決算転載・プレスリリース配信platformのように反復template比率が高い媒体はsampleから除外し、除外件数を診断へ残す。日本で過剰露出した`investing.com`はAPI requestの`excludedomain`で先に除外し、providerの重複除去を要求して他媒体がpageを占める機会を確保する。
 - 経済範囲はversion管理された国別経済topic query群で制限し、query別収集量と偏りを記録する。特定企業・事件名を事前投入して結果を誘導しない。
 - 既存の中央銀行・政府機関RSSと条件付き公共APIは補助sourceとして維持し、主source結果とまとめて重複排除する。
 - NewsAPI、GNews、Mediastack、World News APIなど開発専用または有料移行が必要な集約APIは本番依存にしない。
@@ -169,7 +170,7 @@ Androidアプリは廃止しない。keyword中心Webと公開URLの安定化後
 ```yaml
 ALL: GDELT DOC API Article Listは429安定性の再検証まで一時無効
 US supplementary: Federal Reserve RSS；BLS RSS無効、BEA API条件付き
-JP supplementary: BOJ RSS；METI Atom無効、e-Stat API条件付き
+JP supplementary: BOJ・財務省・統計局・JPX・金融庁RSS；METI Atom無効、e-Stat API条件付き
 KR supplementary: 韓国銀行・金融委員会・中小ベンチャー企業部RSS
 KR news supplement: NAVER API HUBを無料呼出上限内で使用
 US/JP news supplement: NewsData.io Latest News API無料planを国別に独立使用
@@ -918,6 +919,8 @@ v* tag → Pages URL検証 → GitHub Release。Android再開後のみAABとPlay
 GDELTの最小1件公開requestでもHTTP 429を再現した。HTTP errorは本文・URL・Secretなしで`rate_limited`、`client_error`、`server_error`、`timeout`などに分類し、一つの国で429が発生した場合は同じbatchの残りGDELT requestを`circuit_open_rate_limited`として即時停止する。RSSとNAVERは独立して継続する。
 
 2026-08-08に米国・日本の補完sourceとしてNewsData.io無料Latest News APIを採用した。`NEWSDATA_API_KEY`はlocal `.env`と`pages-production` Environment Secretだけから注入し、US `country=us&language=en`・JP `country=jp&language=ja`へ`category=business`をそれぞれ適用する。mock pagination・response検証と日40回・月1,200回ledgerを実装し、直近24時間の限定実接続でUS・JP各100件を確保した。
+
+2026-08-12の運用診断ではUS 108件・JP 40件・KR 70件となり、日本が配布下限を下回った。NewsData.io無料dataの12時間遅延と日本結果の`investing.com`集中を同時に解消するため、source別の24時間範囲を12時間前へ移動し、米国15・日本25page配分、`excludedomain=investing.com`、provider重複除去を適用する。韓国NAVERは5件の経済queryの1page目後も目標が残る場合に2page目まで巡回し、承認domainのHTTP linkをHTTPSへupgradeする。日本の補助sourceには実応答を確認したJPX市場news・news releaseと金融庁新着RSSを追加し、媒体別20%/30件制限は維持する。
 
 2026-08-09の予約実行では重複・偏重除去後にUS 198件・JP 103件・KR 85件を確保したが、従来の100件gateにより全体配布が停止した。100件以上の推奨収集目標と150件の目標値は維持し、実配布下限だけを国別70件へ下げる。3か国すべてが70件以上で各国TOP 5を完成した場合のみ配布し、未達時は既存の正常Pagesを維持する。
 
