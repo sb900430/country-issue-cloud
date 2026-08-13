@@ -2,15 +2,17 @@
 
 | 項目 | 現在状態 |
 |---|---|
-| 現在目標 | 配布下限50件の暫定運用と日次収集量観察 |
-| 状態 | 実装・文書・全体検証・完了review PASS、Draft PR #33 |
+| 現在目標 | GitHub account名変更に伴うrepository・Pages参照の整合化 |
+| 状態 | 実装・文書・全体検証・完了review PASS、Draft PR準備 |
 | 基準branch | `main` |
-| 作業branch | `codex/publish-floor-50` |
-| 最終完了commit | `39cd699` — 実source収集量安定化 PR #32 Rebase and merge |
-| 全体検証 | PASS — Python 145件・coverage 88%・Web 9件・Ruff・mypy・Secret・仕様同期 |
-| 次作業 | PR #33のCI・利用者確認後にRebase and merge、merge後検証と日次chat報告予約を確定 |
+| 作業branch | `codex/rename-github-owner` |
+| 最終完了commit | `9d53984` — 配布下限50件暫定運用 PR #33 Rebase and merge |
+| 全体検証 | PASS — Python 146件・coverage 88%・Web 9件・Ruff・mypy・Secret・仕様同期 |
+| 次作業 | branch pushとDraft PR作成後にCI確認 |
 
 ## v1.0公開準備の進行結果
+
+- GitHub account名を`kimsb0430`へ変更し、repository・Pages・問い合わせ・license・RSS User-Agent・自動報告taskのowner参照を新しい名前へ統一する。旧ユーザー名のredirectには依存しない。
 
 - 2026-08-12の再実行はraw US 137件・JP 128件・KR 136件を収集し、重複排除後US 133件・JP 125件・KR 132件を確保した。媒体多様性適用後は最終US 125件・JP 55件・KR 132件となり、日本は`Investing- Fx` 96件への集中により従来の70件配布下限を下回った。推奨収集100件以上、目標150件、媒体別20%/30件制限は維持し、運用変動観察のため配布下限だけを当面50件へ下げる。50～99件で公開した結果は国別記事数とTOP 5品質を毎日chatで報告する。
 

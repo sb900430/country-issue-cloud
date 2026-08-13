@@ -15,7 +15,7 @@
 
 ### 운영 범위
 
-- 공개 서비스: `https://sb900430.github.io/country-issue-cloud/`
+- 공개 서비스: `https://kimsb0430.github.io/country-issue-cloud/`
 - 운영 workflow: `Publish Country Issue Cloud Pages`
 - 기본 예약: 매일 09:00 JST/KST, 보충 확인 10:00·12:00
 - 공개 데이터: `data/v2/latest.json`, 날짜별 JSON, `dates.json`
@@ -80,7 +80,7 @@ GitHub Actions에서 `Publish Country Issue Cloud Pages`의 **Run workflow**를 
 
 ### 運用範囲
 
-- 公開service：`https://sb900430.github.io/country-issue-cloud/`
+- 公開service：`https://kimsb0430.github.io/country-issue-cloud/`
 - 運用workflow：`Publish Country Issue Cloud Pages`
 - 標準schedule：毎日09:00 JST/KST、補完確認10:00・12:00
 - 公開data：`data/v2/latest.json`、日付別JSON、`dates.json`
