@@ -60,8 +60,8 @@ class SourceRegistry(BaseModel):
     sources: dict[CountryCode, tuple[SourceEntry, ...]]
 
 
-def load_rss_sources(path: Path) -> list[RssSource]:
-    registry = load_source_registry(path)
+def load_rss_sources(source: Path | SourceRegistry) -> list[RssSource]:
+    registry = _resolve_registry(source)
 
     result: list[RssSource] = []
     seen_ids: set[str] = set()
@@ -85,8 +85,8 @@ def load_rss_sources(path: Path) -> list[RssSource]:
     return result
 
 
-def load_gdelt_sources(path: Path) -> list[GdeltSource]:
-    registry = load_source_registry(path)
+def load_gdelt_sources(source: Path | SourceRegistry) -> list[GdeltSource]:
+    registry = _resolve_registry(source)
     result: list[GdeltSource] = []
     seen_ids: set[str] = set()
     for country, entries in registry.sources.items():
@@ -120,8 +120,8 @@ def load_gdelt_sources(path: Path) -> list[GdeltSource]:
     return result
 
 
-def load_naver_sources(path: Path) -> list[NaverSource]:
-    registry = load_source_registry(path)
+def load_naver_sources(source: Path | SourceRegistry) -> list[NaverSource]:
+    registry = _resolve_registry(source)
     result: list[NaverSource] = []
     seen_ids: set[str] = set()
     for country, entries in registry.sources.items():
@@ -159,8 +159,8 @@ def load_naver_sources(path: Path) -> list[NaverSource]:
     return result
 
 
-def load_newsdata_sources(path: Path) -> list[NewsDataSource]:
-    registry = load_source_registry(path)
+def load_newsdata_sources(source: Path | SourceRegistry) -> list[NewsDataSource]:
+    registry = _resolve_registry(source)
     result: list[NewsDataSource] = []
     seen_ids: set[str] = set()
     for country, entries in registry.sources.items():
@@ -209,6 +209,10 @@ def load_source_registry(path: Path) -> SourceRegistry:
         return SourceRegistry.model_validate(raw)
     except (OSError, ValidationError, ValueError, yaml.YAMLError) as error:
         raise ValueError(f"Invalid source configuration: {path.name}") from error
+
+
+def _resolve_registry(source: Path | SourceRegistry) -> SourceRegistry:
+    return load_source_registry(source) if isinstance(source, Path) else source
 
 
 def _ensure_unique_source_id(source_id: str, seen_ids: set[str]) -> None:

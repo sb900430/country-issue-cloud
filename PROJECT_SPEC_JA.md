@@ -926,6 +926,8 @@ GDELTの最小1件公開requestでもHTTP 429を再現した。HTTP errorは本�
 
 2026-08-13にGitHub account名を`sb900430`から`kimsb0430`へ変更した。正式repositoryは`https://github.com/kimsb0430/country-issue-cloud`、公開Pagesは`https://kimsb0430.github.io/country-issue-cloud/`として管理し、旧ユーザー名のredirectには依存しない。local `origin`、公開link、問い合わせlink、RSS User-Agent、運用automationも新しいowner名を基準に維持する。
 
+2026-08-13のcode簡素化決定として、現在動作と安全gateを維持しながら、NAVER・NewsData使用量ledgerのJSON保存logic、v1・v2静的配布のatomic directory置換logic、live collector組立を小さな内部helperへ共通化する。Source YAMLは1回のCLI実行で1度だけparseし、Web package managerはCI基準のnpmへ統一する。呼出元のない`public_issue_path`は削除する。v1互換API・pipeline、LLM詳細scaffold、FastAPI `ApiDataSource`は後続運用選択と互換終了判断まで削除しない。
+
 2026-08-09の予約実行では重複・偏重除去後にUS 198件・JP 103件・KR 85件を確保したが、従来の100件gateにより全体配布が停止した。100件以上の推奨収集目標と150件の目標値は維持し、実配布下限だけを国別70件へ下げる。3か国すべてが70件以上で各国TOP 5を完成した場合のみ配布し、未達時は既存の正常Pagesを維持する。
 
 配布障害対応は上記機能PRへ混在させない。GDELT利用条件・query偏り・形態素分析library選定が実装中に変わる場合はADRを更新する。

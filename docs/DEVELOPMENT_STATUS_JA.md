@@ -2,15 +2,17 @@
 
 | 項目 | 現在状態 |
 |---|---|
-| 現在目標 | GitHub account名変更に伴うrepository・Pages参照の整合化 |
+| 現在目標 | 重複・未使用code簡素化と動作維持検証 |
 | 状態 | 実装・文書・全体検証・完了review PASS、Draft PR準備 |
 | 基準branch | `main` |
-| 作業branch | `codex/rename-github-owner` |
-| 最終完了commit | `9d53984` — 配布下限50件暫定運用 PR #33 Rebase and merge |
-| 全体検証 | PASS — Python 146件・coverage 88%・Web 9件・Ruff・mypy・Secret・仕様同期 |
+| 作業branch | `codex/code-simplification-audit` |
+| 最終完了commit | `5e00ce6` — GitHub owner参照更新 PR #34 Rebase and merge |
+| 全体検証 | PASS — Python 147件・coverage 89%・Web 9件・Ruff・mypy・Secret・仕様同期 |
 | 次作業 | branch pushとDraft PR作成後にCI確認 |
 
 ## v1.0公開準備の進行結果
+
+- code簡素化監査結果に基づき、現在の運用動作を変えない範囲で共通使用量ledgerと静的配布helperを導入し、live collector組立重複とSource YAML反復parseを除去した。Web toolはnpmへ統一し、未使用`public_issue_path`を削除した。v1・LLM・ApiDataSourceは仕様上の後続互換境界であるため、利用者判断まで保存する。
 
 - GitHub account名を`kimsb0430`へ変更し、repository・Pages・問い合わせ・license・RSS User-Agent・自動報告taskのowner参照を新しい名前へ統一する。旧ユーザー名のredirectには依存しない。
 

@@ -7,6 +7,7 @@ from app.batch.source_config import (
     load_naver_sources,
     load_newsdata_sources,
     load_rss_sources,
+    load_source_registry,
 )
 from app.schemas.issues import CountryCode
 
@@ -86,6 +87,16 @@ def test_project_source_registry_has_feeds_for_every_country() -> None:
         "jpx_news_releases",
         "fsa_japan_updates",
     } <= source_ids
+
+
+def test_loaded_registry_can_build_every_adapter_without_reading_yaml_again() -> None:
+    project_root = Path(__file__).parents[2]
+    registry = load_source_registry(project_root / "config" / "sources.example.yml")
+
+    assert load_rss_sources(registry)
+    assert load_gdelt_sources(registry) == []
+    assert load_naver_sources(registry)
+    assert load_newsdata_sources(registry)
 
 
 def test_project_source_registry_keeps_rate_limited_gdelt_disabled() -> None:
