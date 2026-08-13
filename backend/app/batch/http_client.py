@@ -30,7 +30,7 @@ class HttpsFeedClient:
                     "application/json, application/rss+xml, application/atom+xml, "
                     "application/xml, text/xml"
                 ),
-                "User-Agent": "country-issue-cloud/0.1 (+https://github.com/sb900430/country-issue-cloud)",
+                "User-Agent": "country-issue-cloud/0.1 (+https://github.com/kimsb0430/country-issue-cloud)",
             },
         )
         self.max_response_bytes = max_response_bytes

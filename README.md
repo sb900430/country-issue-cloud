@@ -10,7 +10,7 @@
 
 ## Live demo
 
-- Public site / 공개 사이트 / 公開site: https://sb900430.github.io/country-issue-cloud/
+- Public site / 공개 사이트 / 公開site: https://kimsb0430.github.io/country-issue-cloud/
 - Default view: Korea TOP5 tiles; switch countries or enable cloud view
 - Keyword detail: up to 20 related source links
 - Data contract: `data/v2/latest.json` and the latest seven available dates

@@ -25,6 +25,17 @@ def test_https_feed_client_fetches_xml_with_safe_headers() -> None:
     assert HttpsFeedClient(client=client).fetch("https://example.com/feed.xml") == b"<rss />"
 
 
+def test_https_feed_client_identifies_the_current_repository() -> None:
+    feed_client = HttpsFeedClient()
+    try:
+        assert feed_client.client.headers["user-agent"] == (
+            "country-issue-cloud/0.1 "
+            "(+https://github.com/kimsb0430/country-issue-cloud)"
+        )
+    finally:
+        feed_client.client.close()
+
+
 @pytest.mark.parametrize(
     "url",
     [

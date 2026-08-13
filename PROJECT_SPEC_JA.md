@@ -924,6 +924,8 @@ GDELTの最小1件公開requestでもHTTP 429を再現した。HTTP errorは本�
 
 2026-08-13の運用決定として、無料sourceの日次変動を観察する間、国別配布下限を50件へ暫定調整する。推奨収集100件以上、目標150件、最大250件、媒体別20%/30件制限、TOP 5品質gateは維持する。毎日12:00の補完schedule後に国別最終選択記事数と配布成否をchat報告対象とし、50～99件結果のkeyword品質を観察して下限復元を判断する。
 
+2026-08-13にGitHub account名を`sb900430`から`kimsb0430`へ変更した。正式repositoryは`https://github.com/kimsb0430/country-issue-cloud`、公開Pagesは`https://kimsb0430.github.io/country-issue-cloud/`として管理し、旧ユーザー名のredirectには依存しない。local `origin`、公開link、問い合わせlink、RSS User-Agent、運用automationも新しいowner名を基準に維持する。
+
 2026-08-09の予約実行では重複・偏重除去後にUS 198件・JP 103件・KR 85件を確保したが、従来の100件gateにより全体配布が停止した。100件以上の推奨収集目標と150件の目標値は維持し、実配布下限だけを国別70件へ下げる。3か国すべてが70件以上で各国TOP 5を完成した場合のみ配布し、未達時は既存の正常Pagesを維持する。
 
 配布障害対応は上記機能PRへ混在させない。GDELT利用条件・query偏り・形態素分析library選定が実装中に変わる場合はADRを更新する。
