@@ -977,6 +977,8 @@ GDELT 최소 1건 공개 요청에서도 HTTP 429를 재현했다. HTTP 오류�
 
 2026-08-13 GitHub 계정명을 `sb900430`에서 `kimsb0430`으로 변경했다. 정식 저장소는 `https://github.com/kimsb0430/country-issue-cloud`, 공개 Pages는 `https://kimsb0430.github.io/country-issue-cloud/`로 관리하며 기존 사용자명 리다이렉트에 의존하지 않는다. 로컬 `origin`, 공개 링크, 문의 링크, RSS User-Agent와 자동 운영 작업도 새 소유자명을 기준으로 유지한다.
 
+2026-08-13 코드 단순화 결정으로 현재 동작과 안전 gate를 유지하면서 NAVER·NewsData 사용량 장부의 JSON 저장 로직, v1·v2 정적 게시의 원자적 directory 교체 로직, live collector 조립을 작은 내부 helper로 공통화한다. Source YAML은 한 CLI 실행에서 한 번만 parse하고 Web package manager는 CI 기준인 npm으로 통일한다. 호출자가 없는 `public_issue_path`는 제거한다. v1 호환 API·pipeline, LLM 상세 스캐폴드, FastAPI `ApiDataSource`는 후속 운영 선택과 호환 종료 결정 전까지 삭제하지 않는다.
+
 2026-08-09 예약 실행에서 중복·편중 제거 후 US 198건·JP 103건·KR 85건을 확보했지만 기존 100건 게이트로 전체 게시가 중단됐다. 100건 이상 권장 수집 목표와 150건 목표치는 유지하고, 실제 게시 하한만 국가별 70건으로 낮춘다. 세 국가 모두 70건 이상이고 각 국가가 TOP 5를 완성해야 게시하며, 미달 시 기존 정상 Pages를 유지한다.
 
 배포 오류 대응은 위 기능 PR과 섞지 않는다. GDELT 이용조건·query 편향·형태소 분석 library 선택이 구현 중 바뀌면 ADR을 갱신한다.

@@ -14,6 +14,7 @@ from app.batch.source_config import (
     load_naver_sources,
     load_newsdata_sources,
     load_rss_sources,
+    load_source_registry,
 )
 from app.core.settings import get_settings
 from app.repositories.json_issue_repository import JsonIssueRepository
@@ -30,7 +31,7 @@ def resolve_collection_window(
     return window_end - timedelta(hours=lookback_hours), window_end
 
 
-def main() -> int:
+def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="country-issue-cloud-batch")
     subparsers = parser.add_subparsers(dest="command", required=True)
     fixture = subparsers.add_parser("publish-fixture")
@@ -67,6 +68,11 @@ def main() -> int:
     publish_existing = subparsers.add_parser("publish-existing-keyword-data")
     publish_existing.add_argument("--data-dir", type=Path, required=True)
     publish_existing.add_argument("--site-data-dir", type=Path, required=True)
+    return parser
+
+
+def main() -> int:
+    parser = _build_parser()
     arguments = parser.parse_args()
 
     if arguments.command == "publish-fixture":
@@ -87,15 +93,12 @@ def main() -> int:
         )
         client = HttpsFeedClient()
         settings = get_settings()
+        registry = load_source_registry(arguments.sources_config)
         result = run_live_batch(
-            load_rss_sources(arguments.sources_config),
-            (load_gdelt_sources(arguments.sources_config) if arguments.enable_gdelt else []),
-            (load_naver_sources(arguments.sources_config) if arguments.enable_naver else []),
-            (
-                load_newsdata_sources(arguments.sources_config)
-                if arguments.enable_newsdata
-                else []
-            ),
+            load_rss_sources(registry),
+            (load_gdelt_sources(registry) if arguments.enable_gdelt else []),
+            (load_naver_sources(registry) if arguments.enable_naver else []),
+            (load_newsdata_sources(registry) if arguments.enable_newsdata else []),
             client.fetch,
             client.fetch_with_headers,
             settings.naver_client_id,
@@ -136,15 +139,12 @@ def main() -> int:
         )
         client = HttpsFeedClient(max_attempts=1 if arguments.single_attempt else 2)
         settings = get_settings()
+        registry = load_source_registry(arguments.sources_config)
         keyword_result = run_live_keyword_batch(
-            ([] if arguments.skip_rss else load_rss_sources(arguments.sources_config)),
-            load_gdelt_sources(arguments.sources_config),
-            load_naver_sources(arguments.sources_config),
-            (
-                load_newsdata_sources(arguments.sources_config)
-                if arguments.enable_newsdata
-                else []
-            ),
+            ([] if arguments.skip_rss else load_rss_sources(registry)),
+            load_gdelt_sources(registry),
+            load_naver_sources(registry),
+            (load_newsdata_sources(registry) if arguments.enable_newsdata else []),
             client.fetch,
             client.fetch_with_headers,
             settings.naver_client_id,

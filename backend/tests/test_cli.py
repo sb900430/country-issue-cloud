@@ -77,6 +77,7 @@ def test_publish_live_keeps_gdelt_disabled_without_explicit_flag(
         ],
     )
     monkeypatch.setattr(cli, "load_rss_sources", lambda _path: [])
+    monkeypatch.setattr(cli, "load_source_registry", lambda _path: object())
     monkeypatch.setattr(
         cli,
         "load_gdelt_sources",
@@ -126,6 +127,7 @@ def test_publish_keyword_live_can_skip_rss_for_historical_check(
         "load_rss_sources",
         lambda _path: (_ for _ in ()).throw(AssertionError("RSS must stay disabled")),
     )
+    monkeypatch.setattr(cli, "load_source_registry", lambda _path: object())
     monkeypatch.setattr(cli, "load_gdelt_sources", lambda _path: [])
     monkeypatch.setattr(cli, "load_naver_sources", lambda _path: [])
     monkeypatch.setattr(
