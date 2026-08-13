@@ -32,7 +32,7 @@
 - 응답의 title, URL, domain/publisher, source country, language, publication time 등 공개 metadata만 수집한다.
 - 기사 본문과 이미지를 대상 언론사에서 추가 crawl하지 않는다.
 - URL·정규화 title·유사도 순으로 GDELT 내부 및 보조 RSS와 중복 제거한다.
-- 국가별 중복 제거 후 150건을 목표로 하며 100건 이상을 권장 수집량, 70건 이상을 게시 가능, 50~69건을 부분 성공으로 처리한다.
+- 국가별 중복 제거 후 150건을 목표로 하며 100건 이상을 권장 수집량, 당분간 50건 이상을 게시 가능, 49건 이하를 표본 미달로 처리한다.
 - 공개 화면과 프로젝트 정보에 `Data source: GDELT Project`와 공식 site link를 표시한다.
 - 호출 timeout, 제한된 1회 retry, query별 기사 수, 응답 지연과 HTTP 상태를 기록하되 원문 응답 전체는 log에 남기지 않는다.
 - 무료 endpoint의 429를 줄이기 위해 국가 요청을 최소 60초 간격으로 직렬화하며, 현재 v1 예약 배치에서는 `--enable-gdelt`를 지정하지 않는다.
@@ -43,7 +43,7 @@
 - responseのtitle、URL、domain/publisher、source country、language、publication timeなど公開metadataだけを収集する。
 - 記事本文と画像を対象報道機関から追加crawlしない。
 - URL・正規化title・類似度順でGDELT内部および補助RSSと重複排除する。
-- 国別重複排除後150件を目標とし、100件以上を推奨収集量、70件以上を配布可能、50～69件を部分成功として扱う。
+- 国別重複排除後150件を目標とし、100件以上を推奨収集量、当面50件以上を配布可能、49件以下をsample不足として扱う。
 - 公開画面とproject情報に`Data source: GDELT Project`と公式site linkを表示する。
 - request timeout、制限付き1回retry、query別記事数、response遅延、HTTP statusを記録し、raw response全体はlogへ残さない。
 - 無料endpointの429を減らすため国requestを最低60秒間隔で直列化し、現在のv1予約batchでは`--enable-gdelt`を指定しない。
@@ -166,13 +166,27 @@ NAVER専用収集adapterはv2予約`publish-keyword-live`で韓国経済news補�
 - 일 40회·월 1,200회 자체 hard stop 안에서 미국 최대 15페이지, 일본 최대 25페이지를 허용하며 국가별 150건에 도달하면 조기 중단한다.
 - 일본은 `excludedomain=investing.com`, `removeduplicate=1`을 요청해 특정 매체 편중과 제공자 판정 중복을 페이지 수집 전에 줄인다.
 - 일본의 공식 보조 RSS는 JPX 시장뉴스·보도자료와 금융청 새소식을 포함한다. Secret은 필요 없으며 `config/sources.example.yml`의 약관 확인일과 90일 재검토일을 유지한다.
-- 매체별 20% 또는 30건 제한과 국가별 게시 하한 70건은 수집량을 늘리더라도 완화하지 않는다.
+- 매체별 20% 또는 30건 제한은 유지한다. 국가별 게시 하한만 운영 관찰을 위해 당분간 50건으로 조정하며, 하한을 채우기 위해 매체 다양성 제한을 완화하지 않는다.
 
 - 無料planの12時間提供遅延を反映し、24時間の収集長は維持したまま範囲を`実行-36時間～実行-12時間`へ移動する。
 - 日40回・月1,200回の独自hard stop内で米国最大15page、日本最大25pageを許可し、国別150件到達時に早期停止する。
 - 日本は`excludedomain=investing.com`、`removeduplicate=1`をrequestし、特定媒体への偏りとprovider判定の重複をpage収集前に減らす。
 - 日本の公式補助RSSにはJPX市場news・news releaseと金融庁新着情報を含める。Secretは不要で、`config/sources.example.yml`の規約確認日と90日後の再確認日を維持する。
-- 媒体別20%または30件制限と国別配布下限70件は、収集量を増やしても緩和しない。
+- 媒体別20%または30件制限は維持する。国別配布下限だけを運用観察のため当面50件へ調整し、下限を満たす目的で媒体多様性制限を緩和しない。
+
+### 무료 플랜 매체 다양성 운영안 / 無料plan媒体多様性運用案
+
+- 1순위는 새 제공자 추가가 아니라 NewsData.io 무료 200 credits/day 안에서 일본 source 목록을 주기적으로 조회하고, 확인된 경제 매체를 최대 5개 domain 묶음으로 나눠 순환 수집하는 방식이다. `prioritydomain=top`·`medium`, `category=business`, `qInTitle` 경제 용어 묶음을 분리하고 요청 간 기사 ID를 합쳐 중복 제거한다.
+- 현재 자체 한도 40회/day는 유지한다. domain 묶음별 최소 1page를 먼저 수집한 뒤 매체 다양성 적용 후 목표가 부족한 묶음만 다음 page를 요청해 한 매체가 page를 독점하는 것을 막는다.
+- `excludedomain`만으로 차단되지 않는 `Investing- Fx` 같은 provider 표기 변형은 source ID·source URL·정규화 publisher 이름을 함께 진단하고 차단 후보로 관리한다. 단순 차단으로 50건이 무너지면 먼저 domain 묶음 수집으로 대체 매체를 확보한다.
+- GNews와 NewsAPI.org 무료 tier는 공식적으로 개발·테스트 전용이므로 공개 GitHub Pages 운영 source로 추가하지 않는다. Currents 무료 tier는 재배포 권리가 별도 조건이므로 서면 조건 확인 전 보류한다.
+- The Guardian Open Platform의 무료 Developer key는 비상업적 이용과 500 calls/day를 허용하지만 단일 영국 매체라 일본·미국 현지 매체 다양성 해결책으로 사용하지 않는다. BOJ·JPX 등 공식 RSS는 신뢰도 보강 source로 유지하되 기사량 대체 수단으로 계산하지 않는다.
+
+- 第1案は新provider追加ではなく、NewsData.io無料200 credits/day内で日本source listを定期取得し、確認済み経済媒体を最大5 domainのgroupへ分けて巡回収集する方式とする。`prioritydomain=top`・`medium`、`category=business`、`qInTitle`の経済用語groupを分離し、request間の記事IDを統合して重複排除する。
+- 現在の独自上限40回/dayは維持する。domain groupごとに最低1pageを先に収集し、媒体多様性適用後の目標不足groupだけ次pageをrequestして、一媒体によるpage独占を防ぐ。
+- `excludedomain`だけで遮断できない`Investing- Fx`のようなprovider表記揺れはsource ID・source URL・正規化publisher名を同時に診断し、遮断候補として管理する。単純遮断で50件を割る場合は、先にdomain group収集で代替媒体を確保する。
+- GNewsとNewsAPI.orgの無料tierは公式に開発・test専用のため、公開GitHub Pagesの運用sourceへ追加しない。Currents無料tierは再配布権が別条件のため、書面条件確認前は保留する。
+- The Guardian Open Platformの無料Developer keyは非商用利用と500 calls/dayを許可するが、単一の英国媒体であり、日本・米国の現地媒体多様性対策には使わない。BOJ・JPXなど公式RSSは信頼度補完sourceとして維持し、記事量の代替手段には数えない。
 
 ## 4. BEA API 등록 / BEA API登録
 

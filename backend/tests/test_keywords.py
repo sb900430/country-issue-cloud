@@ -128,9 +128,9 @@ def test_synonym_resolver_only_uses_labels_present_in_candidates() -> None:
 def test_ranker_rejects_small_samples_and_country_mixing() -> None:
     articles = [
         _article(str(index), CountryCode.US, "semiconductor investment expands")
-        for index in range(69)
+        for index in range(49)
     ]
-    with pytest.raises(ValueError, match="at least 70"):
+    with pytest.raises(ValueError, match="at least 50"):
         KeywordRanker().analyze(CountryCode.US, articles)
 
     articles.append(_article("mixed", CountryCode.JP, "半導体投資が拡大"))
