@@ -87,7 +87,7 @@ def test_live_keyword_batch_publishes_three_country_top_five(tmp_path: Path) -> 
     assert (tmp_path / "data" / "runtime" / "admin" / "selected-articles.json").exists()
 
 
-def test_live_keyword_batch_publishes_at_seventy_articles_per_country(
+def test_live_keyword_batch_publishes_at_fifty_articles_per_country(
     tmp_path: Path,
 ) -> None:
     end = datetime(2026, 8, 9, 0, tzinfo=UTC)
@@ -104,7 +104,7 @@ def test_live_keyword_batch_publishes_at_seventy_articles_per_country(
     ]
     payloads = {
         source.feed_url: _feed(
-            source.country, index % 5, end - timedelta(hours=1), count=14
+            source.country, index % 5, end - timedelta(hours=1), count=10
         )
         for index, source in enumerate(sources)
     }
@@ -128,7 +128,7 @@ def test_live_keyword_batch_publishes_at_seventy_articles_per_country(
     )
 
     assert result.status is IssueStatus.SUCCESS
-    assert all(result.countries[country].article_count == 70 for country in CountryCode)
+    assert all(result.countries[country].article_count == 50 for country in CountryCode)
     assert all(len(result.countries[country].top_keywords) == 5 for country in CountryCode)
     assert (site_dir / "latest.json").exists()
 
@@ -176,7 +176,7 @@ def test_live_keyword_batch_does_not_publish_partial_three_country_data(
     assert (tmp_path / "data" / "runtime" / "admin" / "selected-articles.json").exists()
 
 
-def test_live_keyword_batch_does_not_publish_when_one_country_has_sixty_nine_articles(
+def test_live_keyword_batch_does_not_publish_when_one_country_has_forty_nine_articles(
     tmp_path: Path,
 ) -> None:
     end = datetime(2026, 8, 9, 0, tzinfo=UTC)
@@ -189,19 +189,14 @@ def test_live_keyword_batch_does_not_publish_when_one_country_has_sixty_nine_art
             include_summary=False,
         )
         for country in CountryCode
-        for index in range(6)
+        for index in range(7)
     ]
     payloads = {
         source.feed_url: _feed(
             source.country,
-            index % 6,
+            index % 7,
             end - timedelta(hours=1),
-            count=(
-                12
-                if source.country is not CountryCode.KR
-                or int(source.source_id.rsplit("-", 1)[1]) < 3
-                else 11
-            ),
+            count=8 if source.country is not CountryCode.KR else 7,
         )
         for index, source in enumerate(sources)
     }
@@ -225,5 +220,5 @@ def test_live_keyword_batch_does_not_publish_when_one_country_has_sixty_nine_art
     )
 
     assert result.status is IssueStatus.PARTIAL_SUCCESS
-    assert result.countries[CountryCode.KR].article_count == 69
+    assert result.countries[CountryCode.KR].article_count == 49
     assert not (site_dir / "latest.json").exists()

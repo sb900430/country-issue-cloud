@@ -2,15 +2,17 @@
 
 | 項目 | 現在状態 |
 |---|---|
-| 現在目標 | 日本・韓国の実news収集量安定化 |
-| 状態 | 実装・文書・全体検証・完了review PASS |
+| 現在目標 | 配布下限50件の暫定運用と日次収集量観察 |
+| 状態 | 実装・文書・全体検証・完了review PASS、Draft PR #33 |
 | 基準branch | `main` |
-| 作業branch | `codex/live-source-volume` |
-| 最終完了commit | `7c147c0` — 国別keyword禁止list PR #31 Rebase and merge |
+| 作業branch | `codex/publish-floor-50` |
+| 最終完了commit | `39cd699` — 実source収集量安定化 PR #32 Rebase and merge |
 | 全体検証 | PASS — Python 145件・coverage 88%・Web 9件・Ruff・mypy・Secret・仕様同期 |
-| 次作業 | remote push・Draft PR作成後、次回予約実行の収集量を観察 |
+| 次作業 | PR #33のCI・利用者確認後にRebase and merge、merge後検証と日次chat報告予約を確定 |
 
 ## v1.0公開準備の進行結果
+
+- 2026-08-12の再実行はraw US 137件・JP 128件・KR 136件を収集し、重複排除後US 133件・JP 125件・KR 132件を確保した。媒体多様性適用後は最終US 125件・JP 55件・KR 132件となり、日本は`Investing- Fx` 96件への集中により従来の70件配布下限を下回った。推奨収集100件以上、目標150件、媒体別20%/30件制限は維持し、運用変動観察のため配布下限だけを当面50件へ下げる。50～99件で公開した結果は国別記事数とTOP 5品質を毎日chatで報告する。
 
 - 2026-08-12の予約実行はUS 108件・JP 40件・KR 70件となり、日本が70件の配布下限を下回った。NewsData.io無料planの12時間遅延をsource別収集時間窓へ反映し、米国15・日本25pageへ日40回予算を配分した。日本requestでは`investing.com`とprovider重複を先に除外する。韓国NAVERは目標量が残る場合に5 queryの2page目まで巡回し、承認domainのHTTP linkをHTTPSへ変換する。実応答を確認したJPX 2件・金融庁1件の公式RSSを日本補助sourceへ追加し、媒体別20%/30件制限は維持する。
 
