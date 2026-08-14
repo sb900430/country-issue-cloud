@@ -2,15 +2,17 @@
 
 | 項目 | 現在状態 |
 |---|---|
-| 現在目標 | 重複・未使用code簡素化と動作維持検証 |
-| 状態 | 実装・文書・全体検証・完了review PASS、Draft PR準備 |
+| 現在目標 | local多言語embeddingによるkeyword統合と実sample回帰 |
+| 状態 | 実装・保存済み実sample・全体検証PASS、完了review `PASS_WITH_FINDINGS` |
 | 基準branch | `main` |
-| 作業branch | `codex/code-simplification-audit` |
-| 最終完了commit | `5e00ce6` — GitHub owner参照更新 PR #34 Rebase and merge |
-| 全体検証 | PASS — Python 147件・coverage 89%・Web 9件・Ruff・mypy・Secret・仕様同期 |
-| 次作業 | branch pushとDraft PR作成後にCI確認 |
+| 作業branch | `codex/local-semantic-keywords` |
+| 最終完了commit | `bfd3e02` — 重複基盤code簡素化 PR #35 Rebase and merge |
+| 全体検証 | PASS — Python 149件・Web 9件、backend coverage 89%、Pages fixture artifact |
+| 次作業 | 要請時に作業branchをpushしてDraft PRを作成 |
 
 ## v1.0公開準備の進行結果
+
+- 2026-08-14の実24時間sampleにおける候補分散問題を修正する。複合語と構成単語を両方保持し、local多言語SentenceTransformerの高信頼な意味統合をlive batchへ適用した。候補gateを2%・最低3記事・2媒体へ調整し、意味統合は各候補2記事・2媒体、4文字以上、類似度0.95、cluster最大3件に制限した。保存済みUS 102・JP 70・KR 173件の再検証で3か国TOP 5を生成し、外部news APIとLLM呼出しは使用していない。
 
 - code簡素化監査結果に基づき、現在の運用動作を変えない範囲で共通使用量ledgerと静的配布helperを導入し、live collector組立重複とSource YAML反復parseを除去した。Web toolはnpmへ統一し、未使用`public_issue_path`を削除した。v1・LLM・ApiDataSourceは仕様上の後続互換境界であるため、利用者判断まで保存する。
 

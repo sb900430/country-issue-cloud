@@ -16,7 +16,7 @@
 | Android（保留） | 再開時にRetrofit、Kotlinx Serialization、ViewModel、Flow、Room、DataStore、Hiltを再検証 |
 | 日時 | サーバーはUTC保存、`Asia/Tokyo`表示 |
 | ニュース収集目標 | NewsData.io・NAVERと公共RSS/API、GDELTは429解消まで保留、国別150件目標・250件上限 |
-| keyword分析 | 言語別名詞・複合名詞抽出 → 国別YAML禁止語 → 5%・4件・2媒体gate → 一般語・重複イシュー除外 → code順位 |
+| keyword分析 | 構成単語・複合名詞保持 → 国別YAML禁止語 → local多言語embedding限定統合 → 2%・3件・2媒体gate → 一般語・重複イシュー除外 → code順位 |
 
 正確なversionはscaffold時点の公式安定版を確認して固定し、lockfileまたはversion catalogへ記録する。依存関係を無断追加せず、標準機能で解決困難な場合だけADRへ導入理由を残す。
 

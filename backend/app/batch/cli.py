@@ -7,8 +7,10 @@ from app.batch.http_client import HttpsFeedClient
 from app.batch.keyword_fixture import publish_keyword_fixture
 from app.batch.keyword_history import restore_keyword_history
 from app.batch.keyword_publishing import KeywordStaticJsonPublisher
+from app.batch.keywords import KeywordRanker
 from app.batch.live import run_live_batch, run_live_keyword_batch
 from app.batch.publishing import StaticJsonPublisher
+from app.batch.semantic_keywords import build_local_semantic_grouper
 from app.batch.source_config import (
     load_gdelt_sources,
     load_naver_sources,
@@ -155,6 +157,7 @@ def main() -> int:
             target_date,
             arguments.data_dir,
             arguments.site_data_dir,
+            KeywordRanker(semantic_grouper=build_local_semantic_grouper()),
         )
         print(
             f"keyword live batch {keyword_result.status.value}: "
