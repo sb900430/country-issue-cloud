@@ -24,6 +24,9 @@ foreach ($required in @(
     'NAVER_CLIENT_ID: ${{ secrets.NAVER_CLIENT_ID }}',
     'NAVER_CLIENT_SECRET: ${{ secrets.NAVER_CLIENT_SECRET }}',
     'NEWSDATA_API_KEY: ${{ secrets.NEWSDATA_API_KEY }}',
+    'HF_HOME: ${{ github.workspace }}\.runtime\huggingface',
+    'Cache local semantic model',
+    'semantic-model-${{ runner.os }}-e8f8c211226b',
     "needs.gate.outputs.should-run == 'true'"
 )) {
     if (-not $workflow.Contains($required)) {

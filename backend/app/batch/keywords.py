@@ -1,6 +1,7 @@
 import re
 import unicodedata
 from collections import defaultdict
+from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import datetime
 from hashlib import sha256
@@ -12,12 +13,13 @@ from sudachipy import dictionary, tokenizer  # type: ignore[import-untyped]
 
 from app.batch.keyword_blocklist import KeywordBlocklist
 from app.batch.models import CollectedArticle
+from app.batch.semantic_keywords import SemanticCandidateGrouper
 from app.schemas.issues import CountryCode
 
 _NUMBER_SUFFIX = re.compile(r"\s+\d{3,}$")
 _LATIN_WORD = re.compile(r"[A-Za-z][A-Za-z'-]*")
-_MIN_DOCUMENT_RATIO = 0.05
-_MIN_DOCUMENT_FREQUENCY = 4
+_MIN_DOCUMENT_RATIO = 0.02
+_MIN_DOCUMENT_FREQUENCY = 3
 _MIN_PUBLISHER_COUNT = 2
 _MIN_ARTICLE_COUNT = 50
 _MAX_RELATED_ARTICLE_JACCARD = 0.5
@@ -29,6 +31,28 @@ _GENERAL_TERMS = {
         "affect",
         "affects",
         "business",
+        "billion",
+        "call",
+        "and",
+        "are",
+        "for",
+        "from",
+        "has",
+        "have",
+        "into",
+        "its",
+        "more",
+        "of",
+        "on",
+        "or",
+        "over",
+        "than",
+        "that",
+        "the",
+        "under",
+        "was",
+        "will",
+        "with",
         "change",
         "changes",
         "demand",
@@ -42,6 +66,7 @@ _GENERAL_TERMS = {
         "increases",
         "market",
         "markets",
+        "million",
         "average",
         "day",
         "moving",
@@ -52,15 +77,38 @@ _GENERAL_TERMS = {
         "result",
         "says",
         "share",
+        "home",
+        "sell",
         "stock",
         "price",
         "quarterly",
         "slow",
         "slows",
         "today",
+        "january",
+        "february",
+        "march",
+        "april",
+        "may",
+        "june",
+        "july",
+        "august",
+        "september",
+        "october",
+        "november",
+        "december",
     },
     CountryCode.JP: {
         "ニュース",
+        "令和",
+        "日本",
+        "本日",
+        "注目",
+        "理由",
+        "新聞",
+        "一時",
+        "月期",
+        "情報",
         "今日",
         "会見",
         "公表",
@@ -82,11 +130,20 @@ _GENERAL_TERMS = {
         "需要",
         "発売",
         "開催",
+        "下落",
+        "急騰",
+        "急落",
+        "決算",
+        "銘柄",
     },
     CountryCode.KR: {
         "감소",
         "경제",
         "기사",
+        "개입",
+        "개최",
+        "기대",
+        "국제",
         "뉴스",
         "대통령",
         "둔화",
@@ -96,6 +153,7 @@ _GENERAL_TERMS = {
         "수요",
         "시장",
         "상승",
+        "상반기",
         "영향",
         "오늘",
         "전망",
@@ -109,6 +167,9 @@ _GENERAL_TERMS = {
         "출시",
         "특징주",
         "호실적",
+        "하반기",
+        "급등",
+        "금융",
         "규모",
     },
 }
@@ -119,6 +180,7 @@ class KeywordCandidate(BaseModel):
 
     label: str = Field(min_length=2, max_length=80)
     evidence_expression: str = Field(min_length=2, max_length=120)
+    term_count: int = Field(default=1, ge=1, le=2)
 
 
 class SynonymGroup(BaseModel):
@@ -153,6 +215,16 @@ class _TermUnit:
     label: str
     start: int
     end: int
+
+
+@dataclass(frozen=True)
+class _RankedItem:
+    frequency: int
+    publisher_count: int
+    specificity: int
+    latest: datetime
+    keyword_id: str
+    key: str
 
 
 class LanguageKeywordExtractor:
@@ -240,8 +312,7 @@ class LanguageKeywordExtractor:
         candidates: dict[str, KeywordCandidate] = {}
         general_terms = _GENERAL_TERMS[country]
         for segment in segments:
-            covered: set[int] = set()
-            for index, (left, right) in enumerate(zip(segment, segment[1:], strict=False)):
+            for left, right in zip(segment, segment[1:], strict=False):
                 if left.label in general_terms or right.label in general_terms:
                     continue
                 separator = " " if country is CountryCode.US else ""
@@ -255,26 +326,19 @@ class LanguageKeywordExtractor:
                     continue
                 normalized = _normalize(label)
                 candidates[normalized] = KeywordCandidate(
-                    label=label[:80], evidence_expression=evidence[:120]
+                    label=label[:80], evidence_expression=evidence[:120], term_count=2
                 )
-                covered.update((index, index + 1))
-            for index, unit in enumerate(segment):
-                if index in covered or unit.label in general_terms or len(unit.label) < 2:
+            for unit in segment:
+                if unit.label in general_terms or len(unit.label) < 2:
                     continue
                 label = unit.label[:80].strip()
                 evidence = title[unit.start : unit.end][:120].strip()
                 if country is CountryCode.US:
                     evidence = evidence.casefold()
-                if (
-                    len(label) < 2
-                    or len(evidence) < 2
-                    or _is_invalid_candidate(country, label)
-                ):
+                if len(label) < 2 or len(evidence) < 2 or _is_invalid_candidate(country, label):
                     continue
                 normalized = _normalize(label)
-                candidates[normalized] = KeywordCandidate(
-                    label=label, evidence_expression=evidence
-                )
+                candidates[normalized] = KeywordCandidate(label=label, evidence_expression=evidence)
         return tuple(candidates.values())
 
 
@@ -289,13 +353,28 @@ class CandidateSynonymResolver:
                 return f"group:{index}"
         return f"label:{normalized}"
 
-    def display_label(self, labels: set[str]) -> str:
+    def display_label(
+        self,
+        labels: set[str],
+        document_frequencies: Mapping[str, int] | None = None,
+        term_counts: Mapping[str, int] | None = None,
+    ) -> str:
         normalized_labels = {_normalize(label): label for label in labels}
         for group in self.groups:
             for alias in group.aliases:
                 if _normalize(alias) in normalized_labels:
                     return normalized_labels[_normalize(alias)]
-        return min(labels, key=lambda value: (len(value), _normalize(value)))
+        frequencies = document_frequencies or {}
+        specificity = term_counts or {}
+        return min(
+            labels,
+            key=lambda value: (
+                -frequencies.get(value, 0),
+                -specificity.get(value, 1),
+                len(value),
+                _normalize(value),
+            ),
+        )
 
 
 class KeywordRanker:
@@ -304,10 +383,12 @@ class KeywordRanker:
         extractor: LanguageKeywordExtractor | None = None,
         resolver: CandidateSynonymResolver | None = None,
         blocklist: KeywordBlocklist | None = None,
+        semantic_grouper: SemanticCandidateGrouper | None = None,
     ) -> None:
         self.extractor = extractor or LanguageKeywordExtractor()
         self.resolver = resolver or CandidateSynonymResolver()
         self.blocklist = blocklist or KeywordBlocklist.load()
+        self.semantic_grouper = semantic_grouper
 
     def analyze(
         self, country: CountryCode, articles: list[CollectedArticle]
@@ -319,6 +400,10 @@ class KeywordRanker:
 
         grouped_articles: dict[str, dict[str, CollectedArticle]] = defaultdict(dict)
         grouped_labels: dict[str, set[str]] = defaultdict(set)
+        grouped_label_articles: dict[str, dict[str, set[str]]] = defaultdict(
+            lambda: defaultdict(set)
+        )
+        grouped_label_term_counts: dict[str, dict[str, int]] = defaultdict(dict)
         grouped_evidence: dict[str, set[str]] = defaultdict(set)
         for article in articles:
             seen_in_article: set[str] = set()
@@ -331,34 +416,88 @@ class KeywordRanker:
                 seen_in_article.add(key)
                 grouped_articles[key][article.article_id] = article
                 grouped_labels[key].add(candidate.label)
+                grouped_label_articles[key][candidate.label].add(article.article_id)
+                grouped_label_term_counts[key][candidate.label] = max(
+                    candidate.term_count,
+                    grouped_label_term_counts[key].get(candidate.label, 1),
+                )
                 grouped_evidence[key].add(candidate.evidence_expression)
 
-        minimum_frequency = max(
-            _MIN_DOCUMENT_FREQUENCY, ceil(len(articles) * _MIN_DOCUMENT_RATIO)
-        )
-        ranked: list[tuple[int, int, datetime, str, str]] = []
+        if self.semantic_grouper is not None:
+            eligible_keys = {
+                key
+                for key, indexed in grouped_articles.items()
+                if len(indexed) >= 2
+                and len({article.publisher for article in indexed.values()}) >= 2
+            }
+            display_labels = {
+                key: self.resolver.display_label(
+                    labels,
+                    {label: len(grouped_label_articles[key][label]) for label in labels},
+                    grouped_label_term_counts[key],
+                )
+                for key, labels in grouped_labels.items()
+                if key in eligible_keys
+            }
+            assignments = {key: key for key in grouped_articles}
+            assignments.update(
+                self.semantic_grouper.group(
+                    display_labels,
+                    {key: len(indexed) for key, indexed in grouped_articles.items()},
+                )
+            )
+            (
+                grouped_articles,
+                grouped_labels,
+                grouped_label_articles,
+                grouped_label_term_counts,
+                grouped_evidence,
+            ) = _merge_semantic_groups(
+                assignments,
+                grouped_articles,
+                grouped_labels,
+                grouped_label_articles,
+                grouped_label_term_counts,
+                grouped_evidence,
+            )
+
+        minimum_frequency = max(_MIN_DOCUMENT_FREQUENCY, ceil(len(articles) * _MIN_DOCUMENT_RATIO))
+        ranked: list[_RankedItem] = []
         for key, indexed in grouped_articles.items():
             frequency = len(indexed)
             publisher_count = len({article.publisher for article in indexed.values()})
             if frequency < minimum_frequency or publisher_count < _MIN_PUBLISHER_COUNT:
                 continue
-            label = self.resolver.display_label(grouped_labels[key])
+            label = self.resolver.display_label(
+                grouped_labels[key],
+                {value: len(grouped_label_articles[key][value]) for value in grouped_labels[key]},
+                grouped_label_term_counts[key],
+            )
             ranked.append(
-                (
-                    frequency,
-                    publisher_count,
-                    max(article.published_at for article in indexed.values()),
-                    _keyword_id(country, label),
-                    key,
+                _RankedItem(
+                    frequency=frequency,
+                    publisher_count=publisher_count,
+                    specificity=grouped_label_term_counts[key][label],
+                    latest=max(article.published_at for article in indexed.values()),
+                    keyword_id=_keyword_id(country, label),
+                    key=key,
                 )
             )
-        ranked.sort(key=lambda item: (-item[0], -item[1], -item[2].timestamp(), item[3]))
+        ranked.sort(
+            key=lambda item: (
+                -item.frequency,
+                -item.publisher_count,
+                -item.specificity,
+                -item.latest.timestamp(),
+                item.keyword_id,
+            )
+        )
 
-        selected: list[tuple[int, int, datetime, str, str]] = []
+        selected: list[_RankedItem] = []
         for ranked_item in ranked:
-            key = ranked_item[4]
+            key = ranked_item.key
             if any(
-                _related_article_jaccard(grouped_articles[key], grouped_articles[item[4]])
+                _related_article_jaccard(grouped_articles[key], grouped_articles[item.key])
                 >= _MAX_RELATED_ARTICLE_JACCARD
                 for item in selected
             ):
@@ -368,10 +507,13 @@ class KeywordRanker:
                 break
 
         top_keywords: list[RankedKeyword] = []
-        for rank, (frequency, publisher_count, _latest, keyword_id, key) in enumerate(
-            selected, 1
-        ):
-            label = self.resolver.display_label(grouped_labels[key])
+        for rank, item in enumerate(selected, 1):
+            key = item.key
+            label = self.resolver.display_label(
+                grouped_labels[key],
+                {value: len(grouped_label_articles[key][value]) for value in grouped_labels[key]},
+                grouped_label_term_counts[key],
+            )
             related = sorted(
                 grouped_articles[key].values(),
                 key=lambda article: (-article.published_at.timestamp(), article.article_id),
@@ -379,11 +521,11 @@ class KeywordRanker:
             top_keywords.append(
                 RankedKeyword(
                     rank=rank,
-                    keyword_id=keyword_id,
+                    keyword_id=item.keyword_id,
                     label=label,
-                    document_frequency=frequency,
-                    publisher_count=publisher_count,
-                    article_ratio=frequency / len(articles),
+                    document_frequency=item.frequency,
+                    publisher_count=item.publisher_count,
+                    article_ratio=item.frequency / len(articles),
                     evidence_expressions=tuple(sorted(grouped_evidence[key]))[:10],
                     related_article_ids=tuple(article.article_id for article in related),
                 )
@@ -397,12 +539,48 @@ class KeywordRanker:
         )
 
 
+def _merge_semantic_groups(
+    assignments: Mapping[str, str],
+    grouped_articles: Mapping[str, dict[str, CollectedArticle]],
+    grouped_labels: Mapping[str, set[str]],
+    grouped_label_articles: Mapping[str, dict[str, set[str]]],
+    grouped_label_term_counts: Mapping[str, dict[str, int]],
+    grouped_evidence: Mapping[str, set[str]],
+) -> tuple[
+    dict[str, dict[str, CollectedArticle]],
+    dict[str, set[str]],
+    dict[str, dict[str, set[str]]],
+    dict[str, dict[str, int]],
+    dict[str, set[str]],
+]:
+    merged_articles: dict[str, dict[str, CollectedArticle]] = defaultdict(dict)
+    merged_labels: dict[str, set[str]] = defaultdict(set)
+    merged_label_articles: dict[str, dict[str, set[str]]] = defaultdict(lambda: defaultdict(set))
+    merged_label_term_counts: dict[str, dict[str, int]] = defaultdict(dict)
+    merged_evidence: dict[str, set[str]] = defaultdict(set)
+    for source_key, target_key in assignments.items():
+        merged_articles[target_key].update(grouped_articles[source_key])
+        merged_labels[target_key].update(grouped_labels[source_key])
+        for label, article_ids in grouped_label_articles[source_key].items():
+            merged_label_articles[target_key][label].update(article_ids)
+            merged_label_term_counts[target_key][label] = max(
+                grouped_label_term_counts[source_key][label],
+                merged_label_term_counts[target_key].get(label, 1),
+            )
+        merged_evidence[target_key].update(grouped_evidence[source_key])
+    return (
+        dict(merged_articles),
+        dict(merged_labels),
+        {key: dict(values) for key, values in merged_label_articles.items()},
+        dict(merged_label_term_counts),
+        dict(merged_evidence),
+    )
+
+
 def _english_lemma(value: str) -> str:
     if len(value) > 4 and value.endswith("ies"):
         return f"{value[:-3]}y"
-    if len(value) > 4 and value.endswith("s") and not value.endswith(
-        ("ics", "is", "ss", "us")
-    ):
+    if len(value) > 4 and value.endswith("s") and not value.endswith(("ics", "is", "ss", "us")):
         return value[:-1]
     return value
 
@@ -416,7 +594,9 @@ def _is_invalid_candidate(country: CountryCode, label: str) -> bool:
     if normalized in _GENERAL_TERMS[country]:
         return True
     if country is CountryCode.JP:
-        if re.fullmatch(r"\d{1,4}[年月日]", normalized):
+        if any(character.isdigit() for character in normalized) and any(
+            marker in normalized for marker in "年月日"
+        ):
             return True
         return re.fullmatch(r"[年月日春夏秋冬]{2,}", normalized) is not None
     if country is CountryCode.KR:

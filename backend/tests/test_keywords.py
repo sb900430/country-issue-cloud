@@ -1,5 +1,6 @@
 from datetime import UTC, datetime, timedelta
 
+import numpy as np
 import pytest
 
 from app.batch.keywords import (
@@ -10,6 +11,7 @@ from app.batch.keywords import (
     SynonymGroup,
 )
 from app.batch.models import CollectedArticle
+from app.batch.semantic_keywords import SemanticCandidateGrouper
 from app.schemas.issues import CountryCode
 
 
@@ -43,7 +45,10 @@ def test_language_extractors_keep_compound_nouns_and_remove_reporting_tails(
 ) -> None:
     candidates = LanguageKeywordExtractor().extract(_article("article", country, title))
 
-    assert candidates == (KeywordCandidate(label=expected, evidence_expression=evidence),)
+    assert (
+        KeywordCandidate(label=expected, evidence_expression=evidence, term_count=2) in candidates
+    )
+    assert any(candidate.term_count == 1 for candidate in candidates)
 
 
 @pytest.mark.parametrize(
@@ -123,6 +128,103 @@ def test_synonym_resolver_only_uses_labels_present_in_candidates() -> None:
 
     assert resolver.group_key("policy rate") == resolver.group_key("benchmark rate")
     assert resolver.display_label({"policy rate", "benchmark rate"}) == "policy rate"
+
+
+class _FakeEmbeddingModel:
+    def encode(self, texts: list[str]) -> np.ndarray:
+        vectors = {
+            "interest rate": (1.0, 0.0, 0.0),
+            "benchmark rate": (0.99, 0.1, 0.0),
+            "semiconductor": (0.0, 1.0, 0.0),
+        }
+        encoded = np.asarray([vectors[text] for text in texts], dtype=np.float32)
+        return encoded / np.linalg.norm(encoded, axis=1, keepdims=True)
+
+
+class _TitleExtractor(LanguageKeywordExtractor):
+    def extract(self, article: CollectedArticle) -> tuple[KeywordCandidate, ...]:
+        return (KeywordCandidate(label=article.title, evidence_expression=article.title),)
+
+
+def test_semantic_grouper_merges_similar_labels_without_crossing_topics() -> None:
+    grouper = SemanticCandidateGrouper(_FakeEmbeddingModel(), similarity_threshold=0.95)
+
+    assignments = grouper.group(
+        {
+            "interest": "interest rate",
+            "benchmark": "benchmark rate",
+            "chip": "semiconductor",
+        },
+        {"interest": 8, "benchmark": 6, "chip": 7},
+    )
+
+    assert assignments["benchmark"] == "interest"
+    assert assignments["chip"] == "chip"
+
+    short_assignments = grouper.group(
+        {"first": "만호", "second": "놀음"},
+        {"first": 4, "second": 4},
+    )
+    assert short_assignments == {"first": "first", "second": "second"}
+
+
+def test_semantic_ranker_combines_alias_document_frequency() -> None:
+    repeated = (
+        "interest rate",
+        "benchmark rate",
+        "semiconductor",
+        "inflation",
+        "currency",
+        "housing",
+    )
+    articles = [
+        _article(
+            f"topic-{index:02d}",
+            CountryCode.US,
+            repeated[index % len(repeated)],
+            publisher=f"publisher-{(index // len(repeated)) % 3}",
+            offset=index,
+        )
+        for index in range(30)
+    ]
+    articles.extend(
+        _article(
+            f"noise-{index:02d}",
+            CountryCode.US,
+            f"isolated topic {index}",
+            publisher=f"noise-{index}",
+            offset=30 + index,
+        )
+        for index in range(20)
+    )
+    vectors = {
+        "interest rate": (1.0, 0.0, 0.0),
+        "benchmark rate": (0.99, 0.1, 0.0),
+        "semiconductor": (0.0, 1.0, 0.0),
+    }
+
+    class _TopicEmbeddingModel:
+        def encode(self, texts: list[str]) -> np.ndarray:
+            basis = {
+                **vectors,
+                "inflation": (0.0, 0.0, 1.0),
+                "currency": (-1.0, 0.0, 0.0),
+                "housing": (0.0, -1.0, 0.0),
+            }
+            encoded = np.asarray([basis[text] for text in texts], dtype=np.float32)
+            return encoded / np.linalg.norm(encoded, axis=1, keepdims=True)
+
+    ranker = KeywordRanker(
+        extractor=_TitleExtractor(),
+        semantic_grouper=SemanticCandidateGrouper(
+            _TopicEmbeddingModel(), similarity_threshold=0.95
+        ),
+    )
+
+    result = ranker.analyze(CountryCode.US, articles)
+
+    interest_rate = next(item for item in result.top_keywords if item.label == "interest rate")
+    assert interest_rate.document_frequency == 10
 
 
 def test_ranker_rejects_small_samples_and_country_mixing() -> None:

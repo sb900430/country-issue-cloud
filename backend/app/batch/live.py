@@ -18,6 +18,7 @@ from app.batch.collectors.rss import RssCollector, RssSource
 from app.batch.issues import MockIssueExtractor
 from app.batch.keyword_pipeline import build_keyword_result
 from app.batch.keyword_publishing import KeywordStaticJsonPublisher
+from app.batch.keywords import KeywordRanker
 from app.batch.models import CountryCollectionResult
 from app.batch.naver_usage import NaverUsageLedger, NaverUsagePolicy
 from app.batch.newsdata_usage import NewsDataUsageLedger, NewsDataUsagePolicy
@@ -147,6 +148,7 @@ def run_live_keyword_batch(
     target_date: date,
     data_dir: Path,
     site_data_dir: Path,
+    ranker: KeywordRanker | None = None,
 ) -> KeywordResult:
     collections = _collect_live_articles(
         rss_sources,
@@ -176,7 +178,11 @@ def run_live_keyword_batch(
         window_end,
         collections,
     )
-    result = build_keyword_result(target_date, collections)
+    result = build_keyword_result(
+        target_date,
+        collections,
+        ranker=ranker,
+    )
     if result.status is IssueStatus.SUCCESS:
         repository = JsonKeywordRepository(data_dir)
         repository.save(result)

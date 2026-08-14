@@ -2,15 +2,17 @@
 
 | 항목 | 현재 상태 |
 |---|---|
-| 현재 목표 | 중복·미사용 코드 단순화와 동작 보존 검증 |
-| 상태 | 구현·문서·전체 검증·완료 리뷰 PASS, Draft PR 준비 |
+| 현재 목표 | 로컬 다국어 임베딩 기반 키워드 통합과 실제 표본 회귀 |
+| 상태 | 구현·실제 저장 표본·전체 검증 PASS, 완료 리뷰 `PASS_WITH_FINDINGS` |
 | 기준 브랜치 | `main` |
-| 작업 브랜치 | `codex/code-simplification-audit` |
-| 마지막 완료 커밋 | `5e00ce6` — GitHub 소유자 참조 갱신 PR #34 Rebase and merge |
-| 전체 검증 | PASS — Python 147개·coverage 89%·웹 9개·Ruff·mypy·Secret·명세 동기화 |
-| 다음 작업 | 브랜치 push와 Draft PR 생성 후 CI 확인 |
+| 작업 브랜치 | `codex/local-semantic-keywords` |
+| 마지막 완료 커밋 | `bfd3e02` — 중복 인프라 코드 단순화 PR #35 Rebase and merge |
+| 전체 검증 | PASS — Python 149개·Web 9개, backend coverage 89%, Pages fixture artifact |
+| 다음 작업 | 요청 시 작업 브랜치 push와 Draft PR 생성 |
 
 ## v1.0 공개 준비 진행 결과
+
+- 2026-08-14 실제 24시간 표본의 후보 분산 문제를 수정한다. 복합어와 구성 단어를 함께 보존하고 local 다국어 SentenceTransformer의 고신뢰 의미 병합을 live 배치에 적용했다. 후보 gate를 2%·최소 3기사·2매체로 조정하고 의미 병합은 각 후보 2기사·2매체, 4자 이상, 유사도 0.95, cluster 최대 3개로 제한했다. 저장된 US 102·JP 70·KR 173건 재검증에서 세 국가 TOP 5가 생성됐으며 외부 뉴스 API와 LLM 호출은 사용하지 않았다.
 
 - 코드 단순화 감사 결과에 따라 현재 운영 동작을 바꾸지 않는 범위에서 공통 사용량 장부와 정적 게시 helper를 도입하고, live collector 조립 중복과 Source YAML 반복 parse를 제거했다. Web 도구는 npm으로 통일하고 미사용 `public_issue_path`를 제거했다. v1·LLM·ApiDataSource는 명세상 후속 호환 경계이므로 사용자 결정 전까지 보존한다.
 
