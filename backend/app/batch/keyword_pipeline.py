@@ -2,6 +2,7 @@ from datetime import UTC, date, datetime
 
 from pydantic import HttpUrl, TypeAdapter
 
+from app.batch.keyword_translation import GlossaryKeywordTranslator, KeywordTranslator
 from app.batch.keywords import KeywordRanker
 from app.batch.models import CountryCollectionResult
 from app.schemas.issues import CountryCode, IssueStatus
@@ -12,9 +13,11 @@ def build_keyword_result(
     target_date: date,
     collections: dict[CountryCode, CountryCollectionResult],
     ranker: KeywordRanker | None = None,
+    translator: KeywordTranslator | None = None,
     generated_at: datetime | None = None,
 ) -> KeywordResult:
     resolved_ranker = ranker or KeywordRanker()
+    resolved_translator = translator or GlossaryKeywordTranslator.load()
     countries: dict[CountryCode, CountryKeywordResult] = {}
     for country in CountryCode:
         collection = collections.get(country)
@@ -41,6 +44,7 @@ def build_keyword_result(
                     rank=keyword.rank,
                     keyword_id=keyword.keyword_id,
                     label=keyword.label,
+                    label_ko=resolved_translator.translate_to_korean(country, keyword.label),
                     document_frequency=keyword.document_frequency,
                     publisher_count=keyword.publisher_count,
                     article_ratio=keyword.article_ratio,

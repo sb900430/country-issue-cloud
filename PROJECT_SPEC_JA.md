@@ -40,7 +40,7 @@ Androidアプリは廃止しない。keyword中心Webと公開URLの安定化後
 ### 対象外
 
 - 3か国共通キーワードの積集合は計算しない。
-- 一国のキーワードを3言語へ翻訳し、共通結果として表示しない。
+- 一国のキーワードを3言語へ翻訳し、共通結果として表示しない。原文/韓国語切替は国区分と順位を維持する補助表示である。
 - LLMに最終順位を任意決定させない。
 - 記事本文全体を保存・再配布しない。
 - 非公式HTMLスクレイピングを使用しない。
@@ -128,6 +128,7 @@ Androidアプリは廃止しない。keyword中心Webと公開URLの安定化後
 | F-15 | オフライン | ブラウザキャッシュで最後の正常結果を表示 |
 | F-16 | サービス設定 | メンテナンス、バージョン、告知、ポリシーURL |
 | F-17 | 状態 | 最新データと国別状態を提供 |
+| F-18 | keyword言語切替 | 米国・日本keywordを原文/韓国語でlocal切替し、韓国keywordは同じ表示を維持 |
 
 ---
 
@@ -255,17 +256,17 @@ keyword_score      = document_frequency × title意味凝集度補正、publishe
     "US": {
       "status": "success",
       "article_count": 137,
-      "extraction_success_rate": 0.95,
       "top_keywords": [{
         "rank": 1,
         "keyword_id": "us_semiconductor",
-        "keyword_label": "semiconductor",
-        "display_label_ko": "반도체",
+        "label": "semiconductor",
+        "label_ko": "반도체",
         "document_frequency": 31,
         "publisher_count": 14,
         "article_ratio": 0.226,
         "evidence_expressions": ["semiconductor", "chip industry"],
         "related_articles": [{
+          "article_id": "us-001",
           "title": "Example title",
           "publisher": "Example Publisher",
           "published_at": "2026-07-28T21:20:00Z",
@@ -279,6 +280,8 @@ keyword_score      = document_frequency × title意味凝集度補正、publishe
   }
 }
 ```
+
+`label`は集計・順位・根拠に使う原文、`label_ko`は表示専用の韓国語補助名である。新しい結果は`label_ko`を常に生成し、翻訳辞書にない表現は推測せず原文をそのまま保存する。直近7日の旧Schema 2.0結果との互換性のため、clientは`label_ko`欠落も許可する。翻訳は`config/keyword-translations.yml`の正規化完全一致辞書で管理し、外部翻訳API・有料LLMを呼び出さない。
 
 ```text
 data/
@@ -382,6 +385,7 @@ TOP 5は一つの可視化領域だけで提供し、同じ5件を下部リス�
 | 基本表示 | 加重タイル型（C案） |
 | 代替表示 | 自由配置イシュークラウド（A案） |
 | 切替方法 | 可視化領域右上の`タイル / クラウド`スライド型セグメントボタン |
+| keyword言語 | 標準は韓国語。`原文 / 韓国語`segmentで米国英語・日本日本語の原文と韓国語補助名をlocal切替 |
 | 状態保存 | 初回アクセスはタイル型。以後は最後の選択をlocalStorageへ保存し、再アクセス時に復元 |
 | 共通タイトル | `今日のイシューTOP 5` |
 | 共通情報 | 分析記事数とデータ生成/更新時刻 |
@@ -393,6 +397,8 @@ TOP 5は一つの可視化領域だけで提供し、同じ5件を下部リス�
 クラウド型は同じkeyword TOP 5を横書きで配置し、`article_ratio`で文字サイズと明度を変える。回転・重なりを避け、keywordから関連記事を開ける案内を表示する。詳細画面はkeyword根拠表現、ユニーク記事・媒体数、最新順の関連記事最大20件を提供する。
 
 表示切替ではデータ再取得・再集計を行わず、同一Web状態を別DOMコンポーネントで描画する。国・日付・ロード・エラー状態とスクロール位置を維持する。
+
+keyword言語切替もデータ再取得・再集計なしでタイル、クラウド、詳細titleへ同時適用する。関連記事titleとlinkは原文を維持する。米国・日本の辞書未登録表現と旧JSONの翻訳欠落は原文で表示し、誤訳を任意生成しない。韓国keywordは両modeで同じ韓国語を表示する。
 
 ```text
 IssueHomePage
@@ -900,6 +906,7 @@ v* tag → Pages URL検証 → GitHub Release。Android再開後のみAABとPlay
 | 4 | `codex/v1-release-hardening` | 公開URL自動smoke、運用Runbook、7日batch観察、README・Release準備 | 現在の公開Pages検証、障害対応手順と7日観察証跡、全回帰通過 |
 | 5 | `codex/v2-source-coverage` | source別収集量計測、国別無料経済news source・query補完、重複・偏重損失分析 | Secretなしfixture regression、無料上限順守、国別100件目標またはsource別根拠付きpartial |
 | 6 | `codex/v2-display-reliability` | 検証後のcross-OS実行marker、13時収集、国別部分公開、公開状態・cache復旧、意味凝集度・3～5件品質keyword | 外部重複呼出し遮断、失敗国理由表示、最近の保存sample回帰とPages全検証通過 |
+| 7 | `codex/keyword-korean-translation` | Schema 2.0韓国語補助名、無料翻訳辞書、原文/韓国語画面切替 | 旧JSON互換、US・JP・KR fixture翻訳、Web切替・詳細・Pages全検証通過 |
 
 2026-08-07時点で順序1のGDELT・NAVER adapter、versioned query、国別120件GDELT fixture、250件上限・媒体20%/30件制限、NAVER承認domainと日300回・月9,000回停止ledgerを実装した。制限付きGDELT live検証は無料endpointの429と媒体coverageにより国別100件未満となったため理由付きpartialとして記録し、v1予約実行では`--enable-gdelt`・`--enable-naver`明示前に有効化しない。
 
@@ -932,6 +939,8 @@ GDELTの最小1件公開requestでもHTTP 429を再現した。HTTP errorは本�
 2026-08-14の実24時間sampleで候補が過度に分散しTOP 5を生成できない問題を確認した。構成単語と複合語を両方保持し、local多言語SentenceTransformerで高信頼候補だけを統合する。候補下限は最低3記事または全体の2%・2媒体へ調整し、意味統合は各候補2記事・2媒体、空白除外4文字以上、cosine類似度0.95以上、cluster最大3表現に制限する。GitHub Actionsはlive実行時にmodel cacheを使い、外部LLM費用は発生させない。
 
 2026-08-19の8月17～19日運用artifact分析で、全体公開gate、Ubuntu参照・Windows保存によるcache marker不一致、NewsData無料遅延に対する早過ぎる実行、mutable JSON cache、一般語・媒体名・政治家名候補を確認した。実行markerはUbuntu gateで確認し、`enableCrossOsArchive`でWindows buildと共有して、全検証後の外部呼出し直前に保存する。標準実行は13時、補完は14時・16時へ変更する。国別結果は1か国以上成功時に部分公開し、`calendar.json`・`status.json`で失敗日と記事数を表示する。keywordは国別3～5件だけを許可し、英語活用形、国別一般語・政治家禁止語、最終選択数基準の媒体偏重、記事title embedding凝集度順位を適用する。8月17～19日の保存管理者sampleは外部API再呼出しなしのlocal回帰に利用し、Gitには含めない。
+
+2026-08-19のkeyword言語切替はUI全体を日本語化する機能ではなく、米国英語・日本日本語keywordを韓国語補助名へ切り替える機能として確定する。原文`label`を分析基準として維持し、順位確定後に`label_ko`を付与する。韓国keywordは両modeで同じ表示とし、記事titleは原文を維持する。初回実装は外部key・呼出費用不要の`config/keyword-translations.yml`完全一致辞書を使い、未登録表現は原文へfallbackする。翻訳provider変更は別途費用・品質承認とADR変更後に行う。
 
 2026-08-09の予約実行では重複・偏重除去後にUS 198件・JP 103件・KR 85件を確保したが、従来の100件gateにより全体配布が停止した。100件以上の推奨収集目標と150件の目標値は維持し、実配布下限だけを国別70件へ下げる。3か国すべてが70件以上で各国TOP 5を完成した場合のみ配布し、未達時は既存の正常Pagesを維持する。
 
@@ -984,6 +993,7 @@ v0.9.1 keyword news v2設計確定
 v0.10.0 GDELT大量収集と100件以上fixture
 v0.11.0 言語別keyword TOP 5 pipeline
 v0.12.0 Schema v2と関連記事Web移行
+v0.13.0 原文/韓国語keyword切替
 v1.0.0 初回公開リリース
 ```
 

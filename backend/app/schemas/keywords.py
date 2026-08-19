@@ -18,6 +18,7 @@ class TopKeyword(StrictSchema):
     rank: Annotated[int, Field(ge=1, le=5)]
     keyword_id: Annotated[str, Field(pattern=r"^[a-z0-9][a-z0-9_-]{2,79}$")]
     label: Annotated[str, Field(min_length=2, max_length=80)]
+    label_ko: Annotated[str, Field(min_length=1, max_length=80)] | None = None
     document_frequency: Annotated[int, Field(ge=1)]
     publisher_count: Annotated[int, Field(ge=1)]
     article_ratio: Annotated[float, Field(gt=0, le=1)]

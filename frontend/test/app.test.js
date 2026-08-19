@@ -6,10 +6,11 @@ import { JSDOM } from "jsdom";
 
 import { createIssueCloudApp } from "../src/app.js";
 
-function issue(label) {
+function issue(label, labelKo = label) {
   return {
     keyword_id: `keyword-${label.toLowerCase()}`,
     label,
+    label_ko: labelKo,
     rank: 1,
     document_frequency: 1,
     publisher_count: 1,
@@ -26,6 +27,11 @@ function issue(label) {
 }
 
 function result() {
+  const labels = {
+    US: ["US issue", "미국 이슈"],
+    JP: ["JP issue", "일본 이슈"],
+    KR: ["한국 이슈", "한국 이슈"],
+  };
   return {
     date: "2026-08-06",
     generated_at: "2026-08-06T01:00:00Z",
@@ -33,7 +39,7 @@ function result() {
       status: "success",
       article_count: 120,
       warnings: [],
-      top_keywords: [issue(`${country} issue`)],
+      top_keywords: [issue(...labels[country])],
     }])),
   };
 }
@@ -75,8 +81,13 @@ test("failed initialization blocks country clicks and retry restores interaction
   assert.match(dom.window.document.querySelector("[data-current-date]").textContent, /2026/);
   dom.window.document.querySelector("[data-country='US']").click();
   assert.equal(dom.window.document.querySelector("[data-country='US']").classList.contains("is-active"), true);
-  assert.match(dom.window.document.querySelector("[data-issues]").textContent, /US issue/);
+  assert.match(dom.window.document.querySelector("[data-issues]").textContent, /미국 이슈/);
   assert.match(dom.window.document.querySelector("[data-issues]").textContent, /기사 1건/);
+
+  const language = dom.window.document.querySelector("[data-keyword-language]");
+  language.checked = false;
+  language.dispatchEvent(new dom.window.Event("change"));
+  assert.match(dom.window.document.querySelector("[data-issues]").textContent, /US issue/);
 
   const layout = dom.window.document.querySelector("[data-layout]");
   layout.checked = true;
@@ -88,6 +99,10 @@ test("failed initialization blocks country clicks and retry restores interaction
   dom.window.document.querySelector(".issue").click();
   assert.equal(dialog.hasAttribute("open"), true);
   assert.match(dom.window.document.querySelector("[data-dialog-title]").textContent, /US issue/);
+
+  language.checked = true;
+  language.dispatchEvent(new dom.window.Event("change"));
+  assert.match(dom.window.document.querySelector("[data-dialog-title]").textContent, /미국 이슈/);
 });
 
 test("metadata failure does not hide latest data and partial country is explained", async () => {
@@ -115,7 +130,7 @@ test("metadata failure does not hide latest data and partial country is explaine
   });
 
   assert.equal(await app.start(), true);
-  assert.match(dom.window.document.querySelector("[data-issues]").textContent, /KR issue/);
+  assert.match(dom.window.document.querySelector("[data-issues]").textContent, /한국 이슈/);
   dom.window.document.querySelector("[data-country='JP']").click();
   assert.match(dom.window.document.querySelector("[data-run-status]").textContent, /41\/50/);
   assert.equal(dom.window.document.querySelector("[data-country='JP']").classList.contains("is-unavailable"), true);

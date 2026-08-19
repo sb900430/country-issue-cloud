@@ -17,6 +17,7 @@
 | 日時 | サーバーはUTC保存、`Asia/Tokyo`表示 |
 | ニュース収集目標 | NewsData.io・NAVERと公共RSS/API、GDELTは429解消まで保留、国別150件目標・250件上限 |
 | keyword分析 | 構成単語・複合名詞保持 → 国別YAML禁止語 → local多言語embedding限定統合・記事凝集度 → 2%・3件・正規化2媒体gate → 一般語・重複イシュー除外 → 品質3～5件順位 |
+| keyword表示翻訳 | 順位確定後にversion管理された完全一致辞書でUS・JPの`label_ko`を生成。KR・未登録表現は原文fallback、外部翻訳APIは標準禁止 |
 
 正確なversionはscaffold時点の公式安定版を確認して固定し、lockfileまたはversion catalogへ記録する。依存関係を無断追加せず、標準機能で解決困難な場合だけADRへ導入理由を残す。
 

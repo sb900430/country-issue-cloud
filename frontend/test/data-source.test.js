@@ -110,6 +110,32 @@ test("data source rejects malformed top issue fields", async () => {
   await assert.rejects(source.getLatest(), (error) => error.code === "invalid_schema");
 });
 
+test("data source accepts missing translations but rejects malformed Korean labels", async () => {
+  const payload = issueResult();
+  payload.countries.US.top_keywords = [
+    {
+      rank: 1,
+      keyword_id: "us-rate-decision",
+      label: "Rate decision",
+      label_ko: 123,
+      document_frequency: 3,
+      publisher_count: 2,
+      article_ratio: 0.025,
+      evidence_expressions: ["rate decision"],
+      related_articles: [{
+        article_id: "article-1",
+        title: "Rate decision article",
+        publisher: "Publisher",
+        published_at: "2026-08-06T01:00:00Z",
+        url: "https://example.com/article",
+      }],
+    },
+  ];
+  const source = new StaticJsonDataSource("/data/v2", fetcher(payload, []));
+
+  await assert.rejects(source.getLatest(), (error) => error.code === "invalid_schema");
+});
+
 test("static mutable metadata bypasses browser cache and validates publication state", async () => {
   const options = [];
   const payload = {

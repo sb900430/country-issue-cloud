@@ -262,6 +262,11 @@ function isTopKeyword(keyword, expectedRank, countryArticleCount) {
     /^[a-z0-9][a-z0-9_-]{2,79}$/.test(keyword.keyword_id) &&
     typeof keyword.label === "string" &&
     keyword.label.length >= 2 &&
+    (
+      keyword.label_ko === undefined ||
+      keyword.label_ko === null ||
+      (typeof keyword.label_ko === "string" && keyword.label_ko.length >= 1 && keyword.label_ko.length <= 80)
+    ) &&
     Number.isInteger(keyword.document_frequency) &&
     keyword.document_frequency >= 1 &&
     keyword.document_frequency <= countryArticleCount &&

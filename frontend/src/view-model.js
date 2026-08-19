@@ -18,10 +18,18 @@ export function createCountryView(result, country) {
     warnings: countryResult.warnings,
     issues: countryResult.top_keywords.map((keyword) => ({
       ...keyword,
-      display_label_ko: keyword.label,
+      display_label_original: keyword.label,
+      display_label_ko: keyword.label_ko ?? keyword.label,
+      translation_available: country === "KR" || (
+        typeof keyword.label_ko === "string" && keyword.label_ko !== keyword.label
+      ),
       article_count: keyword.document_frequency,
       representative_articles: keyword.related_articles,
       weight: Math.max(0.45, 1 - (keyword.rank - 1) * 0.12),
     })),
   };
+}
+
+export function selectIssueLabel(issue, language) {
+  return language === "ko" ? issue.display_label_ko : issue.display_label_original;
 }
