@@ -11,7 +11,7 @@
 ## Live demo
 
 - Public site / 공개 사이트 / 公開site: https://kimsb0430.github.io/country-issue-cloud/
-- Default view: Korea quality-keyword tiles; switch countries or enable cloud view
+- Default view: Korean keyword labels; switch to the US/JP original labels or enable cloud view
 - Keyword detail: up to 20 related source links
 - Data contract: `data/v2/latest.json`, `calendar.json`, `status.json`, and up to seven attempt dates
 
@@ -24,6 +24,7 @@ The public URL is checked after every Pages workflow by `scripts/check-public-si
 - `frontend/`: responsive Pages client with static/API DataSource adapters
 - `deploy/`: GitHub Pages workflow support and deferred VPS/EC2 templates
 - `config/`: non-secret source and runtime configuration examples
+- `config/keyword-translations.yml`: reviewed US/JP source-label to Korean display glossary
 - `sample-data/`: sanitized fixtures used without external API calls
 - `scripts/`: unified local verification commands
 

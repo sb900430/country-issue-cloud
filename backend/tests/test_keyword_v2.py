@@ -28,6 +28,24 @@ def test_keyword_fixture_publishes_schema_v2_with_related_articles(tmp_path: Pat
     assert result.status is IssueStatus.SUCCESS
     assert all(result.countries[country].article_count == 120 for country in CountryCode)
     assert all(len(result.countries[country].top_keywords) == 5 for country in CountryCode)
+    assert {keyword.label_ko for keyword in result.countries[CountryCode.US].top_keywords} == {
+        "반도체",
+        "금리",
+        "달러 변동성",
+        "기후",
+        "주택",
+    }
+    assert {keyword.label_ko for keyword in result.countries[CountryCode.JP].top_keywords} == {
+        "반도체",
+        "금리",
+        "엔화 변동성",
+        "기후",
+        "주택",
+    }
+    assert all(
+        keyword.label_ko == keyword.label
+        for keyword in result.countries[CountryCode.KR].top_keywords
+    )
     assert all(
         len(keyword.related_articles) == 20
         for country in CountryCode
@@ -53,6 +71,26 @@ def test_keyword_fixture_publishes_schema_v2_with_related_articles(tmp_path: Pat
     ).publish()
     assert site_dir / "latest.json" in outputs
     assert not stale_backup.exists()
+
+
+def test_schema_v2_accepts_previous_results_without_korean_labels(tmp_path: Path) -> None:
+    result = publish_keyword_fixture(
+        PROJECT_ROOT / "sample-data" / "evaluation",
+        tmp_path / "data",
+        tmp_path / "site" / "data" / "v2",
+    )
+    payload = result.model_dump(mode="json")
+    for country in payload["countries"].values():
+        for keyword in country["top_keywords"]:
+            keyword.pop("label_ko")
+
+    restored = KeywordResult.model_validate(payload)
+
+    assert all(
+        keyword.label_ko is None
+        for country in restored.countries.values()
+        for keyword in country.top_keywords
+    )
 
 
 def test_v2_api_returns_published_keyword_data(tmp_path: Path) -> None:

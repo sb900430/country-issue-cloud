@@ -2,15 +2,17 @@
 
 | 項目 | 現在状態 |
 |---|---|
-| 現在目標 | 予約実行・国別部分公開・画面状態・keyword品質安定化 |
-| 状態 | 実装・最近の保存sample回帰・全体検証・完了review PASS_WITH_FINDINGS、Draft PR公開前 |
+| 現在目標 | 米国・日本keywordの原文/韓国語表示切替 |
+| 状態 | 実装・文書・全体検証・local Pages画面確認・完了review PASS、公開承認待ち |
 | 基準branch | `main` |
-| 作業branch | `codex/v2-display-reliability` |
-| 最終完了commit | 現在branch候補 — 公開・画面状態・keyword品質安定化 |
-| 全体検証 | PASS — Python 154件・Web 11件、backend coverage 89%、Pages fixture artifact |
-| 次作業 | 週次branch push・Draft PR、Rebase and merge後に全体検証と次回予約実行を観察 |
+| 作業branch | `codex/keyword-korean-translation` |
+| 最終完了commit | `60366816` — 公開・keyword品質安定化 |
+| 全体検証 | PASS — Python 158件・Web 13件、backend coverage 89%、Secret・仕様・Pages fixture artifact |
+| 次作業 | 利用者依頼時にbranch push・Draft PR、Rebase and merge後の`main`再検証 |
 
 ## v1.0公開準備の進行結果
+
+- 2026-08-19に米国・日本の原文keywordを韓国語補助名で表示する`label_ko`をSchema 2.0へ後方互換で追加した。順位確定後、version管理された`config/keyword-translations.yml`完全一致辞書を適用し、韓国と未登録表現は原文へfallbackする。Web標準は韓国語で、`原文 / 韓国語`segmentがtile・cloud・詳細titleを追加network requestなしに同時切替する。関連記事titleは原文を維持し、外部翻訳API・LLM呼出しと追加費用はない。fixture、旧JSON互換、不正label拒否、実local Pagesクリックflowを検証した。
 
 - 2026-08-19の最近の実行分析により、Ubuntu gateとWindows build間の実行marker cache不一致、09時収集とNewsData無料遅延の衝突、全国家公開gate、mutable JSON cache、初期化一括失敗を修正する。markerはUbuntu gateで確認してcross-OS cacheで共有し、Windows buildの全検証後、外部呼出し直前に保存するよう変更し、13時基本・14時/16時補完へ変更した。1か国以上成功すれば国別部分公開し、`calendar.json`・`status.json`で失敗日・記事数・理由を提供する。Webは最新dataを先に表示し、状態metadata失敗を分離する。一般語・媒体名・政治家filter、英語活用形、最終選択数基準の媒体偏重、title embedding凝集度、品質3～5件方針を適用した。保存済み8月17～19日sampleの再検証は外部API呼出しなしで行い、無意味な候補だけが残る米国日は米国だけが失敗することを確認した。
 

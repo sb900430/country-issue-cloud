@@ -33,11 +33,18 @@
         <section class="issue-panel" aria-labelledby="issues-title">
           <div class="panel-heading">
             <p class="analysis-summary">분석 기사 <strong data-article-count>—</strong>건 <span>·</span> <time data-generated>—</time> 업데이트</p>
-            <label class="layout-switch">
-              <input type="checkbox" data-layout aria-label="클라우드형으로 전환" />
-              <span class="layout-option layout-option--tiles">▦ 타일</span>
-              <span class="layout-option layout-option--cloud">☁ 클라우드</span>
-            </label>
+            <div class="display-controls">
+              <label class="segmented-switch language-switch">
+                <input type="checkbox" data-keyword-language aria-label="키워드를 한국어로 표시" checked />
+                <span class="switch-option switch-option--first">원문</span>
+                <span class="switch-option switch-option--second">한국어</span>
+              </label>
+              <label class="segmented-switch layout-switch">
+                <input type="checkbox" data-layout aria-label="클라우드형으로 전환" />
+                <span class="switch-option switch-option--first">▦ 타일</span>
+                <span class="switch-option switch-option--second">☁ 클라우드</span>
+              </label>
+            </div>
           </div>
           <h1 class="sr-only" id="issues-title">오늘의 주요 경제 키워드 최대 5개</h1>
           <p class="run-status" data-run-status hidden></p>

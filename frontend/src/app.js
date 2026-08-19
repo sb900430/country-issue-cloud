@@ -1,6 +1,6 @@
 import { CachedIssueDataSource } from "./cached-data-source.js";
 import { StaticJsonDataSource } from "./data-source.js";
-import { createCountryView } from "./view-model.js";
+import { createCountryView, selectIssueLabel } from "./view-model.js";
 
 export function createIssueCloudApp({
   root = document,
@@ -14,6 +14,8 @@ export function createIssueCloudApp({
     usingCache: false,
     country: "KR",
     layout: "tiles",
+    keywordLanguage: "ko",
+    activeIssue: null,
     bound: false,
   };
   const elements = {
@@ -29,6 +31,7 @@ export function createIssueCloudApp({
     retry: root.querySelector("[data-retry]"),
     refresh: root.querySelector("[data-refresh]"),
     layout: root.querySelector("[data-layout]"),
+    keywordLanguage: root.querySelector("[data-keyword-language]"),
     dialog: root.querySelector("[data-dialog]"),
     dialogTitle: root.querySelector("[data-dialog-title]"),
     dialogArticles: root.querySelector("[data-dialog-articles]"),
@@ -103,6 +106,14 @@ export function createIssueCloudApp({
       state.layout = elements.layout.checked ? "cloud" : "tiles";
       render();
     });
+    elements.keywordLanguage.addEventListener("change", () => {
+      if (!state.result) return;
+      state.keywordLanguage = elements.keywordLanguage.checked ? "ko" : "original";
+      render();
+      if (elements.dialog.open && state.activeIssue) {
+        renderDetail(state.activeIssue);
+      }
+    });
     elements.date.addEventListener("change", () => loadDate(elements.date.value));
     elements.dateStrip.addEventListener("click", (event) => {
       const button = event.target.closest("button[data-date-value]");
@@ -114,6 +125,7 @@ export function createIssueCloudApp({
     elements.refresh.addEventListener("click", start);
     root.querySelector("[data-dialog-close]").addEventListener("click", () => {
       elements.dialog.close();
+      state.activeIssue = null;
     });
   }
 
@@ -126,6 +138,7 @@ export function createIssueCloudApp({
       control.disabled = !enabled || state.calendar.length === 0;
     }
     elements.layout.disabled = !enabled;
+    elements.keywordLanguage.disabled = !enabled;
     elements.refresh.disabled = !enabled;
   }
 
@@ -241,14 +254,24 @@ export function createIssueCloudApp({
     button.className = "issue";
     button.style.setProperty("--weight", issue.weight);
     button.innerHTML = `<span class="issue__rank">${issue.rank}</span><strong></strong><span class="issue__meta"></span>`;
-    button.querySelector("strong").textContent = issue.display_label_ko;
+    const label = selectIssueLabel(issue, state.keywordLanguage);
+    button.querySelector("strong").textContent = label;
     button.querySelector(".issue__meta").textContent = `기사 ${issue.article_count}건 · 매체 ${issue.publisher_count}곳`;
+    button.title = state.keywordLanguage === "ko" && !issue.translation_available
+      ? "등록된 한국어 번역이 없어 원문을 표시합니다"
+      : `${label} 관련 기사 보기`;
     button.addEventListener("click", () => openDetail(issue));
     return button;
   }
 
   function openDetail(issue) {
-    elements.dialogTitle.textContent = issue.display_label_ko;
+    state.activeIssue = issue;
+    renderDetail(issue);
+    elements.dialog.showModal();
+  }
+
+  function renderDetail(issue) {
+    elements.dialogTitle.textContent = selectIssueLabel(issue, state.keywordLanguage);
     elements.dialogArticles.replaceChildren(
       ...issue.representative_articles.map((article) => {
         const item = root.createElement("li");
@@ -263,7 +286,6 @@ export function createIssueCloudApp({
         return item;
       }),
     );
-    elements.dialog.showModal();
   }
 
   function announce(message, isError = false) {

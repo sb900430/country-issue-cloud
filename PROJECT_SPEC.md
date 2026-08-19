@@ -40,7 +40,7 @@ Android 앱은 폐기하지 않는다. 키워드 중심 웹과 공개 URL의 안
 ### 하지 않는 것
 
 - 세 국가 공통 키워드의 교집합을 계산하지 않는다.
-- 한 국가 키워드를 세 언어로 번역해 공통 결과처럼 표시하지 않는다.
+- 한 국가 키워드를 세 언어로 번역해 공통 결과처럼 표시하지 않는다. 원문/한국어 전환은 국가 구분과 순위를 유지하는 보조 표시다.
 - LLM이 최종 순위를 임의로 결정하지 않는다.
 - 기사 원문 전체를 저장·재배포하지 않는다.
 - 비공식 HTML 스크래핑을 사용하지 않는다.
@@ -128,6 +128,7 @@ Android 앱은 폐기하지 않는다. 키워드 중심 웹과 공개 URL의 안
 | F-15 | 오프라인 | 브라우저 캐시로 마지막 정상 결과 표시 |
 | F-16 | 서비스 설정 | 점검, 버전, 공지, 정책 URL |
 | F-17 | 상태 | 최신 데이터와 국가 상태 제공 |
+| F-18 | 키워드 언어 전환 | 미국·일본 키워드를 원문/한국어로 로컬 전환하고 한국 키워드는 동일하게 유지 |
 
 ---
 
@@ -255,17 +256,17 @@ keyword_score      = document_frequency × 제목 의미 응집도 보정, publi
     "US": {
       "status": "success",
       "article_count": 137,
-      "extraction_success_rate": 0.95,
       "top_keywords": [{
         "rank": 1,
         "keyword_id": "us_semiconductor",
-        "keyword_label": "semiconductor",
-        "display_label_ko": "반도체",
+        "label": "semiconductor",
+        "label_ko": "반도체",
         "document_frequency": 31,
         "publisher_count": 14,
         "article_ratio": 0.226,
         "evidence_expressions": ["semiconductor", "chip industry"],
         "related_articles": [{
+          "article_id": "us-001",
           "title": "Example title",
           "publisher": "Example Publisher",
           "published_at": "2026-07-28T21:20:00Z",
@@ -279,6 +280,8 @@ keyword_score      = document_frequency × 제목 의미 응집도 보정, publi
   }
 }
 ```
+
+`label`은 집계·순위·근거에 사용하는 원문이며 `label_ko`는 표시 전용 한국어 보조명이다. 새 결과는 `label_ko`를 항상 만들고, 번역 사전에 없는 표현은 추측하지 않고 원문을 그대로 저장한다. 이전 7일 Schema 2.0 결과와의 호환을 위해 client는 누락된 `label_ko`도 허용한다. 번역은 `config/keyword-translations.yml`의 정규화된 완전 일치 사전으로 관리하며 외부 번역 API와 유료 LLM을 호출하지 않는다.
 
 ```text
 data/
@@ -382,6 +385,7 @@ reports/
 | 기본 보기 | 가중치 타일형(C안) |
 | 대체 보기 | 자유형 이슈 클라우드(A안) |
 | 전환 방식 | 시각화 영역 오른쪽 위의 `타일 / 클라우드` 슬라이드형 세그먼트 버튼 |
+| 키워드 언어 | 기본 한국어, `원문 / 한국어` 세그먼트로 미국 영어·일본 일본어 원문과 한국어 보조명을 로컬 전환 |
 | 상태 저장 | 최초 접속은 타일형, 이후에는 localStorage에 마지막 선택을 저장하고 재접속 시 복원 |
 | 공통 제목 | `오늘의 이슈 TOP 5` |
 | 공통 정보 | 분석 기사 수와 데이터 생성/업데이트 시각 |
@@ -393,6 +397,8 @@ reports/
 클라우드형은 같은 키워드 TOP 5를 가로쓰기 텍스트로 배치하고 `article_ratio`에 따라 글자 크기와 명도를 조절한다. 텍스트를 회전하거나 겹치지 않으며, `키워드를 누르면 관련 기사를 볼 수 있어요` 안내를 표시한다. 상세 화면은 키워드 근거 표현, 고유 기사·매체 수와 최신순 관련 기사 최대 20개를 제공한다.
 
 보기 전환은 데이터 재요청이나 재집계를 발생시키지 않고 동일한 웹 상태를 다른 DOM 컴포넌트로 렌더링한다. 국가·날짜·로딩·오류 상태와 스크롤 위치는 전환 과정에서 유지한다.
+
+키워드 언어 전환도 데이터 재요청·재집계 없이 타일, 클라우드, 상세 제목에 동시에 적용한다. 관련 기사 제목과 링크는 원문을 유지한다. 미국·일본의 번역 사전 미등록 표현과 과거 JSON의 번역 누락은 원문으로 표시하며, 잘못된 번역을 임의 생성하지 않는다. 한국 키워드는 두 모드에서 같은 한국어를 표시한다.
 
 권장 웹 컴포넌트 구조:
 
@@ -951,6 +957,7 @@ v* 태그 → Pages URL 검증 → GitHub Release. Android 재개 후에만 AAB�
 | 4 | `codex/v1-release-hardening` | 공개 URL 자동 smoke, 운영 런북, 7일 배치 관찰, README·Release 준비 | 현재 공개 Pages 검증, 장애 대응 절차와 7일 관찰 증거, 전체 회귀 통과 |
 | 5 | `codex/v2-source-coverage` | 소스별 수집량 계측, 국가별 무료 경제뉴스 소스·query 보강, 중복·편중 손실 분석 | Secret 없는 fixture 회귀, 무료 한도 준수, 국가별 100건 목표 또는 소스별 근거가 있는 partial |
 | 6 | `codex/v2-display-reliability` | 검증 후 교차 OS 실행 marker, 13시 수집, 국가별 부분 게시, 공개 상태·cache 복구, 의미 응집도·3~5개 품질 키워드 | 중복 외부 호출 차단, 실패 국가 사유 표시, 최근 저장 표본 회귀와 전체 Pages 검증 통과 |
+| 7 | `codex/keyword-korean-translation` | Schema 2.0 한국어 보조명, 무료 번역 사전, 원문/한국어 화면 전환 | 이전 JSON 호환, US·JP·KR fixture 번역, Web 전환·상세·전체 Pages 검증 통과 |
 
 2026-08-07 기준 순서 1의 GDELT·NAVER adapter, versioned query, 국가별 120건 GDELT fixture, 250건 상한·매체 20%/30건 제한, NAVER 승인 domain과 일 300회·월 9,000회 차단 ledger를 구현했다. 제한적 GDELT live 검증은 무료 endpoint의 429와 매체 coverage로 국가별 100건에 미달해 원인 있는 partial로 기록하며, v1 예약 실행에서는 `--enable-gdelt`·`--enable-naver` 명시 전까지 활성화하지 않는다.
 
@@ -983,6 +990,8 @@ GDELT 최소 1건 공개 요청에서도 HTTP 429를 재현했다. HTTP 오류�
 2026-08-14 실제 24시간 표본에서 후보가 과도하게 분산되어 TOP 5가 생성되지 않는 문제를 확인했다. 구성 단어와 복합어를 함께 보존하고 로컬 다국어 SentenceTransformer로 고신뢰 후보만 병합한다. 후보 하한은 최소 3개 기사 또는 전체의 2%·2매체로 조정하며, 의미 병합은 각 후보 2개 기사·2매체, 공백 제외 4자 이상, 코사인 유사도 0.95 이상, 클러스터 최대 3개로 제한한다. GitHub Actions는 live 실행에서 모델 cache를 사용하고 외부 LLM 비용은 발생시키지 않는다.
 
 2026-08-19 최근 8월 17~19일 운영 artifact 분석에서 전체 게시 gate, Ubuntu 조회·Windows 저장 cache marker 불일치, NewsData 무료 지연 대비 이른 실행, mutable JSON cache, 일반어·언론사명·정치인 후보를 확인했다. 실행 marker는 Ubuntu gate에서 확인하되 `enableCrossOsArchive`로 Windows build와 공유하고, 전체 검증 후 외부 호출 직전에 저장한다. 기본 실행은 13시, 보충은 14시·16시로 변경한다. 국가별 결과는 1개국 이상 성공 시 부분 게시하며 `calendar.json`·`status.json`으로 실패 날짜와 기사 수를 표시한다. 키워드는 국가별 3~5개만 허용하고 영어 활용형, 국가별 일반어·정치인 금지어, 최종 선택 수 기준 매체 편중, 기사 제목 embedding 응집도 순위를 적용한다. 8월 17~19일 저장 관리자 표본은 외부 API 재호출 없이 로컬 회귀에 사용하고 Git에는 포함하지 않는다.
+
+2026-08-19 키워드 언어 전환은 UI 전체를 일본어로 바꾸는 기능이 아니라 미국 영어·일본 일본어 키워드를 한국어 보조명으로 전환하는 기능으로 확정한다. 원문 `label`을 분석 기준으로 유지하고 순위 완료 후 `label_ko`를 부여한다. 한국 키워드는 두 모드가 같고 기사 제목은 원문을 유지한다. 1차 구현은 외부 키·호출 비용이 없는 `config/keyword-translations.yml` 완전 일치 사전을 사용하며 미등록 표현은 원문으로 대체한다. 번역 provider 교체는 별도 비용·품질 승인과 ADR 변경 후 진행한다.
 
 2026-08-09 예약 실행에서 중복·편중 제거 후 US 198건·JP 103건·KR 85건을 확보했지만 기존 100건 게이트로 전체 게시가 중단됐다. 100건 이상 권장 수집 목표와 150건 목표치는 유지하고, 실제 게시 하한만 국가별 70건으로 낮춘다. 세 국가 모두 70건 이상이고 각 국가가 TOP 5를 완성해야 게시하며, 미달 시 기존 정상 Pages를 유지한다.
 
@@ -1035,6 +1044,7 @@ v0.9.1 키워드 뉴스 v2 설계 확정
 v0.10.0 GDELT 대량 수집과 100건 이상 fixture
 v0.11.0 언어별 키워드 TOP 5 파이프라인
 v0.12.0 Schema v2와 관련 기사 웹 전환
+v0.13.0 원문/한국어 키워드 전환
 v1.0.0 첫 공개 릴리스
 ```
 

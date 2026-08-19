@@ -2,15 +2,17 @@
 
 | 항목 | 현재 상태 |
 |---|---|
-| 현재 목표 | 예약 실행·국가별 부분 게시·화면 상태·키워드 품질 안정화 |
-| 상태 | 구현·최근 저장 표본 회귀·전체 검증·완료 리뷰 PASS_WITH_FINDINGS, Draft PR 게시 전 |
+| 현재 목표 | 미국·일본 키워드 원문/한국어 표시 전환 |
+| 상태 | 구현·문서·전체 검증·로컬 Pages 화면 점검·완료 리뷰 PASS, 게시 승인 대기 |
 | 기준 브랜치 | `main` |
-| 작업 브랜치 | `codex/v2-display-reliability` |
-| 마지막 완료 커밋 | 현재 branch 후보 — 게시·화면 상태·키워드 품질 안정화 |
-| 전체 검증 | PASS — Python 154개·Web 11개, backend coverage 89%, Pages fixture artifact |
-| 다음 작업 | 주차 branch push·Draft PR, Rebase and merge 뒤 전체 검증과 다음 예약 실행 관찰 |
+| 작업 브랜치 | `codex/keyword-korean-translation` |
+| 마지막 완료 커밋 | `60366816` — 게시·키워드 품질 안정화 |
+| 전체 검증 | PASS — Python 158개·Web 13개, backend coverage 89%, Secret·명세·Pages fixture artifact |
+| 다음 작업 | 사용자 요청 시 branch push·Draft PR, Rebase and merge 뒤 `main` 재검증 |
 
 ## v1.0 공개 준비 진행 결과
+
+- 2026-08-19 미국·일본의 원문 키워드를 한국어 보조명으로 표시하는 `label_ko`를 Schema 2.0에 하위 호환 방식으로 추가했다. 순위 완료 후 version 관리되는 `config/keyword-translations.yml` 완전 일치 사전을 적용하며, 한국과 미등록 표현은 원문으로 fallback한다. Web 기본값은 한국어이고 `원문 / 한국어` segment가 타일·cloud·상세 title을 추가 network 요청 없이 함께 전환한다. 관련 기사 title은 원문을 유지하며 외부 번역 API·LLM 호출과 추가 비용은 없다. fixture, 이전 JSON 호환, 잘못된 label 거부와 실제 로컬 Pages 클릭 흐름을 검증했다.
 
 - 2026-08-19 최근 실행을 분석해 Ubuntu gate와 Windows build 사이의 실행 marker cache 불일치, 09시 수집과 NewsData 무료 지연 충돌, 전체 국가 게시 gate, mutable JSON cache와 초기화 일괄 실패를 수정한다. marker는 Ubuntu gate에서 확인하고 교차 OS cache로 공유하며 Windows build의 전체 검증 후 외부 호출 직전에 저장하도록 바꾸고, 13시 기본·14시/16시 보충으로 변경했다. 1개국 이상 성공하면 국가별 부분 게시하고 `calendar.json`·`status.json`에서 실패 날짜·기사 수·사유를 제공하며, Web은 최신 데이터를 먼저 표시하고 상태 metadata 실패를 격리한다. 일반어·언론사명·정치인 필터, 영어 활용형, 최종 선택 수 기준 매체 편중, title embedding 응집도와 품질 3~5개 정책을 적용했다. 저장된 8월 17~19일 표본 재검증은 외부 API 호출 없이 수행했으며 무의미한 후보만 남은 미국 날짜는 미국만 실패하도록 확인했다.
 
