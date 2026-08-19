@@ -9,6 +9,14 @@ export class IssueDataSource {
     throw new Error("getDates must be implemented");
   }
 
+  async getCalendar() {
+    throw new Error("getCalendar must be implemented");
+  }
+
+  async getStatus() {
+    throw new Error("getStatus must be implemented");
+  }
+
   async getByDate(_date) {
     throw new Error("getByDate must be implemented");
   }
@@ -22,11 +30,19 @@ export class StaticJsonDataSource extends IssueDataSource {
   }
 
   async getLatest() {
-    return validateIssueResult(await this.#get(`${this.baseUrl}/latest.json`));
+    return validateIssueResult(await this.#get(`${this.baseUrl}/latest.json`, true));
   }
 
   async getDates() {
-    return validateDates(await this.#get(`${this.baseUrl}/dates.json`));
+    return validateDates(await this.#get(`${this.baseUrl}/dates.json`, true));
+  }
+
+  async getCalendar() {
+    return validateCalendar(await this.#get(`${this.baseUrl}/calendar.json`, true));
+  }
+
+  async getStatus() {
+    return validatePublicationStatus(await this.#get(`${this.baseUrl}/status.json`, true));
   }
 
   async getByDate(date) {
@@ -34,8 +50,10 @@ export class StaticJsonDataSource extends IssueDataSource {
     return validateIssueResult(await this.#get(`${this.baseUrl}/${date}.json`));
   }
 
-  async #get(url) {
-    const response = await this.fetcher(url, { headers: { Accept: "application/json" } });
+  async #get(url, mutable = false) {
+    const options = { headers: { Accept: "application/json" } };
+    if (mutable) options.cache = "no-store";
+    const response = await this.fetcher(url, options);
     if (!response.ok) {
       throw new DataSourceError("request_failed", response.status);
     }
@@ -56,6 +74,28 @@ export class ApiDataSource extends IssueDataSource {
 
   async getDates() {
     return validateDates(await this.#get(`${this.baseUrl}/keywords/dates?within_days=7`));
+  }
+
+  async getCalendar() {
+    const dates = await this.getDates();
+    const results = await Promise.all(dates.map((date) => this.getByDate(date)));
+    return validateCalendar({
+      schema_version: "1.0",
+      days: results.map(toCalendarDay),
+    });
+  }
+
+  async getStatus() {
+    const [latest, calendar] = await Promise.all([this.getLatest(), this.getCalendar()]);
+    const current = calendar.days[0] ?? toCalendarDay(latest);
+    return validatePublicationStatus({
+      schema_version: "1.0",
+      attempted_date: current.date,
+      generated_at: latest.generated_at,
+      status: current.status,
+      displayed_date: latest.date,
+      countries: current.countries,
+    });
   }
 
   async getByDate(date) {
@@ -110,6 +150,35 @@ export function validateDates(value) {
   return value;
 }
 
+export function validateCalendar(value) {
+  if (
+    !value ||
+    value.schema_version !== "1.0" ||
+    !Array.isArray(value.days) ||
+    value.days.length > 7 ||
+    value.days.some((day) => !isCalendarDay(day)) ||
+    new Set(value.days.map((day) => day.date)).size !== value.days.length
+  ) {
+    throw new DataSourceError("invalid_schema");
+  }
+  return value;
+}
+
+export function validatePublicationStatus(value) {
+  if (
+    !value ||
+    value.schema_version !== "1.0" ||
+    !isDate(value.attempted_date) ||
+    !isTimestamp(value.generated_at) ||
+    !isStatus(value.status) ||
+    !isDate(value.displayed_date) ||
+    !isCountryStatusMap(value.countries)
+  ) {
+    throw new DataSourceError("invalid_schema");
+  }
+  return value;
+}
+
 function validateDate(value) {
   if (!isDate(value)) {
     throw new DataSourceError("invalid_date");
@@ -128,6 +197,47 @@ function isStatus(value) {
   return ["success", "partial_success", "failed"].includes(value);
 }
 
+function isCalendarDay(value) {
+  return value && isDate(value.date) && isStatus(value.status) && isCountryStatusMap(value.countries);
+}
+
+function isCountryStatusMap(value) {
+  return (
+    value &&
+    Object.keys(value).length === COUNTRIES.length &&
+    COUNTRIES.every((country) => isCountryStatus(value[country]))
+  );
+}
+
+function isCountryStatus(value) {
+  return (
+    value &&
+    isStatus(value.status) &&
+    Number.isInteger(value.article_count) &&
+    value.article_count >= 0 &&
+    (value.reason === null || ["insufficient_articles", "insufficient_keywords"].includes(value.reason))
+  );
+}
+
+function toCalendarDay(result) {
+  return {
+    date: result.date,
+    status: result.status,
+    countries: Object.fromEntries(
+      COUNTRIES.map((country) => {
+        const value = result.countries[country];
+        return [country, {
+          status: value.status,
+          article_count: value.article_count,
+          reason: value.status === "success"
+            ? null
+            : value.article_count < 50 ? "insufficient_articles" : "insufficient_keywords",
+        }];
+      }),
+    ),
+  };
+}
+
 function isCountryResult(result) {
   return (
     result &&
@@ -138,7 +248,7 @@ function isCountryResult(result) {
     result.warnings.every((warning) => typeof warning === "string") &&
     Array.isArray(result.top_keywords) &&
     result.top_keywords.length <= 5 &&
-    (result.status !== "success" || result.top_keywords.length === 5) &&
+    (result.status !== "success" || result.top_keywords.length >= 3) &&
     result.top_keywords.every((keyword, index) =>
       isTopKeyword(keyword, index + 1, result.article_count))
   );

@@ -103,6 +103,32 @@ def test_english_normalization_keeps_s_ending_singular_words() -> None:
     )
 
 
+def test_recent_generic_and_source_labels_are_rejected() -> None:
+    us_labels = {
+        candidate.label
+        for candidate in LanguageKeywordExtractor().extract(
+            _article(
+                "us",
+                CountryCode.US,
+                "New company launches global sale Tuesday Inc 001",
+            )
+        )
+    }
+    jp_labels = {
+        candidate.label
+        for candidate in LanguageKeywordExtractor().extract(
+            _article("jp", CountryCode.JP, "産経新聞 更新目標 17 国債 001")
+        )
+    }
+
+    assert us_labels == set()
+    assert "産経新聞" not in jp_labels
+    assert "更新" not in jp_labels
+    assert "目標" not in jp_labels
+    assert "17" not in jp_labels
+    assert "国債" in jp_labels
+
+
 def test_long_japanese_title_produces_only_short_evidence_backed_concepts() -> None:
     title = "半導体投資" * 30
 
@@ -144,6 +170,12 @@ class _FakeEmbeddingModel:
 class _TitleExtractor(LanguageKeywordExtractor):
     def extract(self, article: CollectedArticle) -> tuple[KeywordCandidate, ...]:
         return (KeywordCandidate(label=article.title, evidence_expression=article.title),)
+
+
+class _CohesionExtractor(LanguageKeywordExtractor):
+    def extract(self, article: CollectedArticle) -> tuple[KeywordCandidate, ...]:
+        label = article.title.split(":", maxsplit=1)[0]
+        return (KeywordCandidate(label=label, evidence_expression=label),)
 
 
 def test_semantic_grouper_merges_similar_labels_without_crossing_topics() -> None:
@@ -225,6 +257,47 @@ def test_semantic_ranker_combines_alias_document_frequency() -> None:
 
     interest_rate = next(item for item in result.top_keywords if item.label == "interest rate")
     assert interest_rate.document_frequency == 10
+
+
+def test_semantic_ranker_downranks_scattered_article_titles() -> None:
+    labels = ["generic"] * 8 + ["coherent"] * 7 + ["alpha"] * 12 + ["beta"] * 12
+    labels += ["gamma"] * 11
+    articles = [
+        _article(
+            f"cohesion-{index:02d}",
+            CountryCode.US,
+            f"{label}:{index}",
+            publisher=f"publisher-{index % 5}",
+            offset=index,
+        )
+        for index, label in enumerate(labels)
+    ]
+
+    class _CohesionModel:
+        def encode(self, texts: list[str]) -> np.ndarray:
+            names = ("generic", "coherent", "alpha", "beta", "gamma")
+            vectors = []
+            for text in texts:
+                label, _, suffix = text.partition(":")
+                vector = np.zeros(6, dtype=np.float32)
+                if label == "generic" and suffix:
+                    vector[int(suffix) % 2] = 1.0
+                else:
+                    vector[names.index(label) + 1] = 1.0
+                vectors.append(vector)
+            return np.asarray(vectors)
+
+    ranker = KeywordRanker(
+        extractor=_CohesionExtractor(),
+        semantic_grouper=SemanticCandidateGrouper(
+            _CohesionModel(), similarity_threshold=1.0, use_title_cohesion=True
+        ),
+    )
+
+    result = ranker.analyze(CountryCode.US, articles)
+    positions = {keyword.label: keyword.rank for keyword in result.top_keywords}
+
+    assert positions["coherent"] < positions["generic"]
 
 
 def test_ranker_rejects_small_samples_and_country_mixing() -> None:
@@ -322,3 +395,21 @@ def test_ranker_does_not_publish_two_keywords_backed_by_the_same_articles() -> N
     labels = {keyword.label for keyword in result.top_keywords}
     assert not {"supply chain", "chain resilience"} <= labels
     assert len(labels) == 5
+
+
+def test_ranker_publishes_three_quality_keywords_without_padding() -> None:
+    topics = ("semiconductor", "inflation", "housing")
+    articles = [
+        _article(
+            f"article-{index:03d}",
+            CountryCode.US,
+            f"{topics[index % len(topics)]} {index:03d}",
+            publisher=f"publisher-{index % 5}",
+            offset=index,
+        )
+        for index in range(120)
+    ]
+
+    result = KeywordRanker().analyze(CountryCode.US, articles)
+
+    assert {keyword.label for keyword in result.top_keywords} == set(topics)

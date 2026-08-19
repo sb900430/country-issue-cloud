@@ -2,15 +2,17 @@
 
 | 항목 | 현재 상태 |
 |---|---|
-| 현재 목표 | 로컬 다국어 임베딩 기반 키워드 통합과 실제 표본 회귀 |
-| 상태 | 구현·실제 저장 표본·전체 검증 PASS, 완료 리뷰 `PASS_WITH_FINDINGS` |
+| 현재 목표 | 예약 실행·국가별 부분 게시·화면 상태·키워드 품질 안정화 |
+| 상태 | 구현·최근 저장 표본 회귀·전체 검증·완료 리뷰 PASS_WITH_FINDINGS, Draft PR 게시 전 |
 | 기준 브랜치 | `main` |
-| 작업 브랜치 | `codex/local-semantic-keywords` |
-| 마지막 완료 커밋 | `bfd3e02` — 중복 인프라 코드 단순화 PR #35 Rebase and merge |
-| 전체 검증 | PASS — Python 149개·Web 9개, backend coverage 89%, Pages fixture artifact |
-| 다음 작업 | 요청 시 작업 브랜치 push와 Draft PR 생성 |
+| 작업 브랜치 | `codex/v2-display-reliability` |
+| 마지막 완료 커밋 | 현재 branch 후보 — 게시·화면 상태·키워드 품질 안정화 |
+| 전체 검증 | PASS — Python 154개·Web 11개, backend coverage 89%, Pages fixture artifact |
+| 다음 작업 | 주차 branch push·Draft PR, Rebase and merge 뒤 전체 검증과 다음 예약 실행 관찰 |
 
 ## v1.0 공개 준비 진행 결과
+
+- 2026-08-19 최근 실행을 분석해 Ubuntu gate와 Windows build 사이의 실행 marker cache 불일치, 09시 수집과 NewsData 무료 지연 충돌, 전체 국가 게시 gate, mutable JSON cache와 초기화 일괄 실패를 수정한다. marker는 Ubuntu gate에서 확인하고 교차 OS cache로 공유하며 Windows build의 전체 검증 후 외부 호출 직전에 저장하도록 바꾸고, 13시 기본·14시/16시 보충으로 변경했다. 1개국 이상 성공하면 국가별 부분 게시하고 `calendar.json`·`status.json`에서 실패 날짜·기사 수·사유를 제공하며, Web은 최신 데이터를 먼저 표시하고 상태 metadata 실패를 격리한다. 일반어·언론사명·정치인 필터, 영어 활용형, 최종 선택 수 기준 매체 편중, title embedding 응집도와 품질 3~5개 정책을 적용했다. 저장된 8월 17~19일 표본 재검증은 외부 API 호출 없이 수행했으며 무의미한 후보만 남은 미국 날짜는 미국만 실패하도록 확인했다.
 
 - 2026-08-14 실제 24시간 표본의 후보 분산 문제를 수정한다. 복합어와 구성 단어를 함께 보존하고 local 다국어 SentenceTransformer의 고신뢰 의미 병합을 live 배치에 적용했다. 후보 gate를 2%·최소 3기사·2매체로 조정하고 의미 병합은 각 후보 2기사·2매체, 4자 이상, 유사도 0.95, cluster 최대 3개로 제한했다. 저장된 US 102·JP 70·KR 173건 재검증에서 세 국가 TOP 5가 생성됐으며 외부 뉴스 API와 LLM 호출은 사용하지 않았다.
 

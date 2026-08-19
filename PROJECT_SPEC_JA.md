@@ -228,18 +228,18 @@ GDELT・RSS・NewsData.ioが提供するtitle・短いsummary・原文URL・媒�
 document_frequency = keywordが1回以上出現したユニーク記事数
 publisher_count    = keyword関連のユニーク媒体数
 article_ratio      = document_frequency / 国の有効記事数
-keyword_score      = document_frequency優先、publisher_count・最新時刻・keyword_id順で同順位解消
+keyword_score      = document_frequency × title意味凝集度補正、publisher_count・具体性・最新時刻・keyword_id順で同順位解消
 ```
 
-`success`：3か国がそれぞれ記事50件以上、keyword処理成功率80%以上、keyword 5件をすべて満たす。
+`success`：3か国がそれぞれ記事50件以上、keyword処理成功率80%以上、品質keyword 3～5件を満たす。
 
-`partial_success`：ちょうど2か国だけが上記配布基準を満たす。公開fileは生成しない。
+`partial_success`：1～2か国が上記配布基準を満たす。成功国は公開し、失敗国は記事数と理由を表示する。
 
-`failed`：配布基準を満たす国が1か国以下。
+`failed`：配布基準を満たす国がない。最後に表示可能な結果を維持し、当日の失敗状態を別途公開する。
 
-3か国すべてが配布可能な場合だけ日付結果を保存し、失敗実行では`latest.json`を変更しない。
+すべての試行は日付結果と`calendar.json`・`status.json`へ公開可能な状態だけを保存する。成功国が一つ以上あればその日付を`latest.json`へ更新し、すべて失敗なら既存表示結果を維持する。
 
-記事数50件はsample量gateにすぎず、品質通過を意味しない。上記の頻度・媒体・一般語・重複イシュー基準をすべて満たすkeyword 5件を作れない国は失敗とし、新しい公開fileを作成しない。
+記事数50件はsample量gateにすぎず、品質通過を意味しない。上記の頻度・媒体・一般語・重複イシュー基準を満たすkeywordを最低3件作れない場合は、その国だけを失敗とする。品質を下げて5件を強制補完しない。
 
 ---
 
@@ -499,7 +499,7 @@ save(result)
 delete_expired(retention_days)
 ```
 
-JSONをSQLite/PostgreSQLへ変更してもRouter、Service、Web API契約、保留中のAndroid API契約を維持する。正式Web UIは静的HTML/CSS/Vanilla JSで作り、DataSourceに関係なく同じresponse Schemaと状態定義を使う。keyword移行後の標準設定は`DATA_MODE=static`、`DATA_BASE_URL=./data/v2`で、後続serverでは`DATA_MODE=api`、`API_BASE_URL=https://.../api/v2`へ切り替える。mobile-first responsive layout、アクセントカラー一色、簡潔なクラウドデザインを適用する。生成した運用JSONはPages配布artifactへ含めるがsource branchへcommitしない。各実行は現在の公開siteから直前6日分をSchema 2.0で再検証して復元し、当日結果を加えて最大7日だけをatomicに配布する。`main` pushは外部APIを呼ばず、既存公開`latest.json`と日付履歴を復元してWeb codeだけを再配布し、復元失敗時は既存Pages配布を維持する。
+JSONをSQLite/PostgreSQLへ変更してもRouter、Service、Web API契約、保留中のAndroid API契約を維持する。正式Web UIは静的HTML/CSS/Vanilla JSで作り、DataSourceに関係なく同じresponse Schemaと状態定義を使う。keyword移行後の標準設定は`DATA_MODE=static`、`DATA_BASE_URL=./data/v2`で、後続serverでは`DATA_MODE=api`、`API_BASE_URL=https://.../api/v2`へ切り替える。mobile-first responsive layout、アクセントカラー一色、簡潔なクラウドデザインを適用する。生成した運用JSONはPages配布artifactへ含めるがsource branchへcommitしない。各実行は現在の公開siteから直前履歴をSchema 2.0で再検証して復元し、当日結果を加えて最大7試行日をatomicに配布する。`dates.json`は試行日、`calendar.json`は日付・国別成功状態と記事数、`status.json`は最終試行日と実際の表示日を提供する。最新・状態indexはbrowser cacheを回避し、日付別JSONだけをimmutable cache対象とする。`main` pushは外部APIを呼ばず、既存公開`latest.json`と日付履歴を復元してWeb codeだけを再配布し、復元失敗時は既存Pages配布を維持する。
 
 管理者確認用として最終選択記事全件のID・title・原文HTTPS URL・媒体・公開時刻と収集診断を別Actions artifactへ保存する。このartifactは7日保持し、PagesとGitへ含めず、Secret、認証header、raw API response、記事本文を含めない。
 
@@ -527,12 +527,12 @@ JSONをSQLite/PostgreSQLへ変更してもRouter、Service、Web API契約、保
 
 | 時刻 | 処理 |
 |---|---|
-| 08:00 | 基本バッチ |
-| 08:30 | 結果がない場合の1回目再試行 |
-| 09:30 | 最終再試行 |
-| 10:00 | 状態確認と連続失敗通知候補 |
+| 13:00 | NewsData無料提供遅延を反映した基本batch |
+| 14:00 | 当日の外部収集試行記録がない場合の1回目補完 |
+| 16:00 | 試行記録がない場合の最終補完 |
+| 配布後 | 公開状態・Schema・画面smoke確認 |
 
-初回運用は毎日09:00 JST/KST（UTC `0 0 * * *`）を標準とし、10:00・12:00 JST/KSTを補完scheduleとする。`main` pushは外部APIを呼び出さず当日の試行権も消費せず、現在の公開dataを復元した`preserve` artifactを検証・配布し、予約実行だけが標準`live` modeを使う。日付別live-attempt markerをGitHub Actions cacheへ保存し、同じJST日付のmarkerがある場合は標準・補完live実行で外部収集と配布をskipする。markerは依存導入と全検証の完了後に生成し、cache永続化が成功した後だけ`publish-live`を開始する。cache保存に失敗するかmarkerが存在しない場合は外部収集を開始しない。これにより外部呼出段階前の失敗だけを補完し、外部呼出試行権を永続化した実行は成功・失敗・runner中断に関係なく自動再呼出しない。利用者判断による手動`force_live_retry=true`だけを重複防止の例外として許可する。workflow concurrencyで同時実行を防ぎ、予約遅延・公開repositoryの長期非activityによる停止可能性を運用点検へ含める。後続VPS/EC2では同じpipeline entryをsystemd timerの`Persistent=true`とOS file lockで実行する。
+初回運用は毎日13:00 JST/KST（UTC `0 4 * * *`）を標準とし、14:00・16:00 JST/KSTを補完scheduleとする。`main` pushは外部APIを呼び出さず当日の試行権も消費せず、現在の公開dataを復元した`preserve` artifactを検証・配布し、予約実行だけが標準`live` modeを使う。`live`と`preserve`はいずれも既存公開`latest.json`を復元し、当日の全国家失敗で最後の正常画面を上書きしない。日付別live-attempt markerはUbuntu gateで確認し、Windows buildで依存導入と全検証が完了した後、外部収集直前に保存する。両runner間のcacheには`enableCrossOsArchive`を明示し、OS別cache versionの不一致を防ぐ。同じJST日付のmarkerがある場合は標準・補完live実行で外部収集と配布をskipする。cache永続化が成功した後だけ`publish-live`を開始し、cache保存に失敗するかmarkerが存在しない場合は外部収集を開始しない。これにより外部呼出段階前の失敗だけを補完し、外部呼出試行権を永続化した実行は成功・失敗・runner中断に関係なく自動再呼出しない。利用者判断による手動`force_live_retry=true`だけを重複防止の例外として許可する。workflow concurrencyで同時実行を防ぎ、予約遅延・公開repositoryの長期非activityによる停止可能性を運用点検へ含める。後続VPS/EC2では同じpipeline entryをsystemd timerの`Persistent=true`とOS file lockで実行する。
 
 ```text
 python -m app.batch.pipeline_entry
@@ -663,7 +663,7 @@ review範囲はローカル`reviews/.last-reviewed-sha`から現在`HEAD`まで�
 
 必須検査は仕様同期、diff形式、secret・security、依存関係脆弱性、`scripts/verify-all.ps1`、coverage、正確性・性能・保守性・architectureの順に行う。LLMまたはUI変更時は対応する回帰検査を追加する。性能は同一ローカル環境3回の中央値で、cache API p95 500ms、fixture非cache API p95 1秒、mock 3か国pipeline 60秒を基準とする。
 
-keyword分析器・stopword・LLM変更時はSchema 100%、入力外article ID・根拠・候補0件、国間混在0件、TOP 5重複0件、順位決定性100%、処理成功率80%以上を要求する。国別100件以上のfixtureで文断片除外、一般語除外、短い複合名詞保持、候補別最低3件・2媒体、関連記事接続精度を検証し、labelは国別最大5件のsampleで80%以上が受容可能であること。
+keyword分析器・stopword・LLM変更時はSchema 100%、入力外article ID・根拠・候補0件、国間混在0件、上位3～5件の重複0件、順位決定性100%、処理成功率80%以上を要求する。国別100件以上のfixtureで文断片・一般語・媒体名・政治家名の除外、短い複合名詞保持、候補別最低3件・正規化した2媒体、関連記事の意味凝集度と接続精度を検証し、labelは国別最大5件のsampleで80%以上が受容可能であること。
 
 | 重大度 | 対応 |
 |---|---|
@@ -890,7 +890,7 @@ v* tag → Pages URL検証 → GitHub Release。Android再開後のみAABとPlay
 
 ### 方針変更後の追加実装日程 — keyword news v2
 
-既存3週日程と完了履歴はbaselineとして維持し、次の3 PRを順番に進める。各PRは前PRのRebase and mergeとmerge後検証が終わった最新`main`から開始する。
+既存3週日程と完了履歴はbaselineとして維持し、次のPRを順番に進める。各PRは前PRのRebase and mergeとmerge後検証が終わった最新`main`から開始する。
 
 | 順序 | branch・PR単位 | 実装内容 | 完了基準 |
 |---|---|---|---|
@@ -899,6 +899,7 @@ v* tag → Pages URL検証 → GitHub Release。Android再開後のみAABとPlay
 | 3 | `codex/v2-schema-pages-ui` | Schema/API/data v2、DataSource migration、keyword詳細・関連記事最大20件、Pages artifact | v1維持、v2 producer/client同時移行、UI・全体・Pages smoke test通過 |
 | 4 | `codex/v1-release-hardening` | 公開URL自動smoke、運用Runbook、7日batch観察、README・Release準備 | 現在の公開Pages検証、障害対応手順と7日観察証跡、全回帰通過 |
 | 5 | `codex/v2-source-coverage` | source別収集量計測、国別無料経済news source・query補完、重複・偏重損失分析 | Secretなしfixture regression、無料上限順守、国別100件目標またはsource別根拠付きpartial |
+| 6 | `codex/v2-display-reliability` | 検証後のcross-OS実行marker、13時収集、国別部分公開、公開状態・cache復旧、意味凝集度・3～5件品質keyword | 外部重複呼出し遮断、失敗国理由表示、最近の保存sample回帰とPages全検証通過 |
 
 2026-08-07時点で順序1のGDELT・NAVER adapter、versioned query、国別120件GDELT fixture、250件上限・媒体20%/30件制限、NAVER承認domainと日300回・月9,000回停止ledgerを実装した。制限付きGDELT live検証は無料endpointの429と媒体coverageにより国別100件未満となったため理由付きpartialとして記録し、v1予約実行では`--enable-gdelt`・`--enable-naver`明示前に有効化しない。
 
@@ -929,6 +930,8 @@ GDELTの最小1件公開requestでもHTTP 429を再現した。HTTP errorは本�
 2026-08-13のcode簡素化決定として、現在動作と安全gateを維持しながら、NAVER・NewsData使用量ledgerのJSON保存logic、v1・v2静的配布のatomic directory置換logic、live collector組立を小さな内部helperへ共通化する。Source YAMLは1回のCLI実行で1度だけparseし、Web package managerはCI基準のnpmへ統一する。呼出元のない`public_issue_path`は削除する。v1互換API・pipeline、LLM詳細scaffold、FastAPI `ApiDataSource`は後続運用選択と互換終了判断まで削除しない。
 
 2026-08-14の実24時間sampleで候補が過度に分散しTOP 5を生成できない問題を確認した。構成単語と複合語を両方保持し、local多言語SentenceTransformerで高信頼候補だけを統合する。候補下限は最低3記事または全体の2%・2媒体へ調整し、意味統合は各候補2記事・2媒体、空白除外4文字以上、cosine類似度0.95以上、cluster最大3表現に制限する。GitHub Actionsはlive実行時にmodel cacheを使い、外部LLM費用は発生させない。
+
+2026-08-19の8月17～19日運用artifact分析で、全体公開gate、Ubuntu参照・Windows保存によるcache marker不一致、NewsData無料遅延に対する早過ぎる実行、mutable JSON cache、一般語・媒体名・政治家名候補を確認した。実行markerはUbuntu gateで確認し、`enableCrossOsArchive`でWindows buildと共有して、全検証後の外部呼出し直前に保存する。標準実行は13時、補完は14時・16時へ変更する。国別結果は1か国以上成功時に部分公開し、`calendar.json`・`status.json`で失敗日と記事数を表示する。keywordは国別3～5件だけを許可し、英語活用形、国別一般語・政治家禁止語、最終選択数基準の媒体偏重、記事title embedding凝集度順位を適用する。8月17～19日の保存管理者sampleは外部API再呼出しなしのlocal回帰に利用し、Gitには含めない。
 
 2026-08-09の予約実行では重複・偏重除去後にUS 198件・JP 103件・KR 85件を確保したが、従来の100件gateにより全体配布が停止した。100件以上の推奨収集目標と150件の目標値は維持し、実配布下限だけを国別70件へ下げる。3か国すべてが70件以上で各国TOP 5を完成した場合のみ配布し、未達時は既存の正常Pagesを維持する。
 

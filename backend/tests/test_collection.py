@@ -7,6 +7,7 @@ from app.batch.collection import CollectionRunner
 from app.batch.collectors.fixture import FixtureCollector
 from app.batch.collectors.rss import RssCollector, RssSource
 from app.batch.deduplication import (
+    canonical_publisher,
     deduplicate_articles,
     normalize_title,
     normalize_url,
@@ -174,8 +175,40 @@ def test_diversity_limit_caps_each_publisher_at_twenty_percent() -> None:
 
     selected = select_diverse_articles(articles, 100)
 
-    assert len(selected) == 80
-    assert sum(item.publisher == "Publisher A" for item in selected) == 20
+    assert len(selected) == 75
+    assert sum(item.publisher == "Publisher A" for item in selected) == 15
+    assert max(
+        sum(canonical_publisher(item.publisher) == publisher for item in selected)
+        for publisher in {canonical_publisher(item.publisher) for item in selected}
+    ) <= len(selected) * 0.2
+
+
+def test_diversity_groups_press_release_wire_aliases() -> None:
+    articles = [
+        article(
+            f"wire-{index}",
+            title=f"Wire headline {index}",
+            url=f"https://wire.example/{index}",
+        ).model_copy(
+            update={"publisher": "Globe Newswire" if index % 2 else "PR Newswire"}
+        )
+        for index in range(40)
+    ] + [
+        article(
+            f"publisher-{publisher}-{index}",
+            title=f"Publisher {publisher} headline {index}",
+            url=f"https://{publisher}.example/{index}",
+        ).model_copy(update={"publisher": f"Publisher {publisher}"})
+        for publisher in "ABCDE"
+        for index in range(12)
+    ]
+
+    selected = select_diverse_articles(articles, 100)
+
+    wire_count = sum(
+        canonical_publisher(item.publisher) == "press-release-wire" for item in selected
+    )
+    assert wire_count <= len(selected) * 0.2
 
 
 class StubCollector:

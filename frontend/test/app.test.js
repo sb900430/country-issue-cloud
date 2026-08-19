@@ -89,3 +89,34 @@ test("failed initialization blocks country clicks and retry restores interaction
   assert.equal(dialog.hasAttribute("open"), true);
   assert.match(dom.window.document.querySelector("[data-dialog-title]").textContent, /US issue/);
 });
+
+test("metadata failure does not hide latest data and partial country is explained", async () => {
+  const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+  const dom = new JSDOM(html, { url: "https://example.test/country-issue-cloud/" });
+  const partial = result();
+  partial.status = "partial_success";
+  partial.countries.JP = {
+    status: "failed",
+    article_count: 41,
+    warnings: ["keyword_analysis_failed:ValueError"],
+    top_keywords: [],
+  };
+  const app = createIssueCloudApp({
+    root: dom.window.document,
+    dataSource: {
+      usedCache: false,
+      getLatest: async () => partial,
+      getDates: async () => { throw new Error("dates unavailable"); },
+      getCalendar: async () => { throw new Error("calendar unavailable"); },
+      getStatus: async () => { throw new Error("status unavailable"); },
+      getByDate: async () => partial,
+    },
+    logger: { error: () => {} },
+  });
+
+  assert.equal(await app.start(), true);
+  assert.match(dom.window.document.querySelector("[data-issues]").textContent, /KR issue/);
+  dom.window.document.querySelector("[data-country='JP']").click();
+  assert.match(dom.window.document.querySelector("[data-run-status]").textContent, /41\/50/);
+  assert.equal(dom.window.document.querySelector("[data-country='JP']").classList.contains("is-unavailable"), true);
+});

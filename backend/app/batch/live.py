@@ -183,8 +183,13 @@ def run_live_keyword_batch(
         collections,
         ranker=ranker,
     )
-    if result.status is IssueStatus.SUCCESS:
-        repository = JsonKeywordRepository(data_dir)
+    repository = JsonKeywordRepository(data_dir)
+    if result.status in {IssueStatus.SUCCESS, IssueStatus.PARTIAL_SUCCESS}:
         repository.save(result)
+    else:
+        repository.save_history(result)
+        if repository.find_latest() is None:
+            repository.save(result)
+    if repository.find_latest() is not None:
         KeywordStaticJsonPublisher(repository.published_dir, site_data_dir).publish()
     return result

@@ -38,8 +38,8 @@ class CountryKeywordResult(StrictSchema):
             raise ValueError("top keyword ranks must be contiguous")
         if any(keyword.document_frequency > self.article_count for keyword in self.top_keywords):
             raise ValueError("keyword frequency cannot exceed country article count")
-        if self.status is IssueStatus.SUCCESS and len(self.top_keywords) != 5:
-            raise ValueError("successful country must contain five keywords")
+        if self.status is IssueStatus.SUCCESS and not 3 <= len(self.top_keywords) <= 5:
+            raise ValueError("successful country must contain three to five keywords")
         return self
 
 

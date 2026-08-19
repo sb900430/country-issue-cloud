@@ -25,6 +25,9 @@ def test_repository_blocklist_excludes_configured_political_terms() -> None:
 
     assert blocklist.blocks(CountryCode.KR, "국힘")
     assert blocklist.blocks(CountryCode.KR, "오세훈시장")
+    assert blocklist.blocks(CountryCode.US, "Trump policy")
+    assert blocklist.blocks(CountryCode.JP, "トランプ政権")
+    assert blocklist.blocks(CountryCode.KR, "트럼프정부")
     assert not blocklist.blocks(CountryCode.JP, "オ・セフン")
     assert not blocklist.blocks(CountryCode.KR, "코스닥")
 

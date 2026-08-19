@@ -7,10 +7,13 @@ from datetime import datetime
 from hashlib import sha256
 from math import ceil
 
+import numpy as np
 from kiwipiepy import Kiwi  # type: ignore[import-untyped]
+from numpy.typing import NDArray
 from pydantic import BaseModel, ConfigDict, Field
 from sudachipy import dictionary, tokenizer  # type: ignore[import-untyped]
 
+from app.batch.deduplication import canonical_publisher
 from app.batch.keyword_blocklist import KeywordBlocklist
 from app.batch.models import CollectedArticle
 from app.batch.semantic_keywords import SemanticCandidateGrouper
@@ -25,6 +28,7 @@ _MIN_ARTICLE_COUNT = 50
 _MAX_RELATED_ARTICLE_JACCARD = 0.5
 _GENERAL_TERMS = {
     CountryCode.US: {
+        "about",
         "after",
         "amid",
         "announces",
@@ -32,6 +36,37 @@ _GENERAL_TERMS = {
         "affects",
         "business",
         "billion",
+        "close",
+        "code",
+        "company",
+        "corp",
+        "corporation",
+        "free",
+        "deal",
+        "gain",
+        "global",
+        "how",
+        "inc",
+        "incorporated",
+        "investor",
+        "just",
+        "large",
+        "launch",
+        "launched",
+        "launches",
+        "lower",
+        "new",
+        "off",
+        "out",
+        "plan",
+        "project",
+        "promo",
+        "sale",
+        "this",
+        "year",
+        "american",
+        "holding",
+        "casino",
         "call",
         "and",
         "are",
@@ -97,6 +132,25 @@ _GENERAL_TERMS = {
         "october",
         "november",
         "december",
+        "jan",
+        "feb",
+        "mar",
+        "apr",
+        "jun",
+        "jul",
+        "aug",
+        "sep",
+        "sept",
+        "oct",
+        "nov",
+        "dec",
+        "monday",
+        "tuesday",
+        "wednesday",
+        "thursday",
+        "friday",
+        "saturday",
+        "sunday",
     },
     CountryCode.JP: {
         "ニュース",
@@ -135,6 +189,19 @@ _GENERAL_TERMS = {
         "急落",
         "決算",
         "銘柄",
+        "更新",
+        "目標",
+        "予想",
+        "結果",
+        "過去",
+        "企業",
+        "半年",
+        "オンライン",
+        "産経新聞",
+        "ザイ",
+        "売上高",
+        "分析",
+        "ny",
     },
     CountryCode.KR: {
         "감소",
@@ -171,8 +238,83 @@ _GENERAL_TERMS = {
         "급등",
         "금융",
         "규모",
+        "사업",
+        "최대",
+        "대응",
+        "논의",
+        "취임",
+        "평화",
+        "경총",
+        "서울",
+        "국가",
+        "규탄",
+        "박람회",
+        "용산",
     },
 }
+_GENERAL_TERMS[CountryCode.US].update(
+    {
+        "a",
+        "all",
+        "an",
+        "any",
+        "as",
+        "at",
+        "be",
+        "best",
+        "but",
+        "by",
+        "can",
+        "city",
+        "ceo",
+        "customer",
+        "data",
+        "drop",
+        "get",
+        "got",
+        "he",
+        "her",
+        "here",
+        "his",
+        "i",
+        "if",
+        "in",
+        "is",
+        "it",
+        "my",
+        "need",
+        "no",
+        "not",
+        "now",
+        "our",
+        "public",
+        "read",
+        "real",
+        "service",
+        "see",
+        "show",
+        "study",
+        "take",
+        "their",
+        "them",
+        "these",
+        "they",
+        "those",
+        "to",
+        "top",
+        "up",
+        "we",
+        "what",
+        "when",
+        "where",
+        "who",
+        "why",
+        "you",
+        "your",
+    }
+)
+_GENERAL_TERMS[CountryCode.JP].add("online")
+_GENERAL_TERMS[CountryCode.KR].update({"회견", "공원", "대표", "발동", "대책"})
 
 
 class KeywordCandidate(BaseModel):
@@ -207,7 +349,7 @@ class CountryKeywordAnalysis(BaseModel):
 
     country: CountryCode
     article_count: int = Field(ge=1)
-    top_keywords: tuple[RankedKeyword, ...] = Field(min_length=1, max_length=5)
+    top_keywords: tuple[RankedKeyword, ...] = Field(min_length=3, max_length=5)
 
 
 @dataclass(frozen=True)
@@ -219,6 +361,7 @@ class _TermUnit:
 
 @dataclass(frozen=True)
 class _RankedItem:
+    quality_score: float
     frequency: int
     publisher_count: int
     specificity: int
@@ -247,7 +390,9 @@ class LanguageKeywordExtractor:
         segments: list[list[_TermUnit]] = []
         current: list[_TermUnit] = []
         for match in _LATIN_WORD.finditer(title):
-            surface = match.group().casefold()
+            surface = match.group().casefold().strip("'")
+            if surface.endswith("'s"):
+                surface = surface[:-2]
             label = _english_lemma(surface)
             if (
                 surface in _GENERAL_TERMS[CountryCode.US]
@@ -428,7 +573,10 @@ class KeywordRanker:
                 key
                 for key, indexed in grouped_articles.items()
                 if len(indexed) >= 2
-                and len({article.publisher for article in indexed.values()}) >= 2
+                and len(
+                    {canonical_publisher(article.publisher) for article in indexed.values()}
+                )
+                >= 2
             }
             display_labels = {
                 key: self.resolver.display_label(
@@ -461,11 +609,14 @@ class KeywordRanker:
                 grouped_evidence,
             )
 
+        title_vectors = self._title_vectors(articles)
         minimum_frequency = max(_MIN_DOCUMENT_FREQUENCY, ceil(len(articles) * _MIN_DOCUMENT_RATIO))
         ranked: list[_RankedItem] = []
         for key, indexed in grouped_articles.items():
             frequency = len(indexed)
-            publisher_count = len({article.publisher for article in indexed.values()})
+            publisher_count = len(
+                {canonical_publisher(article.publisher) for article in indexed.values()}
+            )
             if frequency < minimum_frequency or publisher_count < _MIN_PUBLISHER_COUNT:
                 continue
             label = self.resolver.display_label(
@@ -473,8 +624,10 @@ class KeywordRanker:
                 {value: len(grouped_label_articles[key][value]) for value in grouped_labels[key]},
                 grouped_label_term_counts[key],
             )
+            cohesion = _title_cohesion(indexed, title_vectors)
             ranked.append(
                 _RankedItem(
+                    quality_score=frequency * (0.5 + cohesion),
                     frequency=frequency,
                     publisher_count=publisher_count,
                     specificity=grouped_label_term_counts[key][label],
@@ -485,6 +638,7 @@ class KeywordRanker:
             )
         ranked.sort(
             key=lambda item: (
+                -item.quality_score,
                 -item.frequency,
                 -item.publisher_count,
                 -item.specificity,
@@ -514,10 +668,7 @@ class KeywordRanker:
                 {value: len(grouped_label_articles[key][value]) for value in grouped_labels[key]},
                 grouped_label_term_counts[key],
             )
-            related = sorted(
-                grouped_articles[key].values(),
-                key=lambda article: (-article.published_at.timestamp(), article.article_id),
-            )[:20]
+            related = _central_related_articles(grouped_articles[key], title_vectors)[:20]
             top_keywords.append(
                 RankedKeyword(
                     rank=rank,
@@ -530,13 +681,24 @@ class KeywordRanker:
                     related_article_ids=tuple(article.article_id for article in related),
                 )
             )
-        if len(top_keywords) < 5:
-            raise ValueError("keyword analysis produced fewer than five candidates")
+        if len(top_keywords) < 3:
+            raise ValueError("keyword analysis produced fewer than three candidates")
         return CountryKeywordAnalysis(
             country=country,
             article_count=len(articles),
             top_keywords=tuple(top_keywords),
         )
+
+    def _title_vectors(
+        self, articles: list[CollectedArticle]
+    ) -> dict[str, NDArray[np.float32]]:
+        if self.semantic_grouper is None or not self.semantic_grouper.use_title_cohesion:
+            return {}
+        ordered = sorted(articles, key=lambda article: article.article_id)
+        vectors = self.semantic_grouper.model.encode([article.title for article in ordered])
+        if vectors.ndim != 2 or vectors.shape[0] != len(ordered) or not np.isfinite(vectors).all():
+            raise ValueError("embedding model returned invalid title vectors")
+        return {article.article_id: vectors[index] for index, article in enumerate(ordered)}
 
 
 def _merge_semantic_groups(
@@ -580,6 +742,8 @@ def _merge_semantic_groups(
 def _english_lemma(value: str) -> str:
     if len(value) > 4 and value.endswith("ies"):
         return f"{value[:-3]}y"
+    if len(value) > 5 and value.endswith(("ches", "shes", "sses", "xes", "zes", "oes")):
+        return value[:-2]
     if len(value) > 4 and value.endswith("s") and not value.endswith(("ics", "is", "ss", "us")):
         return value[:-1]
     return value
@@ -594,6 +758,8 @@ def _is_invalid_candidate(country: CountryCode, label: str) -> bool:
     if normalized in _GENERAL_TERMS[country]:
         return True
     if country is CountryCode.JP:
+        if re.fullmatch(r"[\d.,]+", normalized):
+            return True
         if any(character.isdigit() for character in normalized) and any(
             marker in normalized for marker in "年月日"
         ):
@@ -603,6 +769,45 @@ def _is_invalid_candidate(country: CountryCode, label: str) -> bool:
         compact = normalized.replace(" ", "")
         return re.fullmatch(r"(?:억|조|만)?원(?:규모)?", compact) is not None
     return False
+
+
+def _title_cohesion(
+    articles: Mapping[str, CollectedArticle],
+    title_vectors: Mapping[str, NDArray[np.float32]],
+) -> float:
+    if not title_vectors or len(articles) < 2:
+        return 0.5
+    vectors = np.asarray([title_vectors[article_id] for article_id in sorted(articles)])
+    similarities = vectors @ vectors.T
+    upper = similarities[np.triu_indices(len(vectors), 1)]
+    return float(np.clip(upper.mean(), 0.0, 1.0))
+
+
+def _central_related_articles(
+    articles: Mapping[str, CollectedArticle],
+    title_vectors: Mapping[str, NDArray[np.float32]],
+) -> list[CollectedArticle]:
+    if not title_vectors:
+        return sorted(
+            articles.values(),
+            key=lambda article: (-article.published_at.timestamp(), article.article_id),
+        )
+    ordered = sorted(articles.values(), key=lambda article: article.article_id)
+    vectors = np.asarray([title_vectors[article.article_id] for article in ordered])
+    centroid = vectors.mean(axis=0)
+    norm = float(np.linalg.norm(centroid))
+    similarities = vectors @ (centroid / norm) if norm else np.zeros(len(ordered))
+    return [
+        article
+        for _, article in sorted(
+            zip(similarities, ordered, strict=True),
+            key=lambda item: (
+                -float(item[0]),
+                -item[1].published_at.timestamp(),
+                item[1].article_id,
+            ),
+        )
+    ]
 
 
 def _related_article_jaccard(

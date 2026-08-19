@@ -25,7 +25,14 @@ foreach ($file in Get-ChildItem -LiteralPath $resolved -Recurse -File) {
 
 $latest = Join-Path $resolved "data/v2/latest.json"
 $dates = Join-Path $resolved "data/v2/dates.json"
-if (-not (Test-Path -LiteralPath $latest) -or -not (Test-Path -LiteralPath $dates)) {
+$calendar = Join-Path $resolved "data/v2/calendar.json"
+$status = Join-Path $resolved "data/v2/status.json"
+if (
+    -not (Test-Path -LiteralPath $latest) -or
+    -not (Test-Path -LiteralPath $dates) -or
+    -not (Test-Path -LiteralPath $calendar) -or
+    -not (Test-Path -LiteralPath $status)
+) {
     throw "Public artifact is missing required JSON files."
 }
 $payload = Get-Content -LiteralPath $latest -Raw | ConvertFrom-Json
@@ -33,16 +40,20 @@ if ($payload.schema_version -ne "2.0") {
     throw "Public artifact must use keyword Schema 2.0."
 }
 foreach ($country in @("US", "JP", "KR")) {
-    if ($payload.countries.$country.top_keywords.Count -ne 5) {
-        throw "Public artifact must contain five keywords for $country."
+    $countryPayload = $payload.countries.$country
+    if (
+        ($countryPayload.status -eq "success" -and $countryPayload.top_keywords.Count -notin 3..5) -or
+        ($countryPayload.status -ne "success" -and $countryPayload.top_keywords.Count -gt 5)
+    ) {
+        throw "Public artifact contains an invalid keyword count for $country."
     }
 }
 $dateValues = @(Get-Content -LiteralPath $dates -Raw | ConvertFrom-Json)
 if ($dateValues.Count -lt 1 -or $dateValues.Count -gt 7) {
     throw "Public artifact must contain between one and seven dates."
 }
-if ($dateValues[0] -ne $payload.date) {
-    throw "Public artifact latest date must be first in dates.json."
+if ($dateValues -notcontains $payload.date) {
+    throw "Public artifact latest date must be included in dates.json."
 }
 foreach ($dateValue in $dateValues) {
     if ($dateValue -notmatch '^\d{4}-\d{2}-\d{2}$') {
@@ -57,9 +68,34 @@ foreach ($dateValue in $dateValues) {
         throw "Public artifact contains invalid dated keyword data: $dateValue"
     }
     foreach ($country in @("US", "JP", "KR")) {
-        if ($datedPayload.countries.$country.top_keywords.Count -ne 5) {
-            throw "Dated public artifact must contain five keywords for $country."
+        $countryPayload = $datedPayload.countries.$country
+        if (
+            ($countryPayload.status -eq "success" -and $countryPayload.top_keywords.Count -notin 3..5) -or
+            ($countryPayload.status -ne "success" -and $countryPayload.top_keywords.Count -gt 5)
+        ) {
+            throw "Dated public artifact contains an invalid keyword count for $country."
         }
+    }
+}
+$statusPayload = Get-Content -LiteralPath $status -Raw | ConvertFrom-Json
+if (
+    $statusPayload.schema_version -ne "1.0" -or
+    $statusPayload.attempted_date -ne $dateValues[0] -or
+    $statusPayload.displayed_date -ne $payload.date
+) {
+    throw "Public artifact contains inconsistent publication status."
+}
+$calendarPayload = Get-Content -LiteralPath $calendar -Raw | ConvertFrom-Json
+$calendarDays = @($calendarPayload.days)
+if (
+    $calendarPayload.schema_version -ne "1.0" -or
+    $calendarDays.Count -ne $dateValues.Count
+) {
+    throw "Public artifact contains an invalid publication calendar."
+}
+for ($index = 0; $index -lt $dateValues.Count; $index++) {
+    if ($calendarDays[$index].date -ne $dateValues[$index]) {
+        throw "Public artifact calendar and date index are inconsistent."
     }
 }
 Write-Host "PASS: Public Pages artifact contains required JSON and no secret patterns."

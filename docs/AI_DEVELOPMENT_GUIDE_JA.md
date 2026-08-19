@@ -16,7 +16,7 @@
 | Android（保留） | 再開時にRetrofit、Kotlinx Serialization、ViewModel、Flow、Room、DataStore、Hiltを再検証 |
 | 日時 | サーバーはUTC保存、`Asia/Tokyo`表示 |
 | ニュース収集目標 | NewsData.io・NAVERと公共RSS/API、GDELTは429解消まで保留、国別150件目標・250件上限 |
-| keyword分析 | 構成単語・複合名詞保持 → 国別YAML禁止語 → local多言語embedding限定統合 → 2%・3件・2媒体gate → 一般語・重複イシュー除外 → code順位 |
+| keyword分析 | 構成単語・複合名詞保持 → 国別YAML禁止語 → local多言語embedding限定統合・記事凝集度 → 2%・3件・正規化2媒体gate → 一般語・重複イシュー除外 → 品質3～5件順位 |
 
 正確なversionはscaffold時点の公式安定版を確認して固定し、lockfileまたはversion catalogへ記録する。依存関係を無断追加せず、標準機能で解決困難な場合だけADRへ導入理由を残す。
 
@@ -103,7 +103,7 @@
 
 ## 7. LLM回帰検証
 
-`sample-data/evaluation/{US,JP,KR}`に固定入力、`sample-data/evaluation/expected`に期待値を置く。文章完全一致ではなく、Schema、入力外ID/根拠禁止、国間混在禁止、決定的順位、TOP 5重複禁止、呼出量・費用上限を検査する。さらに国別100件以上の入力で一般語がTOP 5に含まれず、複合名詞と関連記事接続が維持されることを確認する。実model評価は明示的なlive/evaluation作業だけで実行し、標準CIはmockを使う。
+`sample-data/evaluation/{US,JP,KR}`に固定入力、`sample-data/evaluation/expected`に期待値を置く。文章完全一致ではなく、Schema、入力外ID/根拠禁止、国間混在禁止、決定的順位、上位3～5件の重複禁止、呼出量・費用上限を検査する。さらに国別100件以上の入力で一般語・媒体名・政治家名が上位結果に含まれず、複合名詞と関連記事接続が維持されることを確認する。実model評価は明示的なlive/evaluation作業だけで実行し、標準CIはmockを使う。
 
 ## 8. UI回帰検証
 

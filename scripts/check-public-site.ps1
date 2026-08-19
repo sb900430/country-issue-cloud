@@ -19,6 +19,8 @@ $targets = [ordered]@{
     "about.html" = $base + "about.html"
     "data/v2/latest.json" = $base + "data/v2/latest.json"
     "data/v2/dates.json" = $base + "data/v2/dates.json"
+    "data/v2/calendar.json" = $base + "data/v2/calendar.json"
+    "data/v2/status.json" = $base + "data/v2/status.json"
 }
 
 try {

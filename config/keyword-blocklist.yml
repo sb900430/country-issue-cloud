@@ -1,7 +1,21 @@
 schema_version: "1.0"
 countries:
-  US: []
-  JP: []
+  US:
+    - term: "trump"
+      match: "contains"
+      category: "politics"
+      reason_ko: "정치인 이름으로 경제 이슈 키워드에서 제외"
+      reason_ja: "政治家名のため経済issue keywordから除外"
+      added_on: "2026-08-19"
+      enabled: true
+  JP:
+    - term: "トランプ"
+      match: "contains"
+      category: "politics"
+      reason_ko: "정치인 이름으로 경제 이슈 키워드에서 제외"
+      reason_ja: "政治家名のため経済issue keywordから除外"
+      added_on: "2026-08-19"
+      enabled: true
   KR:
     - term: "국힘"
       match: "contains"
@@ -16,4 +30,25 @@ countries:
       reason_ko: "정치인 이름으로 경제 이슈 키워드에서 제외"
       reason_ja: "政治家名のため経済issue keywordから除外"
       added_on: "2026-08-11"
+      enabled: true
+    - term: "김민석"
+      match: "contains"
+      category: "politics"
+      reason_ko: "정치인 이름으로 경제 이슈 키워드에서 제외"
+      reason_ja: "政治家名のため経済issue keywordから除外"
+      added_on: "2026-08-19"
+      enabled: true
+    - term: "광복절"
+      match: "contains"
+      category: "politics"
+      reason_ko: "기념일·정치 행사 중심 표현으로 경제 이슈 키워드에서 제외"
+      reason_ja: "記念日・政治行事中心の表現のため経済issue keywordから除外"
+      added_on: "2026-08-19"
+      enabled: true
+    - term: "트럼프"
+      match: "contains"
+      category: "politics"
+      reason_ko: "정치인 이름으로 경제 이슈 키워드에서 제외"
+      reason_ja: "政治家名のため経済issue keywordから除外"
+      added_on: "2026-08-19"
       enabled: true

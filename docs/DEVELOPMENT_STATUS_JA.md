@@ -2,15 +2,17 @@
 
 | 項目 | 現在状態 |
 |---|---|
-| 現在目標 | local多言語embeddingによるkeyword統合と実sample回帰 |
-| 状態 | 実装・保存済み実sample・全体検証PASS、完了review `PASS_WITH_FINDINGS` |
+| 現在目標 | 予約実行・国別部分公開・画面状態・keyword品質安定化 |
+| 状態 | 実装・最近の保存sample回帰・全体検証・完了review PASS_WITH_FINDINGS、Draft PR公開前 |
 | 基準branch | `main` |
-| 作業branch | `codex/local-semantic-keywords` |
-| 最終完了commit | `bfd3e02` — 重複基盤code簡素化 PR #35 Rebase and merge |
-| 全体検証 | PASS — Python 149件・Web 9件、backend coverage 89%、Pages fixture artifact |
-| 次作業 | 要請時に作業branchをpushしてDraft PRを作成 |
+| 作業branch | `codex/v2-display-reliability` |
+| 最終完了commit | 現在branch候補 — 公開・画面状態・keyword品質安定化 |
+| 全体検証 | PASS — Python 154件・Web 11件、backend coverage 89%、Pages fixture artifact |
+| 次作業 | 週次branch push・Draft PR、Rebase and merge後に全体検証と次回予約実行を観察 |
 
 ## v1.0公開準備の進行結果
+
+- 2026-08-19の最近の実行分析により、Ubuntu gateとWindows build間の実行marker cache不一致、09時収集とNewsData無料遅延の衝突、全国家公開gate、mutable JSON cache、初期化一括失敗を修正する。markerはUbuntu gateで確認してcross-OS cacheで共有し、Windows buildの全検証後、外部呼出し直前に保存するよう変更し、13時基本・14時/16時補完へ変更した。1か国以上成功すれば国別部分公開し、`calendar.json`・`status.json`で失敗日・記事数・理由を提供する。Webは最新dataを先に表示し、状態metadata失敗を分離する。一般語・媒体名・政治家filter、英語活用形、最終選択数基準の媒体偏重、title embedding凝集度、品質3～5件方針を適用した。保存済み8月17～19日sampleの再検証は外部API呼出しなしで行い、無意味な候補だけが残る米国日は米国だけが失敗することを確認した。
 
 - 2026-08-14の実24時間sampleにおける候補分散問題を修正する。複合語と構成単語を両方保持し、local多言語SentenceTransformerの高信頼な意味統合をlive batchへ適用した。候補gateを2%・最低3記事・2媒体へ調整し、意味統合は各候補2記事・2媒体、4文字以上、類似度0.95、cluster最大3件に制限した。保存済みUS 102・JP 70・KR 173件の再検証で3か国TOP 5を生成し、外部news APIとLLM呼出しは使用していない。
 

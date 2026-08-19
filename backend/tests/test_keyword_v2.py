@@ -11,7 +11,7 @@ from app.main import create_app
 from app.repositories import JsonIssueRepository
 from app.repositories.json_keyword_repository import JsonKeywordRepository
 from app.schemas.issues import CountryCode, IssueStatus
-from app.schemas.keywords import KeywordResult
+from app.schemas.keywords import CountryKeywordResult, KeywordResult
 
 PROJECT_ROOT = Path(__file__).parents[2]
 
@@ -39,6 +39,12 @@ def test_keyword_fixture_publishes_schema_v2_with_related_articles(tmp_path: Pat
     assert published.schema_version == "2.0"
     assert (site_dir / "2026-08-07.json").exists()
     assert (site_dir / "dates.json").exists()
+    status = json.loads((site_dir / "status.json").read_text(encoding="utf-8"))
+    calendar = json.loads((site_dir / "calendar.json").read_text(encoding="utf-8"))
+    assert status["attempted_date"] == "2026-08-07"
+    assert status["displayed_date"] == "2026-08-07"
+    assert status["countries"]["US"]["reason"] is None
+    assert calendar["days"][0]["status"] == "success"
     stale_backup = site_dir.with_name(".v2.previous")
     stale_backup.mkdir()
     (stale_backup / "stale.json").write_text("{}", encoding="utf-8")
@@ -164,3 +170,48 @@ def test_keyword_publisher_keeps_only_latest_seven_dates(tmp_path: Path) -> None
         "2026-08-02",
     ]
     assert not (site_dir / "2026-08-01.json").exists()
+
+
+def test_keyword_publisher_preserves_older_display_result_with_recent_failures(
+    tmp_path: Path,
+) -> None:
+    data_dir = tmp_path / "data"
+    site_dir = tmp_path / "site" / "data" / "v2"
+    fixture = publish_keyword_fixture(
+        PROJECT_ROOT / "sample-data" / "evaluation", data_dir, site_dir
+    )
+    repository = JsonKeywordRepository(data_dir)
+    displayed = fixture.model_copy(update={"date": date(2026, 8, 1)})
+    repository.save(displayed)
+    for day in range(2, 9):
+        failed = KeywordResult(
+            schema_version="2.0",
+            date=date(2026, 8, day),
+            generated_at=datetime(2026, 8, day, tzinfo=UTC),
+            status=IssueStatus.FAILED,
+            countries={
+                country: CountryKeywordResult(
+                    status=IssueStatus.FAILED,
+                    article_count=0,
+                    top_keywords=[],
+                )
+                for country in CountryCode
+            },
+        )
+        repository.save_history(failed)
+
+    KeywordStaticJsonPublisher(repository.published_dir, site_dir).publish()
+
+    dates = json.loads((site_dir / "dates.json").read_text(encoding="utf-8"))
+    status = json.loads((site_dir / "status.json").read_text(encoding="utf-8"))
+    assert dates == [
+        "2026-08-08",
+        "2026-08-07",
+        "2026-08-06",
+        "2026-08-05",
+        "2026-08-04",
+        "2026-08-03",
+        "2026-08-01",
+    ]
+    assert status["attempted_date"] == "2026-08-08"
+    assert status["displayed_date"] == "2026-08-01"

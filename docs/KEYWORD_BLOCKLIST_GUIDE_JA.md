@@ -2,7 +2,7 @@
 
 ## 目的
 
-運用結果で政治家名・政党名など経済イシューTOP 5に適さない表現を発見した場合、`config/keyword-blocklist.yml`へ国別規則として追加する。code定数を変更せずlistを段階的に拡張でき、すべての変更をGit履歴に残せる。
+運用結果で政治家名・政党名など経済イシュー上位3～5件に適さない表現を発見した場合、`config/keyword-blocklist.yml`へ国別規則として追加する。code定数を変更せずlistを段階的に拡張でき、すべての変更をGit履歴に残せる。
 
 ## 規則形式
 
@@ -28,7 +28,7 @@ countries:
 
 ## 追加手順
 
-1. 非公開の管理者向けActions artifactにある`selected-articles.json`と実際のTOP 5を確認する。
+1. 非公開の管理者向けActions artifactにある`selected-articles.json`と実際の上位keywordを確認する。
 2. 複数記事で反復するが、本projectの経済イシュー目的と無関係な表現か確認する。
 3. 対象国のlistへ規則を追加し、誤検知riskが低い`exact`を先に使う。
 4. 韓国語・日本語の理由と追加日を記録する。

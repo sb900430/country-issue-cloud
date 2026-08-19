@@ -228,18 +228,18 @@ GDELT·RSS·NewsData.io가 제공한 제목·짧은 요약·원문 URL·매체·
 document_frequency = 키워드가 1회 이상 등장한 고유 기사 수
 publisher_count    = 키워드 관련 고유 매체 수
 article_ratio      = document_frequency / 국가 유효 기사 수
-keyword_score      = document_frequency 우선, publisher_count·최신 시각·keyword_id 순 동률 해소
+keyword_score      = document_frequency × 제목 의미 응집도 보정, publisher_count·구체성·최신 시각·keyword_id 순 동률 해소
 ```
 
-`success`: 세 국가가 각각 기사 50개 이상, 키워드 처리 성공률 80% 이상, 키워드 5개를 모두 충족.
+`success`: 세 국가가 각각 기사 50개 이상, 키워드 처리 성공률 80% 이상, 품질 키워드 3~5개를 충족.
 
-`partial_success`: 정확히 2개국만 위 게시 기준을 충족. 공개 파일은 생성하지 않는다.
+`partial_success`: 1~2개국이 위 게시 기준을 충족. 성공 국가는 공개하고 실패 국가는 기사 수와 사유를 표시한다.
 
-`failed`: 게시 기준을 충족한 국가가 1개 이하.
+`failed`: 게시 기준을 충족한 국가가 없다. 마지막 표시 가능 결과는 유지하고 당일 실패 상태를 별도 공개한다.
 
-세 국가 모두 게시 가능할 때만 날짜 결과를 저장하며 실패 실행은 `latest.json`을 바꾸지 않는다.
+모든 시도는 날짜 결과와 `calendar.json`·`status.json`에 공개 가능한 상태만 저장한다. 성공 국가가 하나 이상이면 그 날짜를 `latest.json`으로 갱신하고, 모두 실패하면 기존 표시 결과를 유지한다.
 
-기사 수 50건은 표본량 게이트일 뿐 품질 통과를 의미하지 않는다. 위 빈도·매체·일반어·중복 이슈 기준을 모두 만족하는 키워드 5개를 만들 수 없으면 그 국가는 실패이며 새 공개 파일을 만들지 않는다.
+기사 수 50건은 표본량 게이트일 뿐 품질 통과를 의미하지 않는다. 위 빈도·매체·일반어·중복 이슈 기준을 모두 만족하는 키워드를 최소 3개 만들 수 없으면 그 국가만 실패한다. 품질을 낮춰 5개를 강제로 채우지 않는다.
 
 ---
 
@@ -523,7 +523,7 @@ delete_expired(retention_days)
 
 JSON을 SQLite/PostgreSQL로 바꿔도 Router, Service, 웹 API 계약과 보류된 Android API 계약은 유지한다.
 
-정식 웹 UI는 정적 HTML/CSS/Vanilla JS로 만들고 DataSource에 관계없이 같은 응답 Schema와 상태 정의를 사용한다. 키워드 전환 후 기본 설정은 `DATA_MODE=static`, `DATA_BASE_URL=./data/v2`이며 후속 서버에서는 `DATA_MODE=api`, `API_BASE_URL=https://.../api/v2`로 교체한다. 모바일 우선 반응형 레이아웃, 포인트 컬러 하나, 단순한 클라우드 디자인을 적용한다. 생성된 운영 JSON은 Pages 배포 artifact에는 포함하지만 소스 브랜치에는 커밋하지 않는다. 매 실행은 현재 공개 사이트에서 직전 6개 날짜를 Schema 2.0으로 재검증해 복원한 뒤 오늘 결과를 더하여 최대 7개 날짜만 원자적으로 게시한다. `main` push는 외부 API를 호출하지 않고 기존 공개 `latest.json`과 날짜 이력을 복원해 웹 코드만 재배포하며, 복원 실패 시 기존 Pages 배포를 유지한다.
+정식 웹 UI는 정적 HTML/CSS/Vanilla JS로 만들고 DataSource에 관계없이 같은 응답 Schema와 상태 정의를 사용한다. 키워드 전환 후 기본 설정은 `DATA_MODE=static`, `DATA_BASE_URL=./data/v2`이며 후속 서버에서는 `DATA_MODE=api`, `API_BASE_URL=https://.../api/v2`로 교체한다. 모바일 우선 반응형 레이아웃, 포인트 컬러 하나, 단순한 클라우드 디자인을 적용한다. 생성된 운영 JSON은 Pages 배포 artifact에는 포함하지만 소스 브랜치에는 커밋하지 않는다. 매 실행은 현재 공개 사이트에서 직전 이력을 Schema 2.0으로 재검증해 복원한 뒤 오늘 결과를 더하여 최대 7개 시도 날짜를 원자적으로 게시한다. `dates.json`은 시도 날짜, `calendar.json`은 날짜·국가별 성공 상태와 기사 수, `status.json`은 마지막 시도와 실제 표시 날짜를 제공한다. 최신·상태 index는 browser cache를 우회하고 날짜별 JSON만 변경 불가 cache 대상으로 사용한다. `main` push는 외부 API를 호출하지 않고 기존 공개 `latest.json`과 날짜 이력을 복원해 웹 코드만 재배포하며, 복원 실패 시 기존 Pages 배포를 유지한다.
 
 관리자 확인용으로 최종 선택 기사 전체의 ID·제목·원문 HTTPS URL·매체·발행 시각과 수집 진단을 별도 Actions artifact에 저장한다. 이 artifact는 7일 보관하고 Pages와 Git에는 포함하지 않으며 Secret, 인증 header, 원문 API 응답, 기사 본문은 포함하지 않는다.
 
@@ -551,12 +551,12 @@ JSON을 SQLite/PostgreSQL로 바꿔도 Router, Service, 웹 API 계약과 보류
 
 | 시각 | 작업 |
 |---|---|
-| 08:00 | 기본 배치 |
-| 08:30 | 결과가 없을 때 1차 재시도 |
-| 09:30 | 여전히 없을 때 마지막 재시도 |
-| 10:00 | 상태 점검과 연속 실패 알림 후보 |
+| 13:00 | NewsData 무료 제공 지연을 반영한 기본 배치 |
+| 14:00 | 당일 외부 수집 시도 기록이 없을 때 1차 보충 |
+| 16:00 | 여전히 시도 기록이 없을 때 마지막 보충 |
+| 배포 후 | 공개 상태·Schema·화면 smoke 점검 |
 
-1차 운영은 매일 09:00 JST/KST(`0 0 * * *` UTC)를 기본으로 하고 10:00·12:00 JST/KST를 보충 schedule로 둔다. `main` push는 외부 API를 호출하거나 당일 시도권을 소비하지 않고 현재 공개 데이터를 복원한 `preserve` artifact를 검증·배포하며, 예약 실행만 기본 `live` mode를 사용한다. 날짜별 live-attempt marker를 GitHub Actions cache에 저장하고, 같은 JST 날짜 marker가 있으면 기본·보충 live 실행은 외부 수집과 배포를 건너뛴다. marker는 의존성 설치와 전체 검증이 끝난 뒤 생성하며, cache 영속화가 성공한 다음에만 `publish-live`를 시작한다. cache 저장이 실패하거나 marker가 없으면 외부 수집을 시작하지 않는다. 따라서 외부 호출 단계 전 실패만 보충하고, 외부 호출 시도권을 영속화한 실행은 성공·실패·runner 중단과 무관하게 자동 재호출하지 않는다. 사용자 판단에 따른 수동 `force_live_retry=true`만 중복 방지 예외로 허용한다. workflow concurrency로 동시 실행을 막고, 예약 실행 지연·공개 저장소 장기 비활동 중단 가능성을 운영 점검에 포함한다. 후속 VPS/EC2에서는 같은 pipeline entry를 systemd timer의 `Persistent=true`와 OS 파일 잠금으로 실행한다.
+1차 운영은 매일 13:00 JST/KST(`0 4 * * *` UTC)를 기본으로 하고 14:00·16:00 JST/KST를 보충 schedule로 둔다. `main` push는 외부 API를 호출하거나 당일 시도권을 소비하지 않고 현재 공개 데이터를 복원한 `preserve` artifact를 검증·배포하며, 예약 실행만 기본 `live` mode를 사용한다. `live`와 `preserve` 모두 기존 공개 `latest.json`을 복원해 당일 전 국가 실패가 마지막 정상 화면을 덮지 않게 한다. 날짜별 live-attempt marker는 Ubuntu gate에서 확인하고, Windows build에서 의존성 설치와 전체 검증이 끝난 뒤 외부 수집 직전에 저장한다. 두 runner 간 cache에는 `enableCrossOsArchive`를 명시해 OS별 cache version 불일치를 막는다. 같은 JST 날짜 marker가 있으면 기본·보충 live 실행은 외부 수집과 배포를 건너뛴다. cache 영속화가 성공한 다음에만 `publish-live`를 시작하고, cache 저장이 실패하거나 marker가 없으면 외부 수집을 시작하지 않는다. 따라서 외부 호출 단계 전 실패만 보충하고, 외부 호출 시도권을 영속화한 실행은 성공·실패·runner 중단과 무관하게 자동 재호출하지 않는다. 사용자 판단에 따른 수동 `force_live_retry=true`만 중복 방지 예외로 허용한다. workflow concurrency로 동시 실행을 막고, 예약 실행 지연·공개 저장소 장기 비활동 중단 가능성을 운영 점검에 포함한다. 후속 VPS/EC2에서는 같은 pipeline entry를 systemd timer의 `Persistent=true`와 OS 파일 잠금으로 실행한다.
 
 ```text
 python -m app.batch.pipeline_entry
@@ -693,7 +693,7 @@ python -m app.batch.pipeline_entry --countries US,JP
 
 필수 검사는 명세 동기화, diff 형식, secret·보안, 의존성 취약점, `scripts/verify-all.ps1`, coverage, 정확성·성능·유지보수성·아키텍처 순으로 수행한다. LLM 또는 UI 변경 시 해당 회귀 검사를 추가한다. 성능은 동일 로컬 환경 3회 중앙값으로 캐시 API p95 500ms, fixture 비캐시 API p95 1초, mock 3개국 pipeline 60초를 기준으로 한다.
 
-키워드 분석기·불용어·LLM 변경 시 Schema 100%, 입력 밖 기사 ID·근거·후보 0건, 국가 혼합 0건, TOP 5 중복 0건, 순위 결정성 100%, 처리 성공률 80% 이상을 요구한다. 국가별 100건 이상 fixture에서 문장 조각 제외, 일반어 제외, 짧은 복합명사 보존, 후보별 최소 3건·2개 매체, 관련 기사 연결 정확도를 검증하고 label은 국가별 최대 5개 표본에서 80% 이상 수용 가능해야 한다.
+키워드 분석기·불용어·LLM 변경 시 Schema 100%, 입력 밖 기사 ID·근거·후보 0건, 국가 혼합 0건, 상위 3~5개 중복 0건, 순위 결정성 100%, 처리 성공률 80% 이상을 요구한다. 국가별 100건 이상 fixture에서 문장 조각·일반어·언론사명·정치인 이름 제외, 짧은 복합명사 보존, 후보별 최소 3건·정규화한 2개 매체, 관련 기사 의미 응집도와 연결 정확도를 검증하고 label은 국가별 최대 5개 표본에서 80% 이상 수용 가능해야 한다.
 
 심각도 처리 정책:
 
@@ -941,7 +941,7 @@ v* 태그 → Pages URL 검증 → GitHub Release. Android 재개 후에만 AAB�
 
 ### 방향 전환 후 추가 구현 일정 — 키워드 뉴스 v2
 
-기존 3주 일정과 완료 이력은 기준선으로 보존하고 다음 세 PR을 순서대로 진행한다. 각 PR은 앞 PR의 Rebase and merge와 병합 후 검증이 끝난 최신 `main`에서 시작한다.
+기존 3주 일정과 완료 이력은 기준선으로 보존하고 다음 PR을 순서대로 진행한다. 각 PR은 앞 PR의 Rebase and merge와 병합 후 검증이 끝난 최신 `main`에서 시작한다.
 
 | 순서 | 브랜치·PR 단위 | 구현 내용 | 완료 기준 |
 |---|---|---|---|
@@ -950,6 +950,7 @@ v* 태그 → Pages URL 검증 → GitHub Release. Android 재개 후에만 AAB�
 | 3 | `codex/v2-schema-pages-ui` | Schema/API/data v2, DataSource migration, 키워드 상세·관련 기사 최대 20건, Pages artifact | v1 보존, v2 producer/client 동시 전환, UI·전체·Pages smoke test 통과 |
 | 4 | `codex/v1-release-hardening` | 공개 URL 자동 smoke, 운영 런북, 7일 배치 관찰, README·Release 준비 | 현재 공개 Pages 검증, 장애 대응 절차와 7일 관찰 증거, 전체 회귀 통과 |
 | 5 | `codex/v2-source-coverage` | 소스별 수집량 계측, 국가별 무료 경제뉴스 소스·query 보강, 중복·편중 손실 분석 | Secret 없는 fixture 회귀, 무료 한도 준수, 국가별 100건 목표 또는 소스별 근거가 있는 partial |
+| 6 | `codex/v2-display-reliability` | 검증 후 교차 OS 실행 marker, 13시 수집, 국가별 부분 게시, 공개 상태·cache 복구, 의미 응집도·3~5개 품질 키워드 | 중복 외부 호출 차단, 실패 국가 사유 표시, 최근 저장 표본 회귀와 전체 Pages 검증 통과 |
 
 2026-08-07 기준 순서 1의 GDELT·NAVER adapter, versioned query, 국가별 120건 GDELT fixture, 250건 상한·매체 20%/30건 제한, NAVER 승인 domain과 일 300회·월 9,000회 차단 ledger를 구현했다. 제한적 GDELT live 검증은 무료 endpoint의 429와 매체 coverage로 국가별 100건에 미달해 원인 있는 partial로 기록하며, v1 예약 실행에서는 `--enable-gdelt`·`--enable-naver` 명시 전까지 활성화하지 않는다.
 
@@ -980,6 +981,8 @@ GDELT 최소 1건 공개 요청에서도 HTTP 429를 재현했다. HTTP 오류�
 2026-08-13 코드 단순화 결정으로 현재 동작과 안전 gate를 유지하면서 NAVER·NewsData 사용량 장부의 JSON 저장 로직, v1·v2 정적 게시의 원자적 directory 교체 로직, live collector 조립을 작은 내부 helper로 공통화한다. Source YAML은 한 CLI 실행에서 한 번만 parse하고 Web package manager는 CI 기준인 npm으로 통일한다. 호출자가 없는 `public_issue_path`는 제거한다. v1 호환 API·pipeline, LLM 상세 스캐폴드, FastAPI `ApiDataSource`는 후속 운영 선택과 호환 종료 결정 전까지 삭제하지 않는다.
 
 2026-08-14 실제 24시간 표본에서 후보가 과도하게 분산되어 TOP 5가 생성되지 않는 문제를 확인했다. 구성 단어와 복합어를 함께 보존하고 로컬 다국어 SentenceTransformer로 고신뢰 후보만 병합한다. 후보 하한은 최소 3개 기사 또는 전체의 2%·2매체로 조정하며, 의미 병합은 각 후보 2개 기사·2매체, 공백 제외 4자 이상, 코사인 유사도 0.95 이상, 클러스터 최대 3개로 제한한다. GitHub Actions는 live 실행에서 모델 cache를 사용하고 외부 LLM 비용은 발생시키지 않는다.
+
+2026-08-19 최근 8월 17~19일 운영 artifact 분석에서 전체 게시 gate, Ubuntu 조회·Windows 저장 cache marker 불일치, NewsData 무료 지연 대비 이른 실행, mutable JSON cache, 일반어·언론사명·정치인 후보를 확인했다. 실행 marker는 Ubuntu gate에서 확인하되 `enableCrossOsArchive`로 Windows build와 공유하고, 전체 검증 후 외부 호출 직전에 저장한다. 기본 실행은 13시, 보충은 14시·16시로 변경한다. 국가별 결과는 1개국 이상 성공 시 부분 게시하며 `calendar.json`·`status.json`으로 실패 날짜와 기사 수를 표시한다. 키워드는 국가별 3~5개만 허용하고 영어 활용형, 국가별 일반어·정치인 금지어, 최종 선택 수 기준 매체 편중, 기사 제목 embedding 응집도 순위를 적용한다. 8월 17~19일 저장 관리자 표본은 외부 API 재호출 없이 로컬 회귀에 사용하고 Git에는 포함하지 않는다.
 
 2026-08-09 예약 실행에서 중복·편중 제거 후 US 198건·JP 103건·KR 85건을 확보했지만 기존 100건 게이트로 전체 게시가 중단됐다. 100건 이상 권장 수집 목표와 150건 목표치는 유지하고, 실제 게시 하한만 국가별 70건으로 낮춘다. 세 국가 모두 70건 이상이고 각 국가가 TOP 5를 완성해야 게시하며, 미달 시 기존 정상 Pages를 유지한다.
 
