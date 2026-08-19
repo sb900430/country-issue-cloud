@@ -166,7 +166,12 @@ def main() -> int:
                 for country in keyword_result.countries
             )
         )
-        return 0 if keyword_result.status.value == "success" else 1
+        return (
+            0
+            if keyword_result.status.value != "failed"
+            or (arguments.site_data_dir / "latest.json").exists()
+            else 1
+        )
     if arguments.command == "restore-keyword-history":
         restored = restore_keyword_history(
             arguments.base_url,

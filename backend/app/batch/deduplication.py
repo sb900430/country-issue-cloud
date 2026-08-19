@@ -1,7 +1,7 @@
 import html
 import re
 import unicodedata
-from collections import Counter
+from collections import OrderedDict
 from datetime import timedelta
 from difflib import SequenceMatcher
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
@@ -11,6 +11,9 @@ from app.batch.models import CollectedArticle
 TRACKING_PARAMETERS = {"fbclid", "gclid", "mc_cid", "mc_eid"}
 MAX_PUBLISHER_ARTICLES = 30
 MAX_PUBLISHER_SHARE = 0.2
+_PUBLISHER_FAMILIES = {
+    "press-release-wire": ("globe newswire", "pr newswire", "business wire"),
+}
 
 
 def normalize_url(url: str) -> str:
@@ -54,19 +57,40 @@ def deduplicate_articles(articles: list[CollectedArticle]) -> list[CollectedArti
 def select_diverse_articles(articles: list[CollectedArticle], limit: int) -> list[CollectedArticle]:
     if not articles or limit <= 0:
         return []
-    pool_size = min(len(articles), limit)
-    publisher_limit = max(1, min(MAX_PUBLISHER_ARTICLES, int(pool_size * MAX_PUBLISHER_SHARE)))
-    selected: list[CollectedArticle] = []
-    publisher_counts: Counter[str] = Counter()
+    buckets: OrderedDict[str, list[CollectedArticle]] = OrderedDict()
     for article in articles:
-        publisher_key = article.publisher.casefold().strip()
-        if publisher_counts[publisher_key] >= publisher_limit:
-            continue
-        selected.append(article)
-        publisher_counts[publisher_key] += 1
-        if len(selected) >= limit:
-            break
+        buckets.setdefault(canonical_publisher(article.publisher), []).append(article)
+    publisher_limit = _stable_publisher_limit(
+        [len(bucket) for bucket in buckets.values()], min(len(articles), limit)
+    )
+    selected: list[CollectedArticle] = []
+    for offset in range(publisher_limit):
+        for bucket in buckets.values():
+            if offset < len(bucket):
+                selected.append(bucket[offset])
+                if len(selected) >= limit:
+                    return selected
     return selected
+
+
+def canonical_publisher(value: str) -> str:
+    normalized = " ".join(unicodedata.normalize("NFKC", value).casefold().split())
+    normalized = re.sub(r"[^\w]+", " ", normalized).strip()
+    for family, aliases in _PUBLISHER_FAMILIES.items():
+        if any(alias in normalized for alias in aliases):
+            return family
+    return normalized
+
+
+def _stable_publisher_limit(counts: list[int], target: int) -> int:
+    publisher_limit = max(1, min(MAX_PUBLISHER_ARTICLES, int(target * MAX_PUBLISHER_SHARE)))
+    while publisher_limit > 1:
+        available = min(target, sum(min(count, publisher_limit) for count in counts))
+        adjusted = max(1, min(MAX_PUBLISHER_ARTICLES, int(available * MAX_PUBLISHER_SHARE)))
+        if adjusted >= publisher_limit:
+            break
+        publisher_limit = adjusted
+    return publisher_limit
 
 
 def _is_duplicate(left: CollectedArticle, right: CollectedArticle) -> bool:

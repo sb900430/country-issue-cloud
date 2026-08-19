@@ -52,6 +52,7 @@ class SemanticCandidateGrouper:
         similarity_threshold: float = 0.95,
         minimum_label_length: int = 4,
         maximum_cluster_size: int = 3,
+        use_title_cohesion: bool = False,
     ) -> None:
         if not 0.0 < similarity_threshold <= 1.0:
             raise ValueError("semantic similarity threshold must be within (0, 1]")
@@ -63,6 +64,7 @@ class SemanticCandidateGrouper:
         self.similarity_threshold = similarity_threshold
         self.minimum_label_length = minimum_label_length
         self.maximum_cluster_size = maximum_cluster_size
+        self.use_title_cohesion = use_title_cohesion
 
     def group(
         self,
@@ -117,4 +119,6 @@ class SemanticCandidateGrouper:
 
 
 def build_local_semantic_grouper() -> SemanticCandidateGrouper:
-    return SemanticCandidateGrouper(SentenceTransformerEmbeddingModel())
+    return SemanticCandidateGrouper(
+        SentenceTransformerEmbeddingModel(), use_title_cohesion=True
+    )

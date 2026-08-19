@@ -1,8 +1,10 @@
 import {
   DataSourceError,
   IssueDataSource,
+  validateCalendar,
   validateDates,
   validateIssueResult,
+  validatePublicationStatus,
 } from "./data-source.js";
 
 export class CachedIssueDataSource extends IssueDataSource {
@@ -19,6 +21,14 @@ export class CachedIssueDataSource extends IssueDataSource {
 
   async getDates() {
     return this.#load("dates", () => this.source.getDates(), validateDates);
+  }
+
+  async getCalendar() {
+    return this.#load("calendar", () => this.source.getCalendar(), validateCalendar);
+  }
+
+  async getStatus() {
+    return this.#load("status", () => this.source.getStatus(), validatePublicationStatus);
   }
 
   async getByDate(date) {

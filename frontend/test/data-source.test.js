@@ -72,7 +72,7 @@ test("data source rejects an incomplete country schema", async () => {
   });
 });
 
-test("data source rejects a successful country without five keywords", async () => {
+test("data source rejects a successful country with fewer than three keywords", async () => {
   const payload = issueResult();
   payload.status = "success";
   payload.countries.US = { ...payload.countries.US, status: "success" };
@@ -108,4 +108,27 @@ test("data source rejects malformed top issue fields", async () => {
   const source = new StaticJsonDataSource("/data/v2", fetcher(payload, []));
 
   await assert.rejects(source.getLatest(), (error) => error.code === "invalid_schema");
+});
+
+test("static mutable metadata bypasses browser cache and validates publication state", async () => {
+  const options = [];
+  const payload = {
+    schema_version: "1.0",
+    attempted_date: "2026-08-06",
+    generated_at: "2026-08-06T00:00:00Z",
+    status: "partial_success",
+    displayed_date: "2026-08-06",
+    countries: Object.fromEntries(["US", "JP", "KR"].map((country, index) => [country, {
+      status: index === 2 ? "failed" : "success",
+      article_count: index === 2 ? 49 : 100,
+      reason: index === 2 ? "insufficient_articles" : null,
+    }])),
+  };
+  const source = new StaticJsonDataSource("/data/v2", async (_url, requestOptions) => {
+    options.push(requestOptions);
+    return { ok: true, status: 200, json: async () => payload };
+  });
+
+  assert.deepEqual(await source.getStatus(), payload);
+  assert.equal(options[0].cache, "no-store");
 });

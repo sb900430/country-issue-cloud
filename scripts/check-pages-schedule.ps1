@@ -7,7 +7,7 @@ $workflow = Get-Content -LiteralPath (Join-Path $projectRoot ".github/workflows/
 $builder = Get-Content -LiteralPath (Join-Path $PSScriptRoot "build-pages-site.ps1") -Raw
 $publicSmoke = Get-Content -LiteralPath (Join-Path $PSScriptRoot "check-public-site.ps1") -Raw
 
-foreach ($cron in @('0 0 * * *', '0 1 * * *', '0 3 * * *')) {
+foreach ($cron in @('0 4 * * *', '0 5 * * *', '0 7 * * *')) {
     if (-not $workflow.Contains('cron: "' + $cron + '"')) {
         throw "Missing expected Pages cron: $cron"
     }
@@ -16,6 +16,8 @@ foreach ($required in @(
     'actions/cache/restore@v6',
     'lookup-only: true',
     'actions/cache/save@v6',
+    'enableCrossOsArchive: true',
+    "Claim today's live attempt after verification",
     "Persist today's live-attempt marker before collection",
     'force_live_retry',
     'if [[ "${{ github.event_name }}" == "schedule" ]]',
@@ -36,17 +38,19 @@ foreach ($required in @(
 if (-not $workflow.Contains('mode="live"')) {
     throw "Scheduled Pages runs must select live data mode."
 }
-$claimIndex = $workflow.IndexOf("Claim today's live attempt")
-$restoreIndex = $workflow.IndexOf("Restore previous public keyword history")
+$restoreIndex = $workflow.IndexOf("Restore today's live-attempt marker")
+$verifyIndex = $workflow.IndexOf("Verify source")
+$claimIndex = $workflow.IndexOf("Claim today's live attempt after verification")
 $saveIndex = $workflow.IndexOf("Persist today's live-attempt marker before collection")
-$buildIndex = $workflow.IndexOf("Build validated Pages artifact")
+$collectionIndex = $workflow.IndexOf("Build validated Pages artifact")
 if (
     $restoreIndex -lt 0 -or
-    $claimIndex -lt $restoreIndex -or
+    $verifyIndex -lt 0 -or
+    $claimIndex -lt $verifyIndex -or
     $saveIndex -lt $claimIndex -or
-    $buildIndex -lt $saveIndex
+    $collectionIndex -lt $saveIndex
 ) {
-    throw "The live-attempt marker must be persisted before collection starts."
+    throw "The live-attempt marker must be persisted after verification and before external collection."
 }
 if (-not $builder.Contains('Live attempt marker must be persisted before collection starts.')) {
     throw "The Pages builder must reject live collection without a persisted marker."
@@ -66,6 +70,7 @@ if (-not $builder.Contains('--enable-newsdata')) {
 }
 foreach ($required in @(
     'restore-keyword-history',
+    '"--include-latest"',
     'Upload administrator collection evidence',
     'actions/upload-artifact@v7',
     'actions/upload-pages-artifact@v5',
@@ -78,6 +83,9 @@ foreach ($required in @(
         throw "Pages workflow is missing history or administrator evidence safeguard: $required"
     }
 }
+if ($workflow.Contains('if ("${{ needs.gate.outputs.data-mode }}" -eq "preserve")')) {
+    throw "Live history restoration must preserve the last successful latest result."
+}
 foreach ($required in @(
     'public-smoke:',
     'if: ${{ always() }}',
@@ -89,7 +97,14 @@ foreach ($required in @(
         throw "Pages workflow is missing the public smoke safeguard: $required"
     }
 }
-foreach ($required in @('https', 'data/v2/latest.json', 'data/v2/dates.json', 'data-dialog')) {
+foreach ($required in @(
+    'https',
+    'data/v2/latest.json',
+    'data/v2/dates.json',
+    'data/v2/calendar.json',
+    'data/v2/status.json',
+    'data-dialog'
+)) {
     if (-not $publicSmoke.Contains($required)) {
         throw "Public smoke script is missing a required contract check: $required"
     }

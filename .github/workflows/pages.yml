@@ -5,11 +5,11 @@ on:
     branches:
       - main
   schedule:
-    # 毎日09:00 JST/KST（00:00 UTC）に実行する。
-    - cron: "0 0 * * *"
-    # 10:00と12:00 JST/KSTは未実行日の補完候補とする。
-    - cron: "0 1 * * *"
-    - cron: "0 3 * * *"
+    # NewsData無料planの遅延を考慮し、毎日13:00 JST/KST（04:00 UTC）に実行する。
+    - cron: "0 4 * * *"
+    # 14:00と16:00 JST/KSTは、外部収集を開始していない日の補完候補とする。
+    - cron: "0 5 * * *"
+    - cron: "0 7 * * *"
   workflow_dispatch:
     inputs:
       data_mode:
@@ -42,6 +42,7 @@ jobs:
       data-mode: ${{ steps.context.outputs.data-mode }}
       date-key: ${{ steps.context.outputs.date-key }}
       marker-key: ${{ steps.context.outputs.marker-key }}
+      force: ${{ steps.context.outputs.force }}
       should-run: ${{ steps.decision.outputs.should-run }}
     steps:
       - name: Resolve execution context
@@ -70,6 +71,7 @@ jobs:
           path: .runtime/pages-run-marker
           key: ${{ steps.context.outputs.marker-key }}
           lookup-only: true
+          enableCrossOsArchive: true
 
       - name: Decide whether collection may run
         id: decision
@@ -144,14 +146,12 @@ jobs:
             "restore-keyword-history",
             "--base-url", "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/data/v2",
             "--data-dir", "${{ github.workspace }}\.runtime\pages-data",
-            "--target-date", "${{ needs.gate.outputs.date-key }}"
+            "--target-date", "${{ needs.gate.outputs.date-key }}",
+            "--include-latest"
           )
-          if ("${{ needs.gate.outputs.data-mode }}" -eq "preserve") {
-            $arguments += "--include-latest"
-          }
           & uv @arguments
 
-      - name: Claim today's live attempt
+      - name: Claim today's live attempt after verification
         if: needs.gate.outputs.data-mode == 'live'
         shell: pwsh
         run: |
@@ -165,11 +165,12 @@ jobs:
           } | ConvertTo-Json | Set-Content -LiteralPath $marker -Encoding utf8
 
       - name: Persist today's live-attempt marker before collection
-        if: needs.gate.outputs.data-mode == 'live'
+        if: needs.gate.outputs.data-mode == 'live' && needs.gate.outputs.force != 'true'
         uses: actions/cache/save@v6
         with:
           path: .runtime/pages-run-marker
           key: ${{ needs.gate.outputs.marker-key }}
+          enableCrossOsArchive: true
 
       - name: Build validated Pages artifact
         shell: pwsh

@@ -7,7 +7,15 @@ export function createIssueCloudApp({
   dataSource = new CachedIssueDataSource(new StaticJsonDataSource("./data/v2")),
   logger = console,
 } = {}) {
-  const state = { result: null, country: "KR", layout: "tiles", bound: false };
+  const state = {
+    result: null,
+    calendar: [],
+    publicationStatus: null,
+    usingCache: false,
+    country: "KR",
+    layout: "tiles",
+    bound: false,
+  };
   const elements = {
     countries: root.querySelector("[data-countries]"),
     date: root.querySelector("[data-date]"),
@@ -16,6 +24,7 @@ export function createIssueCloudApp({
     generated: root.querySelector("[data-generated]"),
     articleCount: root.querySelector("[data-article-count]"),
     issues: root.querySelector("[data-issues]"),
+    runStatus: root.querySelector("[data-run-status]"),
     status: root.querySelector("[data-status]"),
     retry: root.querySelector("[data-retry]"),
     refresh: root.querySelector("[data-refresh]"),
@@ -27,16 +36,32 @@ export function createIssueCloudApp({
 
   async function start() {
     bindEvents();
+    state.calendar = [];
+    state.publicationStatus = null;
     setInteractive(false);
     elements.retry.hidden = true;
     announce("데이터를 불러오는 중입니다 · データを読み込み中です");
     try {
-      const [latest, dates] = await Promise.all([dataSource.getLatest(), dataSource.getDates()]);
+      const latest = await dataSource.getLatest();
       state.result = latest;
-      renderDates(dates, latest.date);
+      state.usingCache = dataSource.usedCache === true;
       render();
       setInteractive(true);
-      announce(dataSource.usedCache ? "저장된 데이터를 표시합니다 · 保存データを表示中" : "");
+
+      const [calendarResult, statusResult] = await Promise.allSettled([
+        loadCalendar(),
+        typeof dataSource.getStatus === "function"
+          ? dataSource.getStatus()
+          : Promise.reject(new Error("status_unavailable")),
+      ]);
+      state.calendar = calendarResult.status === "fulfilled"
+        ? calendarResult.value.days
+        : [calendarDayFromResult(latest)];
+      state.publicationStatus = statusResult.status === "fulfilled" ? statusResult.value : null;
+      renderDates(state.calendar, latest.date);
+      render();
+      setInteractive(true);
+      announce(state.usingCache ? "저장된 데이터를 표시합니다 · 保存データを表示中" : "");
       return true;
     } catch (error) {
       state.result = null;
@@ -45,6 +70,23 @@ export function createIssueCloudApp({
       elements.retry.hidden = false;
       return false;
     }
+  }
+
+  async function loadCalendar() {
+    if (typeof dataSource.getCalendar === "function") {
+      try {
+        return await dataSource.getCalendar();
+      } catch (error) {
+        logger.error("Issue calendar loading failed", error);
+      }
+    }
+    const dates = await dataSource.getDates();
+    return {
+      schema_version: "1.0",
+      days: dates.map((date) => date === state.result.date
+        ? calendarDayFromResult(state.result)
+        : { date, status: "success", countries: {} }),
+    };
   }
 
   function bindEvents() {
@@ -79,31 +121,38 @@ export function createIssueCloudApp({
     for (const control of elements.countries.querySelectorAll("button")) {
       control.disabled = !enabled;
     }
-    elements.date.disabled = !enabled;
+    elements.date.disabled = !enabled || state.calendar.length === 0;
     for (const control of elements.dateStrip.querySelectorAll("button")) {
-      control.disabled = !enabled;
+      control.disabled = !enabled || state.calendar.length === 0;
     }
     elements.layout.disabled = !enabled;
     elements.refresh.disabled = !enabled;
   }
 
-  function renderDates(dates, selected) {
+  function renderDates(days, selected) {
     elements.date.replaceChildren(
-      ...dates.map((date) => {
+      ...days.map((day) => {
         const option = root.createElement("option");
-        option.value = date;
-        option.textContent = date;
-        option.selected = date === selected;
+        option.value = day.date;
+        option.textContent = `${day.date}${statusSuffix(day.status)}`;
+        option.selected = day.date === selected;
         return option;
       }),
     );
     elements.dateStrip.replaceChildren(
-      ...dates.map((date) => {
-        const value = new Date(`${date}T00:00:00Z`);
+      ...days.map((day) => {
+        const value = new Date(`${day.date}T00:00:00Z`);
         const button = root.createElement("button");
         button.type = "button";
-        button.dataset.dateValue = date;
-        button.classList.toggle("is-active", date === selected);
+        button.dataset.dateValue = day.date;
+        button.classList.toggle("is-active", day.date === selected);
+        button.classList.toggle("is-partial", day.status === "partial_success");
+        button.classList.toggle("is-failed", day.status === "failed");
+        button.title = day.status === "success"
+          ? "게시 완료 · 公開完了"
+          : day.status === "partial_success"
+            ? "일부 국가만 게시 · 一部の国のみ公開"
+            : "게시 기준 미달 · 公開基準未達";
         button.innerHTML = `<strong>${value.getUTCMonth() + 1}.${value.getUTCDate()}</strong><small>${new Intl.DateTimeFormat("ko-KR", { weekday: "short", timeZone: "UTC" }).format(value)}</small>`;
         return button;
       }),
@@ -115,7 +164,8 @@ export function createIssueCloudApp({
     setInteractive(false);
     try {
       state.result = await dataSource.getByDate(date);
-      renderDates([...elements.date.options].map((option) => option.value), date);
+      state.usingCache = dataSource.usedCache === true;
+      renderDates(state.calendar, date);
       render();
       announce(dataSource.usedCache ? "저장된 데이터를 표시합니다 · 保存データを表示中" : "");
     } catch (error) {
@@ -131,8 +181,13 @@ export function createIssueCloudApp({
     const view = createCountryView(state.result, state.country);
     for (const button of elements.countries.querySelectorAll("button")) {
       const selected = button.dataset.country === state.country;
+      const countryStatus = state.result.countries[button.dataset.country]?.status;
       button.classList.toggle("is-active", selected);
+      button.classList.toggle("is-unavailable", countryStatus === "failed");
       button.setAttribute("aria-pressed", String(selected));
+      button.title = countryStatus === "failed"
+        ? "오늘 게시 기준 미달 · 本日の公開基準未達"
+        : "";
     }
     elements.generated.textContent = new Intl.DateTimeFormat("ko-KR", {
       hour: "2-digit",
@@ -150,6 +205,35 @@ export function createIssueCloudApp({
       empty.textContent = "표시할 키워드가 없습니다 · 表示できるキーワードがありません";
       elements.issues.append(empty);
     }
+    renderRunStatus(view);
+  }
+
+  function renderRunStatus(view) {
+    const messages = [];
+    const currentStatus = state.publicationStatus;
+    if (
+      currentStatus &&
+      currentStatus.status === "failed" &&
+      currentStatus.attempted_date !== state.result.date
+    ) {
+      messages.push(
+        `${currentStatus.attempted_date} 수집 결과는 게시 기준 미달입니다. ` +
+        `${currentStatus.displayed_date} 데이터를 표시합니다`,
+      );
+    }
+    if (view.status === "failed") {
+      const reason = view.articleCount < 50
+        ? `기사 ${view.articleCount}/50건`
+        : "품질을 통과한 키워드 부족";
+      messages.push(`${view.local}: ${reason} · 公開基準未達`);
+    } else if (state.result.status === "partial_success") {
+      messages.push("일부 국가만 게시된 날짜입니다 · 一部の国のみ公開された日です");
+    }
+    if (state.usingCache) {
+      messages.push("네트워크 오류로 저장된 데이터를 표시 중입니다 · 保存データを表示中です");
+    }
+    elements.runStatus.hidden = messages.length === 0;
+    elements.runStatus.textContent = messages.join(" · ");
   }
 
   function issueButton(issue) {
@@ -185,6 +269,28 @@ export function createIssueCloudApp({
   function announce(message, isError = false) {
     elements.status.textContent = message;
     elements.status.classList.toggle("is-error", isError);
+  }
+
+  function statusSuffix(status) {
+    if (status === "partial_success") return " (부분 · 一部)";
+    if (status === "failed") return " (실패 · 失敗)";
+    return "";
+  }
+
+  function calendarDayFromResult(result) {
+    return {
+      date: result.date,
+      status: result.status ?? "success",
+      countries: Object.fromEntries(
+        Object.entries(result.countries).map(([country, value]) => [country, {
+          status: value.status,
+          article_count: value.article_count,
+          reason: value.status === "success"
+            ? null
+            : value.article_count < 50 ? "insufficient_articles" : "insufficient_keywords",
+        }]),
+      ),
+    };
   }
 
   return { start };

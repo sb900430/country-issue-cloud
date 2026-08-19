@@ -1,3 +1,4 @@
+import json
 from datetime import UTC, datetime, timedelta
 from hashlib import sha256
 from pathlib import Path
@@ -133,7 +134,7 @@ def test_live_keyword_batch_publishes_at_fifty_articles_per_country(
     assert (site_dir / "latest.json").exists()
 
 
-def test_live_keyword_batch_does_not_publish_partial_three_country_data(
+def test_live_keyword_batch_publishes_successful_countries_from_partial_result(
     tmp_path: Path,
 ) -> None:
     end = datetime(2026, 8, 8, 0, tzinfo=UTC)
@@ -172,11 +173,16 @@ def test_live_keyword_batch_does_not_publish_partial_three_country_data(
     )
 
     assert result.status is IssueStatus.PARTIAL_SUCCESS
-    assert not (site_dir / "latest.json").exists()
+    assert (site_dir / "latest.json").exists()
+    assert (site_dir / "status.json").exists()
+    assert (site_dir / "calendar.json").exists()
+    status = json.loads((site_dir / "status.json").read_text(encoding="utf-8"))
+    assert status["countries"]["KR"]["reason"] == "insufficient_articles"
+    assert status["displayed_date"] == "2026-08-08"
     assert (tmp_path / "data" / "runtime" / "admin" / "selected-articles.json").exists()
 
 
-def test_live_keyword_batch_does_not_publish_when_one_country_has_forty_nine_articles(
+def test_live_keyword_batch_marks_country_unavailable_below_fifty_articles(
     tmp_path: Path,
 ) -> None:
     end = datetime(2026, 8, 9, 0, tzinfo=UTC)
@@ -221,4 +227,5 @@ def test_live_keyword_batch_does_not_publish_when_one_country_has_forty_nine_art
 
     assert result.status is IssueStatus.PARTIAL_SUCCESS
     assert result.countries[CountryCode.KR].article_count == 49
-    assert not (site_dir / "latest.json").exists()
+    assert result.countries[CountryCode.KR].status is IssueStatus.FAILED
+    assert (site_dir / "latest.json").exists()

@@ -65,7 +65,7 @@ def build_keyword_result(
         IssueStatus.SUCCESS
         if successful == 3
         else IssueStatus.PARTIAL_SUCCESS
-        if successful >= 2
+        if successful >= 1
         else IssueStatus.FAILED
     )
     return KeywordResult(
