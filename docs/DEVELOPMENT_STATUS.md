@@ -2,15 +2,17 @@
 
 | 항목 | 현재 상태 |
 |---|---|
-| 현재 목표 | 미국·일본 키워드 원문/한국어 표시 전환 |
-| 상태 | 구현·문서·전체 검증·로컬 Pages 화면 점검·완료 리뷰 PASS, 게시 승인 대기 |
+| 현재 목표 | 국가 탭별 키워드 언어 전환 보정과 날짜 탭 정렬 |
+| 상태 | 구현·문서·전체 검증·실제 공개 이력 preserve 검증·완료 리뷰 PASS, 게시 승인 대기 |
 | 기준 브랜치 | `main` |
-| 작업 브랜치 | `codex/keyword-korean-translation` |
-| 마지막 완료 커밋 | `60366816` — 게시·키워드 품질 안정화 |
-| 전체 검증 | PASS — Python 158개·Web 13개, backend coverage 89%, Secret·명세·Pages fixture artifact |
-| 다음 작업 | 사용자 요청 시 branch push·Draft PR, Rebase and merge 뒤 `main` 재검증 |
+| 작업 브랜치 | `codex/keyword-language-tabs-fix` |
+| 마지막 완료 커밋 | `de16f08e` — 키워드 한국어 표시 추가 |
+| 전체 검증 | PASS — Python 159개·Web 14개, backend coverage 89%, Secret·명세·실제 preserve artifact |
+| 다음 작업 | 사용자 요청 시 branch push와 Draft PR, 병합 후 `main` 재검증 |
 
 ## v1.0 공개 준비 진행 결과
+
+- 2026-08-19 공개 데이터의 이전 Schema 2.0 JSON에 `label_ko`가 없어 국가 탭 이동 후 언어 전환이 원문 fallback으로만 보이던 원인을 확인했다. Pages `preserve` 게시도 현재 번역 사전으로 복원 이력을 보충해 외부 뉴스 API 재호출 없이 기존 날짜의 `label_ko`를 생성한다. 미국·일본 탭 간에는 선택한 언어 모드를 유지하고 한국 탭에서는 불필요한 전환 입력을 숨긴다. 날짜 탭은 왼쪽 과거·오른쪽 최신 순으로 정렬하고 선택 날짜를 가로 스크롤 영역에 노출한다. 실제 공개 이력 4일을 복원한 임시 artifact에서 US 2개·JP 3개가 한국어로 전환되고 모든 국가의 `label_ko` 누락이 0건임을 확인했다.
 
 - 2026-08-19 미국·일본의 원문 키워드를 한국어 보조명으로 표시하는 `label_ko`를 Schema 2.0에 하위 호환 방식으로 추가했다. 순위 완료 후 version 관리되는 `config/keyword-translations.yml` 완전 일치 사전을 적용하며, 한국과 미등록 표현은 원문으로 fallback한다. Web 기본값은 한국어이고 `원문 / 한국어` segment가 타일·cloud·상세 title을 추가 network 요청 없이 함께 전환한다. 관련 기사 title은 원문을 유지하며 외부 번역 API·LLM 호출과 추가 비용은 없다. fixture, 이전 JSON 호환, 잘못된 label 거부와 실제 로컬 Pages 클릭 흐름을 검증했다.
 

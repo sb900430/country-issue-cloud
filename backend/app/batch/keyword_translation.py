@@ -6,6 +6,7 @@ import yaml
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.schemas.issues import CountryCode
+from app.schemas.keywords import KeywordResult
 
 DEFAULT_KEYWORD_TRANSLATIONS_PATH = (
     Path(__file__).resolve().parents[3] / "config" / "keyword-translations.yml"
@@ -63,6 +64,33 @@ class GlossaryKeywordTranslator:
         if country is CountryCode.KR:
             return label
         return self.entries[country].get(_normalize(label), label)
+
+
+def apply_korean_keyword_labels(
+    result: KeywordResult,
+    translator: KeywordTranslator,
+) -> KeywordResult:
+    return result.model_copy(
+        update={
+            "countries": {
+                country: country_result.model_copy(
+                    update={
+                        "top_keywords": [
+                            keyword.model_copy(
+                                update={
+                                    "label_ko": translator.translate_to_korean(
+                                        country, keyword.label
+                                    )
+                                }
+                            )
+                            for keyword in country_result.top_keywords
+                        ]
+                    }
+                )
+                for country, country_result in result.countries.items()
+            }
+        }
+    )
 
 
 def _normalize(value: str) -> str:

@@ -17,6 +17,7 @@ export function createIssueCloudApp({
     keywordLanguage: "ko",
     activeIssue: null,
     bound: false,
+    interactive: false,
   };
   const elements = {
     countries: root.querySelector("[data-countries]"),
@@ -32,6 +33,7 @@ export function createIssueCloudApp({
     refresh: root.querySelector("[data-refresh]"),
     layout: root.querySelector("[data-layout]"),
     keywordLanguage: root.querySelector("[data-keyword-language]"),
+    keywordLanguageControl: root.querySelector("[data-keyword-language-control]"),
     dialog: root.querySelector("[data-dialog]"),
     dialogTitle: root.querySelector("[data-dialog-title]"),
     dialogArticles: root.querySelector("[data-dialog-articles]"),
@@ -130,6 +132,7 @@ export function createIssueCloudApp({
   }
 
   function setInteractive(enabled) {
+    state.interactive = enabled;
     for (const control of elements.countries.querySelectorAll("button")) {
       control.disabled = !enabled;
     }
@@ -138,13 +141,14 @@ export function createIssueCloudApp({
       control.disabled = !enabled || state.calendar.length === 0;
     }
     elements.layout.disabled = !enabled;
-    elements.keywordLanguage.disabled = !enabled;
+    syncKeywordLanguageControl();
     elements.refresh.disabled = !enabled;
   }
 
   function renderDates(days, selected) {
+    const orderedDays = [...days].sort((left, right) => left.date.localeCompare(right.date));
     elements.date.replaceChildren(
-      ...days.map((day) => {
+      ...orderedDays.map((day) => {
         const option = root.createElement("option");
         option.value = day.date;
         option.textContent = `${day.date}${statusSuffix(day.status)}`;
@@ -152,8 +156,7 @@ export function createIssueCloudApp({
         return option;
       }),
     );
-    elements.dateStrip.replaceChildren(
-      ...days.map((day) => {
+    const dateButtons = orderedDays.map((day) => {
         const value = new Date(`${day.date}T00:00:00Z`);
         const button = root.createElement("button");
         button.type = "button";
@@ -168,8 +171,12 @@ export function createIssueCloudApp({
             : "게시 기준 미달 · 公開基準未達";
         button.innerHTML = `<strong>${value.getUTCMonth() + 1}.${value.getUTCDate()}</strong><small>${new Intl.DateTimeFormat("ko-KR", { weekday: "short", timeZone: "UTC" }).format(value)}</small>`;
         return button;
-      }),
-    );
+      });
+    elements.dateStrip.replaceChildren(...dateButtons);
+    const selectedButton = dateButtons.find((button) => button.dataset.dateValue === selected);
+    if (typeof selectedButton?.scrollIntoView === "function") {
+      selectedButton.scrollIntoView({ block: "nearest", inline: "nearest" });
+    }
   }
 
   async function loadDate(date) {
@@ -191,6 +198,7 @@ export function createIssueCloudApp({
 
   function render() {
     if (!state.result) return;
+    syncKeywordLanguageControl();
     const view = createCountryView(state.result, state.country);
     for (const button of elements.countries.querySelectorAll("button")) {
       const selected = button.dataset.country === state.country;
@@ -219,6 +227,13 @@ export function createIssueCloudApp({
       elements.issues.append(empty);
     }
     renderRunStatus(view);
+  }
+
+  function syncKeywordLanguageControl() {
+    const available = state.country !== "KR";
+    elements.keywordLanguageControl.hidden = !available;
+    elements.keywordLanguage.checked = state.keywordLanguage === "ko";
+    elements.keywordLanguage.disabled = !state.interactive || !available;
   }
 
   function renderRunStatus(view) {

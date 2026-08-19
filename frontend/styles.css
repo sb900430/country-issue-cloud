@@ -17,7 +17,7 @@ button { color:inherit; }
 .country-tabs button.is-active { color:var(--blue); }
 .country-tabs button.is-active::after { background:var(--blue); }
 .date-section { border-bottom:1px solid var(--line); padding:12px 14px; }
-.date-strip { display:flex; justify-content:center; gap:4px; overflow-x:auto; scrollbar-width:none; }
+.date-strip { display:flex; justify-content:flex-start; gap:4px; overflow-x:auto; scrollbar-width:none; }
 .date-strip button { flex:0 0 62px; padding:8px 5px; border:0; border-radius:10px; background:#fff; color:#5d6675; cursor:pointer; }
 .date-strip strong,.date-strip small { display:block; }
 .date-strip strong { font-size:.78rem; }
@@ -34,6 +34,7 @@ main { padding:0 14px; }
 .segmented-switch { display:grid; grid-template-columns:1fr 1fr; padding:3px; border:1px solid #d8dee8; border-radius:9px; background:#f7f8fa; cursor:pointer; }
 .segmented-switch input { position:absolute; opacity:0; }
 .language-switch { min-width:126px; }
+.language-switch[hidden] { display:none; }
 .layout-switch { min-width:170px; }
 .switch-option { padding:7px 9px; border-radius:6px; color:#6b7280; text-align:center; font-size:.7rem; font-weight:800; white-space:nowrap; }
 .switch-option--first { color:#fff; background:var(--blue); }
@@ -94,4 +95,5 @@ button:disabled { cursor:not-allowed; opacity:.55; }
   .issues--tiles .issue:first-child { min-height:148px; padding:18px; }
 }
 @media (min-width:900px) { body { padding:32px; } .app-shell { min-height:calc(100vh - 64px); border:1px solid #e3e8f0; border-radius:30px; overflow:hidden; } }
+@media (min-width:560px) { .date-strip { justify-content:center; } }
 @media (prefers-reduced-motion:reduce) { * { transition:none!important; } }

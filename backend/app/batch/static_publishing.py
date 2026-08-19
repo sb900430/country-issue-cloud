@@ -17,6 +17,7 @@ def publish_static_history[ResultT: DatedResult](
     validate: Callable[[Path], ResultT],
     orphan_message: str,
     extra_files: Callable[[ResultT, list[ResultT]], dict[str, Any]] | None = None,
+    write_result: Callable[[ResultT, Path], None] | None = None,
 ) -> list[Path]:
     latest_source = published_dir / "latest.json"
     latest = validate(latest_source)
@@ -38,10 +39,16 @@ def publish_static_history[ResultT: DatedResult](
     temporary = site_data_dir.with_name(f".{site_data_dir.name}.tmp")
     _empty_directory(temporary)
     outputs = [site_data_dir / "latest.json"]
-    copy2(latest_source, temporary / "latest.json")
+    if write_result is None:
+        copy2(latest_source, temporary / "latest.json")
+    else:
+        write_result(latest, temporary / "latest.json")
     for source, result in validated:
         destination = temporary / f"{result.date}.json"
-        copy2(source, destination)
+        if write_result is None:
+            copy2(source, destination)
+        else:
+            write_result(result, destination)
         outputs.append(site_data_dir / destination.name)
 
     dates = [str(result.date) for _, result in reversed(validated)]

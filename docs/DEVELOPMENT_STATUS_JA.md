@@ -2,15 +2,17 @@
 
 | 項目 | 現在状態 |
 |---|---|
-| 現在目標 | 米国・日本keywordの原文/韓国語表示切替 |
-| 状態 | 実装・文書・全体検証・local Pages画面確認・完了review PASS、公開承認待ち |
+| 現在目標 | 国tab別keyword言語切替補正と日付tab整列 |
+| 状態 | 実装・文書・全体検証・実公開履歴preserve検証・完了review PASS、公開承認待ち |
 | 基準branch | `main` |
-| 作業branch | `codex/keyword-korean-translation` |
-| 最終完了commit | `60366816` — 公開・keyword品質安定化 |
-| 全体検証 | PASS — Python 158件・Web 13件、backend coverage 89%、Secret・仕様・Pages fixture artifact |
-| 次作業 | 利用者依頼時にbranch push・Draft PR、Rebase and merge後の`main`再検証 |
+| 作業branch | `codex/keyword-language-tabs-fix` |
+| 最終完了commit | `de16f08e` — keyword韓国語表示追加 |
+| 全体検証 | PASS — Python 159件・Web 14件、backend coverage 89%、Secret・仕様・実preserve artifact |
+| 次作業 | 利用者依頼時にbranch pushとDraft PR、merge後に`main`再検証 |
 
 ## v1.0公開準備の進行結果
+
+- 2026-08-19に公開dataの旧Schema 2.0 JSONへ`label_ko`がなく、国tab移動後の言語切替が原文fallbackだけに見える原因を確認した。Pagesの`preserve`公開でも現在の翻訳辞書で復元履歴を補完し、外部news API再呼出しなしで既存日付の`label_ko`を生成する。米国・日本tab間では選択言語modeを維持し、韓国tabでは不要な切替入力を隠す。日付tabは左が過去・右が最新の順に整列し、選択日を横scroll領域へ表示する。実公開履歴4日を復元した一時artifactでUS 2件・JP 3件が韓国語へ切り替わり、全国家の`label_ko`欠落が0件であることを確認した。
 
 - 2026-08-19に米国・日本の原文keywordを韓国語補助名で表示する`label_ko`をSchema 2.0へ後方互換で追加した。順位確定後、version管理された`config/keyword-translations.yml`完全一致辞書を適用し、韓国と未登録表現は原文へfallbackする。Web標準は韓国語で、`原文 / 韓国語`segmentがtile・cloud・詳細titleを追加network requestなしに同時切替する。関連記事titleは原文を維持し、外部翻訳API・LLM呼出しと追加費用はない。fixture、旧JSON互換、不正label拒否、実local Pagesクリックflowを検証した。
 

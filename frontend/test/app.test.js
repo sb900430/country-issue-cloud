@@ -79,8 +79,12 @@ test("failed initialization blocks country clicks and retry restores interaction
   assert.equal(dom.window.document.querySelector("[data-retry]").hidden, true);
   assert.equal(dom.window.document.querySelectorAll("[data-date-strip] button").length, 1);
   assert.match(dom.window.document.querySelector("[data-current-date]").textContent, /2026/);
+  const languageControl = dom.window.document.querySelector("[data-keyword-language-control]");
+  assert.equal(languageControl.hidden, true);
+
   dom.window.document.querySelector("[data-country='US']").click();
   assert.equal(dom.window.document.querySelector("[data-country='US']").classList.contains("is-active"), true);
+  assert.equal(languageControl.hidden, false);
   assert.match(dom.window.document.querySelector("[data-issues]").textContent, /미국 이슈/);
   assert.match(dom.window.document.querySelector("[data-issues]").textContent, /기사 1건/);
 
@@ -88,6 +92,19 @@ test("failed initialization blocks country clicks and retry restores interaction
   language.checked = false;
   language.dispatchEvent(new dom.window.Event("change"));
   assert.match(dom.window.document.querySelector("[data-issues]").textContent, /US issue/);
+
+  dom.window.document.querySelector("[data-country='JP']").click();
+  assert.equal(languageControl.hidden, false);
+  assert.match(dom.window.document.querySelector("[data-issues]").textContent, /JP issue/);
+  language.checked = true;
+  language.dispatchEvent(new dom.window.Event("change"));
+  assert.match(dom.window.document.querySelector("[data-issues]").textContent, /일본 이슈/);
+
+  dom.window.document.querySelector("[data-country='KR']").click();
+  assert.equal(languageControl.hidden, true);
+  dom.window.document.querySelector("[data-country='US']").click();
+  assert.equal(languageControl.hidden, false);
+  assert.match(dom.window.document.querySelector("[data-issues]").textContent, /미국 이슈/);
 
   const layout = dom.window.document.querySelector("[data-layout]");
   layout.checked = true;
@@ -98,11 +115,40 @@ test("failed initialization blocks country clicks and retry restores interaction
   dialog.showModal = () => dialog.setAttribute("open", "");
   dom.window.document.querySelector(".issue").click();
   assert.equal(dialog.hasAttribute("open"), true);
-  assert.match(dom.window.document.querySelector("[data-dialog-title]").textContent, /US issue/);
-
-  language.checked = true;
-  language.dispatchEvent(new dom.window.Event("change"));
   assert.match(dom.window.document.querySelector("[data-dialog-title]").textContent, /미국 이슈/);
+
+  language.checked = false;
+  language.dispatchEvent(new dom.window.Event("change"));
+  assert.match(dom.window.document.querySelector("[data-dialog-title]").textContent, /US issue/);
+});
+
+test("date tabs render oldest on the left and newest on the right", async () => {
+  const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+  const dom = new JSDOM(html, { url: "https://example.test/country-issue-cloud/" });
+  const days = ["2026-08-06", "2026-08-04", "2026-08-05"].map((date) => ({
+    date,
+    status: "success",
+    countries: {},
+  }));
+  const app = createIssueCloudApp({
+    root: dom.window.document,
+    dataSource: {
+      usedCache: false,
+      getLatest: async () => result(),
+      getCalendar: async () => ({ schema_version: "1.0", days }),
+      getStatus: async () => ({ schema_version: "1.0", status: "success" }),
+      getByDate: async () => result(),
+    },
+    logger: { error: () => {} },
+  });
+
+  assert.equal(await app.start(), true);
+  const buttons = [...dom.window.document.querySelectorAll("[data-date-strip] button")];
+  assert.deepEqual(
+    buttons.map((button) => button.dataset.dateValue),
+    ["2026-08-04", "2026-08-05", "2026-08-06"],
+  );
+  assert.equal(buttons.at(-1).classList.contains("is-active"), true);
 });
 
 test("metadata failure does not hide latest data and partial country is explained", async () => {
