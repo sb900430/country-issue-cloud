@@ -1,15 +1,26 @@
 from pathlib import Path
 from typing import Any
 
+from app.batch.keyword_translation import (
+    GlossaryKeywordTranslator,
+    KeywordTranslator,
+    apply_korean_keyword_labels,
+)
 from app.batch.static_publishing import publish_static_history
 from app.schemas.issues import IssueStatus
 from app.schemas.keywords import KeywordResult
 
 
 class KeywordStaticJsonPublisher:
-    def __init__(self, published_dir: Path, site_data_dir: Path) -> None:
+    def __init__(
+        self,
+        published_dir: Path,
+        site_data_dir: Path,
+        translator: KeywordTranslator | None = None,
+    ) -> None:
         self.published_dir = published_dir
         self.site_data_dir = site_data_dir
+        self.translator = translator or GlossaryKeywordTranslator.load()
 
     def publish(self) -> list[Path]:
         return publish_static_history(
@@ -19,7 +30,12 @@ class KeywordStaticJsonPublisher:
             self._validate,
             "latest keyword result has no matching dated result",
             self._public_status_files,
+            self._write_translated_result,
         )
+
+    def _write_translated_result(self, result: KeywordResult, destination: Path) -> None:
+        translated = apply_korean_keyword_labels(result, self.translator)
+        destination.write_text(translated.model_dump_json(indent=2), encoding="utf-8")
 
     @staticmethod
     def _validate(path: Path) -> KeywordResult:

@@ -93,6 +93,44 @@ def test_schema_v2_accepts_previous_results_without_korean_labels(tmp_path: Path
     )
 
 
+def test_keyword_publisher_backfills_korean_labels_for_preserved_history(
+    tmp_path: Path,
+) -> None:
+    data_dir = tmp_path / "data"
+    source_site = tmp_path / "source-site" / "data" / "v2"
+    publish_keyword_fixture(
+        PROJECT_ROOT / "sample-data" / "evaluation",
+        data_dir,
+        source_site,
+    )
+    published_dir = data_dir / "keyword-published"
+    for path in published_dir.glob("*.json"):
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        for country in payload["countries"].values():
+            for keyword in country["top_keywords"]:
+                keyword.pop("label_ko")
+        path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+
+    site_dir = tmp_path / "preserved-site" / "data" / "v2"
+    KeywordStaticJsonPublisher(published_dir, site_dir).publish()
+    restored = KeywordResult.model_validate_json(
+        (site_dir / "latest.json").read_text(encoding="utf-8")
+    )
+
+    assert any(
+        keyword.label_ko != keyword.label
+        for keyword in restored.countries[CountryCode.US].top_keywords
+    )
+    assert any(
+        keyword.label_ko != keyword.label
+        for keyword in restored.countries[CountryCode.JP].top_keywords
+    )
+    assert all(
+        keyword.label_ko == keyword.label
+        for keyword in restored.countries[CountryCode.KR].top_keywords
+    )
+
+
 def test_v2_api_returns_published_keyword_data(tmp_path: Path) -> None:
     data_dir = tmp_path / "data"
     publish_keyword_fixture(
