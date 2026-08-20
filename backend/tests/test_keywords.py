@@ -3,6 +3,7 @@ from datetime import UTC, datetime, timedelta
 import numpy as np
 import pytest
 
+from app.batch.keyword_pipeline import _analysis_warning
 from app.batch.keywords import (
     CandidateSynonymResolver,
     KeywordCandidate,
@@ -63,6 +64,26 @@ def test_general_terms_do_not_become_candidates(country: CountryCode, title: str
     candidates = LanguageKeywordExtractor().extract(_article("article", country, title))
 
     assert candidates == ()
+
+
+@pytest.mark.parametrize(
+    ("country", "title", "compound", "generic"),
+    [
+        (CountryCode.US, "Housing supply pressure 001", "housing supply", "supply"),
+        (CountryCode.JP, "住宅供給不足 001", "住宅供給", "供給"),
+        (CountryCode.KR, "주택 공급 부족 001", "주택공급", "공급"),
+    ],
+)
+def test_generic_single_terms_survive_only_as_specific_compounds(
+    country: CountryCode, title: str, compound: str, generic: str
+) -> None:
+    labels = {
+        candidate.label
+        for candidate in LanguageKeywordExtractor().extract(_article("article", country, title))
+    }
+
+    assert compound in labels
+    assert generic not in labels
 
 
 @pytest.mark.parametrize(
@@ -297,7 +318,8 @@ def test_semantic_ranker_downranks_scattered_article_titles() -> None:
     result = ranker.analyze(CountryCode.US, articles)
     positions = {keyword.label: keyword.rank for keyword in result.top_keywords}
 
-    assert positions["coherent"] < positions["generic"]
+    assert "generic" not in positions
+    assert "coherent" in positions
 
 
 def test_ranker_rejects_small_samples_and_country_mixing() -> None:
@@ -311,6 +333,74 @@ def test_ranker_rejects_small_samples_and_country_mixing() -> None:
     articles.append(_article("mixed", CountryCode.JP, "半導体投資が拡大"))
     with pytest.raises(ValueError, match="cannot mix"):
         KeywordRanker().analyze(CountryCode.US, articles)
+
+
+@pytest.mark.parametrize(
+    ("message", "expected"),
+    [
+        (
+            "keyword analysis requires at least 50 articles",
+            "keyword_analysis_failed:insufficient_articles",
+        ),
+        (
+            "keyword analysis requires at least 30 stories",
+            "keyword_analysis_failed:insufficient_stories",
+        ),
+        (
+            "keyword analysis produced fewer than three candidates",
+            "keyword_analysis_failed:insufficient_quality_candidates",
+        ),
+        (
+            "keyword analysis cannot mix countries",
+            "keyword_analysis_failed:invalid_country_mix",
+        ),
+        ("unexpected analysis error", "keyword_analysis_failed:ValueError"),
+    ],
+)
+def test_keyword_analysis_warnings_expose_safe_failure_categories(
+    message: str, expected: str
+) -> None:
+    assert _analysis_warning(ValueError(message)) == expected
+
+
+def test_ranker_rejects_fifty_links_that_represent_too_few_stories() -> None:
+    articles = [
+        _article(str(index), CountryCode.US, "semiconductor investment expands").model_copy(
+            update={"story_cluster_id": f"story-{index % 29}"}
+        )
+        for index in range(50)
+    ]
+
+    with pytest.raises(ValueError, match="at least 30 stories"):
+        KeywordRanker().analyze(CountryCode.US, articles)
+
+
+def test_ranker_counts_syndicated_articles_once_per_story() -> None:
+    labels = ["apple"] * 10 + ["beta"] * 10 + ["gamma"] * 10
+    labels += ["delta"] * 10 + ["epsilon"] * 10
+    articles = [
+        _article(
+            f"story-frequency-{index}",
+            CountryCode.US,
+            label,
+            publisher=f"publisher-{index % 5}",
+            offset=index,
+        ).model_copy(
+            update={
+                "story_cluster_id": (
+                    f"apple-story-{index // 2}" if label == "apple" else f"story-{index}"
+                )
+            }
+        )
+        for index, label in enumerate(labels)
+    ]
+
+    result = KeywordRanker(extractor=_TitleExtractor()).analyze(CountryCode.US, articles)
+    apple = next(keyword for keyword in result.top_keywords if keyword.label == "apple")
+
+    assert apple.document_frequency == 5
+    assert apple.article_ratio == pytest.approx(5 / 45)
+    assert len(apple.related_article_ids) == 10
 
 
 def test_ranker_merges_only_configured_candidate_synonyms() -> None:

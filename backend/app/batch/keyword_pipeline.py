@@ -32,7 +32,7 @@ def build_keyword_result(
                 status=IssueStatus.FAILED,
                 article_count=len(articles),
                 top_keywords=[],
-                warnings=[f"keyword_analysis_failed:{type(error).__name__}", *collection.errors],
+                warnings=[_analysis_warning(error), *collection.errors],
             )
             continue
         indexed = {article.article_id: article for article in articles}
@@ -88,3 +88,18 @@ def _failed_country(warning: str) -> CountryKeywordResult:
         top_keywords=[],
         warnings=[warning],
     )
+
+
+def _analysis_warning(error: ValueError) -> str:
+    message = str(error)
+    if "at least 50 articles" in message:
+        reason = "insufficient_articles"
+    elif "at least 30 stories" in message:
+        reason = "insufficient_stories"
+    elif "fewer than three candidates" in message:
+        reason = "insufficient_quality_candidates"
+    elif "cannot mix countries" in message:
+        reason = "invalid_country_mix"
+    else:
+        reason = type(error).__name__
+    return f"keyword_analysis_failed:{reason}"

@@ -1,9 +1,10 @@
 import html
 import re
 import unicodedata
-from collections import OrderedDict
+from collections import Counter, OrderedDict, deque
 from datetime import timedelta
 from difflib import SequenceMatcher
+from hashlib import sha256
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from app.batch.models import CollectedArticle
@@ -54,23 +55,66 @@ def deduplicate_articles(articles: list[CollectedArticle]) -> list[CollectedArti
     return selected
 
 
+def assign_story_clusters(articles: list[CollectedArticle]) -> list[CollectedArticle]:
+    clusters: list[tuple[str, CollectedArticle]] = []
+    assignments: dict[str, str] = {}
+    for article in sorted(
+        articles,
+        key=lambda item: (item.published_at.timestamp(), item.article_id),
+    ):
+        cluster_id = next(
+            (
+                existing_id
+                for existing_id, representative in clusters
+                if _is_same_story(representative, article)
+            ),
+            None,
+        )
+        if cluster_id is None:
+            seed = (
+                f"{article.country.value}:{_canonical_headline(article.title)}:{article.article_id}"
+            )
+            cluster_id = sha256(seed.encode()).hexdigest()[:24]
+            clusters.append((cluster_id, article))
+        assignments[article.article_id] = cluster_id
+    return [
+        article.model_copy(update={"story_cluster_id": assignments[article.article_id]})
+        for article in articles
+    ]
+
+
 def select_diverse_articles(articles: list[CollectedArticle], limit: int) -> list[CollectedArticle]:
     if not articles or limit <= 0:
         return []
-    buckets: OrderedDict[str, list[CollectedArticle]] = OrderedDict()
+    buckets: OrderedDict[str, deque[CollectedArticle]] = OrderedDict()
     for article in articles:
-        buckets.setdefault(canonical_publisher(article.publisher), []).append(article)
-    publisher_limit = _stable_publisher_limit(
-        [len(bucket) for bucket in buckets.values()], min(len(articles), limit)
-    )
+        buckets.setdefault(canonical_publisher(article.publisher), deque()).append(article)
     selected: list[CollectedArticle] = []
-    for offset in range(publisher_limit):
-        for bucket in buckets.values():
-            if offset < len(bucket):
-                selected.append(bucket[offset])
-                if len(selected) >= limit:
-                    return selected
-    return selected
+    while buckets and len(selected) < limit:
+        exhausted: list[str] = []
+        for publisher, bucket in buckets.items():
+            selected.append(bucket.popleft())
+            if not bucket:
+                exhausted.append(publisher)
+            if len(selected) >= limit:
+                break
+        for publisher in exhausted:
+            del buckets[publisher]
+
+    counts = Counter(canonical_publisher(article.publisher) for article in selected)
+    publisher_budget = max(
+        1,
+        min(MAX_PUBLISHER_ARTICLES, int(len(selected) * MAX_PUBLISHER_SHARE)),
+    )
+    return [
+        article.model_copy(
+            update={
+                "ranking_weight": article.ranking_weight
+                * min(1.0, publisher_budget / counts[canonical_publisher(article.publisher)])
+            }
+        )
+        for article in selected
+    ]
 
 
 def canonical_publisher(value: str) -> str:
@@ -82,26 +126,46 @@ def canonical_publisher(value: str) -> str:
     return normalized
 
 
-def _stable_publisher_limit(counts: list[int], target: int) -> int:
-    publisher_limit = max(1, min(MAX_PUBLISHER_ARTICLES, int(target * MAX_PUBLISHER_SHARE)))
-    while publisher_limit > 1:
-        available = min(target, sum(min(count, publisher_limit) for count in counts))
-        adjusted = max(1, min(MAX_PUBLISHER_ARTICLES, int(available * MAX_PUBLISHER_SHARE)))
-        if adjusted >= publisher_limit:
-            break
-        publisher_limit = adjusted
-    return publisher_limit
-
-
 def _is_duplicate(left: CollectedArticle, right: CollectedArticle) -> bool:
-    if left.url == right.url:
+    return left.url == right.url
+
+
+def _is_same_story(left: CollectedArticle, right: CollectedArticle) -> bool:
+    if left.country is not right.country:
+        return False
+    if abs(left.published_at - right.published_at) > timedelta(hours=12):
+        return False
+    left_title = _canonical_headline(left.title)
+    right_title = _canonical_headline(right.title)
+    title_similarity = SequenceMatcher(None, left_title, right_title).ratio()
+    left_path = _canonical_story_path(left.url)
+    right_path = _canonical_story_path(right.url)
+    if left_path is not None and left_path == right_path and title_similarity >= 0.65:
         return True
-    left_title = normalize_title(left.title)
-    right_title = normalize_title(right.title)
     if left_title == right_title:
         return True
-    within_six_hours = abs(left.published_at - right.published_at) <= timedelta(hours=6)
-    return within_six_hours and SequenceMatcher(None, left_title, right_title).ratio() >= 0.92
+    if title_similarity >= 0.88:
+        return True
+    left_terms = set(left_title.split())
+    right_terms = set(right_title.split())
+    union = left_terms | right_terms
+    return (
+        min(len(left_terms), len(right_terms)) >= 4
+        and bool(union)
+        and len(left_terms & right_terms) / len(union) >= 0.8
+    )
+
+
+def _canonical_headline(title: str) -> str:
+    text = unicodedata.normalize("NFKC", html.unescape(title)).casefold()
+    return normalize_title(text)
+
+
+def _canonical_story_path(url: str) -> str | None:
+    path = unicodedata.normalize("NFKC", urlsplit(url).path).casefold().rstrip("/")
+    if len(path) < 30 or path.count("/") < 3:
+        return None
+    return path
 
 
 def _preferred(left: CollectedArticle, right: CollectedArticle) -> CollectedArticle:
