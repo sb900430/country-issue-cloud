@@ -3,7 +3,11 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import UTC, datetime
 
 from app.batch.collectors.base import Collector
-from app.batch.deduplication import deduplicate_articles, select_diverse_articles
+from app.batch.deduplication import (
+    assign_story_clusters,
+    deduplicate_articles,
+    select_diverse_articles,
+)
 from app.batch.models import CollectedArticle, CollectorKind, CountryCollectionResult
 from app.core.settings import AppMode
 from app.schemas.issues import CountryCode
@@ -91,7 +95,10 @@ class CollectionRunner:
                 source_filter_counts.update(fallback_filter_counts)
                 source_publisher_counts.update(fallback_publisher_counts)
         unique_articles = deduplicate_articles(articles)
-        selected_articles = select_diverse_articles(unique_articles, self.max_articles_per_country)
+        clustered_articles = assign_story_clusters(unique_articles)
+        selected_articles = select_diverse_articles(
+            clustered_articles, self.max_articles_per_country
+        )
         return CountryCollectionResult(
             country=country,
             articles=tuple(selected_articles),
@@ -110,6 +117,12 @@ class CollectionRunner:
             },
             raw_article_count=len(articles),
             deduplicated_article_count=len(unique_articles),
+            story_cluster_count=len(
+                {article.story_cluster_id or article.article_id for article in selected_articles}
+            ),
+            diversity_weighted_article_count=sum(
+                article.ranking_weight for article in selected_articles
+            ),
             used_fixture_fallback=used_fallback,
             collected_at=datetime.now(UTC),
         )
@@ -151,9 +164,7 @@ class CollectionRunner:
             except Exception as error:
                 category = getattr(error, "category", None)
                 category_suffix = f":{category}" if isinstance(category, str) else ""
-                errors.append(
-                    f"{collector.source_id}:{type(error).__name__}{category_suffix}"
-                )
+                errors.append(f"{collector.source_id}:{type(error).__name__}{category_suffix}")
                 source_counts[collector.source_id] = 0
                 source_publisher_counts[collector.source_id] = {}
                 diagnostics = getattr(collector, "last_diagnostics", None)

@@ -22,6 +22,7 @@ class CollectedArticle(BaseModel):
     publisher: str = Field(min_length=1, max_length=200)
     published_at: AwareDatetime
     ranking_weight: float = Field(default=1.0, gt=0, le=1)
+    story_cluster_id: str | None = Field(default=None, min_length=1, max_length=64)
 
     @field_validator("url")
     @classmethod
@@ -43,5 +44,7 @@ class CountryCollectionResult(BaseModel):
     source_publisher_counts: dict[str, dict[str, int]] = Field(default_factory=dict)
     raw_article_count: int = Field(default=0, ge=0)
     deduplicated_article_count: int = Field(default=0, ge=0)
+    story_cluster_count: int = Field(default=0, ge=0)
+    diversity_weighted_article_count: float = Field(default=0, ge=0)
     used_fixture_fallback: bool = False
     collected_at: datetime

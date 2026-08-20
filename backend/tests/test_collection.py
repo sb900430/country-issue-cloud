@@ -7,6 +7,7 @@ from app.batch.collection import CollectionRunner
 from app.batch.collectors.fixture import FixtureCollector
 from app.batch.collectors.rss import RssCollector, RssSource
 from app.batch.deduplication import (
+    assign_story_clusters,
     canonical_publisher,
     deduplicate_articles,
     normalize_title,
@@ -139,7 +140,7 @@ def test_feed_collector_supports_rss_one_rdf_items() -> None:
     assert result[0].published_at == datetime(2026, 8, 5, tzinfo=UTC)
 
 
-def test_deduplication_applies_url_title_and_similarity_rules() -> None:
+def test_deduplication_removes_only_repeated_urls() -> None:
     articles = [
         article("a", url="https://EXAMPLE.com/story?utm_source=x&id=1"),
         article("b", url="https://example.com/story?id=1&fbclid=y", summary="more detail"),
@@ -149,13 +150,13 @@ def test_deduplication_applies_url_title_and_similarity_rules() -> None:
 
     result = deduplicate_articles(articles)
 
-    assert len(result) == 2
+    assert len(result) == 3
     assert result[0].article_id == "b"
     assert normalize_url(articles[0].url) == "https://example.com/story?id=1"
     assert normalize_title(articles[2].title) == "market rises today"
 
 
-def test_diversity_limit_caps_each_publisher_at_twenty_percent() -> None:
+def test_diversity_weights_publishers_without_discarding_articles() -> None:
     articles = [
         article(
             f"publisher-a-{index}",
@@ -175,12 +176,17 @@ def test_diversity_limit_caps_each_publisher_at_twenty_percent() -> None:
 
     selected = select_diverse_articles(articles, 100)
 
-    assert len(selected) == 75
-    assert sum(item.publisher == "Publisher A" for item in selected) == 15
-    assert max(
-        sum(canonical_publisher(item.publisher) == publisher for item in selected)
+    assert len(selected) == 100
+    assert sum(item.publisher == "Publisher A" for item in selected) == 40
+    weighted_counts = {
+        publisher: sum(
+            item.ranking_weight
+            for item in selected
+            if canonical_publisher(item.publisher) == publisher
+        )
         for publisher in {canonical_publisher(item.publisher) for item in selected}
-    ) <= len(selected) * 0.2
+    }
+    assert max(weighted_counts.values()) <= len(selected) * 0.2
 
 
 def test_diversity_groups_press_release_wire_aliases() -> None:
@@ -189,9 +195,7 @@ def test_diversity_groups_press_release_wire_aliases() -> None:
             f"wire-{index}",
             title=f"Wire headline {index}",
             url=f"https://wire.example/{index}",
-        ).model_copy(
-            update={"publisher": "Globe Newswire" if index % 2 else "PR Newswire"}
-        )
+        ).model_copy(update={"publisher": "Globe Newswire" if index % 2 else "PR Newswire"})
         for index in range(40)
     ] + [
         article(
@@ -208,7 +212,83 @@ def test_diversity_groups_press_release_wire_aliases() -> None:
     wire_count = sum(
         canonical_publisher(item.publisher) == "press-release-wire" for item in selected
     )
-    assert wire_count <= len(selected) * 0.2
+    wire_weight = sum(
+        item.ranking_weight
+        for item in selected
+        if canonical_publisher(item.publisher) == "press-release-wire"
+    )
+    assert wire_count == 40
+    assert wire_weight == 20
+
+
+def test_diversity_does_not_collapse_two_publisher_collection() -> None:
+    articles = [
+        article(
+            f"major-{index}",
+            title=f"Major publisher headline {index}",
+            url=f"https://major.example/{index}",
+        ).model_copy(update={"publisher": "Major Publisher"})
+        for index in range(70)
+    ] + [
+        article(
+            f"minor-{index}",
+            title=f"Minor publisher headline {index}",
+            url=f"https://minor.example/{index}",
+        ).model_copy(update={"publisher": "Minor Publisher"})
+        for index in range(30)
+    ]
+
+    selected = select_diverse_articles(articles, 100)
+
+    assert len(selected) == 100
+    assert sum(item.publisher == "Major Publisher" for item in selected) == 70
+    assert sum(item.ranking_weight for item in selected) == 40
+
+
+def test_story_clustering_preserves_syndicated_links_but_counts_one_story() -> None:
+    articles = [
+        article(
+            "original",
+            title="Louisiana pay raise deadline approaches for state workers - AP",
+            url="https://first.example/news/2026/08/louisiana-pay-raise-deadline",
+        ),
+        article(
+            "syndicated",
+            title="Louisiana pay-raise deadline approaches for state workers",
+            url="https://second.example/news/2026/08/louisiana-pay-raise-deadline",
+            hours_ago=2,
+        ),
+        article(
+            "separate",
+            title="Federal Reserve reviews interest rate path",
+            url="https://third.example/news/2026/08/federal-reserve-interest-rate",
+        ),
+    ]
+
+    clustered = assign_story_clusters(articles)
+
+    assert len(clustered) == 3
+    assert clustered[0].story_cluster_id == clustered[1].story_cluster_id
+    assert clustered[0].story_cluster_id != clustered[2].story_cluster_id
+
+
+def test_story_clustering_requires_title_context_even_when_paths_match() -> None:
+    articles = [
+        article(
+            "first",
+            title="Federal Reserve reviews interest rate path",
+            url="https://first.example/news/2026/08/shared-generic-article-path",
+        ),
+        article(
+            "second",
+            title="Space agency launches climate observation satellite",
+            url="https://second.example/news/2026/08/shared-generic-article-path",
+        ),
+    ]
+
+    clustered = assign_story_clusters(articles)
+
+    assert clustered[0].story_cluster_id != clustered[1].story_cluster_id
 
 
 class StubCollector:
@@ -236,9 +316,7 @@ class StubCollector:
 
 def test_runner_isolates_country_failures() -> None:
     us = StubCollector("us", CountryCode.US, CollectorKind.FIXTURE, RuntimeError("failed"))
-    jp = StubCollector(
-        "jp", CountryCode.JP, CollectorKind.FIXTURE, [article("jp", CountryCode.JP)]
-    )
+    jp = StubCollector("jp", CountryCode.JP, CollectorKind.FIXTURE, [article("jp", CountryCode.JP)])
     runner = CollectionRunner([us, jp])
 
     result = runner.collect_all(
@@ -283,6 +361,8 @@ def test_runner_reports_raw_deduplicated_and_selected_counts() -> None:
     assert result.source_publisher_counts == {"diagnostic-us": {"Example News": 2}}
     assert result.raw_article_count == 2
     assert result.deduplicated_article_count == 1
+    assert result.story_cluster_count == 1
+    assert result.diversity_weighted_article_count == 1
     assert len(result.articles) == 1
 
 
@@ -300,6 +380,5 @@ def test_three_country_fixture_collection_uses_independent_results() -> None:
     assert set(result) == set(CountryCode)
     assert all(len(country_result.articles) == 1 for country_result in result.values())
     assert all(
-        country_result.articles[0].country == country
-        for country, country_result in result.items()
+        country_result.articles[0].country == country for country, country_result in result.items()
     )

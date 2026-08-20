@@ -19,7 +19,7 @@
 
 ## 1. プロジェクト概要
 
-毎日、米国・日本・韓国の報道機関の経済ニュースを国別に150件収集することを目標とし、最大250件まで独立収集する。titleと提供された短いsummaryから反復出現する名詞・複合名詞候補を抽出し、同義表現を一つのkeywordへまとめて、ユニーク記事数と媒体多様性に基づく国別keyword TOP 5を計算する。利用者はkeywordから該当keywordの根拠記事一覧を確認する。
+毎日、米国・日本・韓国の報道機関の経済ニュースを国別に150件収集することを目標とし、最大250件まで独立収集する。titleと提供された短いsummaryから反復出現する名詞・複合名詞候補を抽出し、同義表現を一つのkeywordへまとめて、独立story数と媒体多様性に基づく国別keyword TOP 5を計算する。利用者はkeywordから再配信版を含む該当keywordの根拠記事一覧を確認する。
 
 本プロジェクトは、次を目的とする非商用ポートフォリオである。
 
@@ -112,10 +112,10 @@ Androidアプリは廃止しない。keyword中心Webと公開URLの安定化後
 | ID | 機能 | 説明 |
 |---|---|---|
 | F-01 | 国別収集 | GDELT主sourceから国別150件目標・最大250件の経済ニュースを独立収集 |
-| F-02 | 整形・重複排除 | URL、タイトル、類似度で国内重複を排除 |
+| F-02 | 整形・story clustering | 同一URLだけを除去し、title・URL path・公開時刻で再配信記事を同じstoryへclustering |
 | F-03 | keyword抽出 | 英語・日本語・韓国語別の反復名詞と最大2形態素の短い複合名詞を抽出し、一般語・文断片・国別禁止keywordを除外 |
 | F-04 | keyword統合 | local多言語embeddingで国内の同義語・表記揺れを根拠表現内に限定して統合 |
-| F-05 | TOP 5 | keyword別ユニーク記事数と媒体数で決定的順位を算出 |
+| F-05 | TOP 5 | keyword別独立story数と媒体多様性weightで決定的順位を算出 |
 | F-06 | 結果保存 | 日付JSONとlatestをアトミック保存 |
 | F-07 | 品質レビュー | サンプル、偏り、抽出率、ラベルを点検 |
 | F-08 | 障害レポート | 原因、影響、改善案、スタックを記録 |
@@ -145,13 +145,13 @@ Androidアプリは廃止しない。keyword中心Webと公開URLの安定化後
 |---|---:|
 | 国別目標 | 重複排除後150件 |
 | 国別最大数 | 250件 |
-| 正常 | 50件以上、keyword 5件 |
-| sample不足 | 49件以下、配布しない |
-| 単一媒体の最大反映 | 収集結果の20%または30件の小さい方 |
+| 正常 | URLユニーク記事50件・独立story 30件以上、品質keyword 3～5件 |
+| sample不足 | URLユニーク記事49件以下または独立story 29件以下、配布しない |
+| 単一媒体の最大順位寄与 | 選択記事数の20%または30件の小さい方に相当するweight予算 |
 | 媒体偏重警告 | 30%超 |
 | 重大な偏重 | 50%超 |
 
-100件以上を推奨収集目標として維持するが、国別の配布下限は当面50件とする。適法性と透明性を優先し、実際の収集・重複排除後の記事数を画面に表示し、下限を満たすために24時間範囲を任意に延長しない。50～99件で公開した結果はsample変動が大きくなり得るため、国別記事数とTOP 5品質を毎日観察する。
+100件以上を推奨収集目標として維持するが、国別の配布下限は当面URLユニーク記事50件と独立story 30件とする。適法性と透明性を優先し、実際の選択記事数を画面へ表示し、下限を満たすために24時間範囲を任意に延長しない。50～99件で公開した結果はsample変動が大きくなり得るため、国別記事・story数とTOP 5品質を毎日観察する。媒体偏重は記事を削除してsample量を減らさず、順位寄与weightだけを下げる。
 
 ### 出典ポリシー
 
@@ -179,23 +179,24 @@ US/JP news supplement: NewsData.io Latest News API無料planを国別に独立�
 
 GDELT・RSS・NewsData.ioが提供するtitle・短いsummary・原文URL・媒体・公開時刻だけを許可する。記事本文、PDF・添付file、画像、HTMLを解析したsummaryは収集・再配布しない。GDELTとNewsData.io dataは派生keywordと最小記事metadataだけを直近7日保管し、provider attributionを表示する。実endpoint、query version、承認状態は`config/sources.example.yml`を基準とし、詳細手順は`docs/SOURCE_REGISTRATION_GUIDE.md`に従う。
 
-### 重複排除
+### URL重複排除とstory clustering
 
-1. トラッキングパラメータを除去したURLの一致
-2. HTML・空白・句読点・大小文字を正規化したタイトルの一致
-3. タイトル類似度0.92以上、公開時刻差6時間以内
+1. tracking parameterを除去したURLが同じ場合、詳細情報が多い1件だけを残す。
+2. 異なるURLは削除せず、同一国・12時間以内で正規化title一致、title類似度0.88以上、または十分に長い正規化URL pathとtitle文脈が共に一致する場合に同じstoryへclusteringする。
+3. 同じstoryの再配信記事はkeyword document frequencyへ1回だけ反映し、source・原文linkは保存する。
+4. 媒体別記事は国別上限までround-robinで保存し、一つの媒体の順位寄与だけを選択記事数の20%または30件の小さい方までweight付けする。
 
-関連記事一覧はkeyword根拠がtitle・提供summaryに実在する記事だけを含め、ユニーク媒体多様性・新しさ・HTTPS link順で最大20件を選ぶ。
+関連記事一覧はkeyword根拠がtitle・提供summaryに実在する記事だけを含め、title意味中心性と新しさ順に再配信linkを含めて最大20件を選択する。
 
 ---
 
 ## 6. keyword分析、LLMと集計
 
-言語別分析器はtitleから反復名詞と最大2形態素の短い複合名詞を抽出する。韓国語は`kiwipiepy`、日本語は`SudachiPy` core辞書、英語は正規化した単語・2語名詞表現規則に確定する。複合語を作る際に構成単語を捨てず両方を候補として保持し、`반도체수출`・`반도체투자`に共通する`반도체`を集計できるようにする。`経済`、`市場`、`政府`、`発表`、`見通し`、`投資`のように単独でイシューを識別しにくい一般語と国別stopwordをversion管理する。一つのtitleから複数候補を生成するが、画面labelは一つのイシュー概念だけを示し、文頭部分をそのまま候補にしない。
+言語別分析器はtitleから反復名詞と最大2形態素の短い複合名詞を抽出する。韓国語は`kiwipiepy`、日本語は`SudachiPy` core辞書、英語は正規化した単語・2語名詞表現規則に確定する。`経済`、`市場`、`政府`、`支援`、`供給`、`企業`のように単独でイシューを識別しにくい一般語は単独候補から除外するが、`주택공급`・`住宅供給`・`housing supply`のように具体名詞と結合した複合語は保存する。両構成語が一般語の組合せは除外し、片方に一般語を含む複合語は同じ根拠の短い具体語より順位優先権を持たない。一つのtitleから複数候補を生成するが、画面labelは一つのイシュー概念だけを示し、文頭部分をそのまま候補にしない。
 
 運用結果で発見した政治家名・政党名などの明示的除外表現は`config/keyword-blocklist.yml`でUS・JP・KR別に管理する。規則には`exact`または`contains`、分類、韓日除外理由、追加日、有効状態を含める。遮断はdocument frequency計算前に適用し、設定fileがない場合やSchema不正時は既存正常配布を維持するためbatchを失敗させる。list変更はcode変更と同様にGit履歴・test・PR reviewを経由し、詳細手順は`docs/KEYWORD_BLOCKLIST_GUIDE_JA.md`に従う。
 
-同一記事で一つのkeywordが複数回出現してもdocument frequencyは1件と数える。50件以上の運用sampleで最低3件または全体の2%の大きい方と、異なる2媒体以上を満たす候補だけを順位へ含める。日付・曜日・月/四半期表現、通貨単位、プレスリリース慣用語、発売・決算・株価・移動平均のような反復template一般語を除外する。TOP 5間の関連記事集合Jaccard類似度が0.5以上なら後順位候補を除外し、異なる5イシューを保証する。生の出現回数だけで順位を決めず、転載・類似記事と単一媒体集中を先に除外する。
+同一storyで一つのkeywordが複数記事に反復してもdocument frequencyは1件と数える。URLユニーク記事50件・独立story 30件以上の運用sampleで最低3 storyまたは全storyの2%の大きい方と、異なる2媒体以上を満たす候補だけを順位へ含める。日付・曜日・月/四半期表現、通貨単位、プレスリリース慣用語、発売・決算・株価・移動平均のような反復template一般語を除外し、embeddingを使う単独語はtitle凝集度0.5未満なら除外する。TOP 5間の関連story集合Jaccard類似度が0.5以上なら後順位候補を除外し、異なるイシューを保証する。raw記事数だけで順位を決めず、story別1回頻度、媒体寄与weight、title凝集度、媒体多様性、複合語具体性を合わせて反映する。
 
 標準運用の同義語統合は外部APIではなく`sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2` local embeddingを使い、検証済みmodel revision `e8f8c211226b894fcb81acc59f3b34ba3efd5f42`を固定する。同一国内で各表現が2記事・2媒体以上に現れ、空白除外4文字以上、cosine類似度0.95以上の場合だけ統合し、一clusterを最大3表現に制限する。高頻度候補を代表点とし、表示名は実記事候補のうちdocument frequencyが高い短い単語・複合名詞から決定する。model downloadまたは分析に失敗した場合は新結果を配布せず、既存の正常Pagesを維持する。
 
@@ -226,13 +227,13 @@ GDELT・RSS・NewsData.ioが提供するtitle・短いsummary・原文URL・媒�
 - 月額USD 10上限、USD 5相当で警告
 
 ```text
-document_frequency = keywordが1回以上出現したユニーク記事数
+document_frequency = keywordが1回以上出現した独立story数
 publisher_count    = keyword関連のユニーク媒体数
-article_ratio      = document_frequency / 国の有効記事数
-keyword_score      = document_frequency × title意味凝集度補正、publisher_count・具体性・最新時刻・keyword_id順で同順位解消
+article_ratio      = document_frequency / 国の独立story数（field名はSchema 2.0互換維持）
+keyword_score      = 媒体weighted story頻度 × title意味凝集度 × 媒体多様性 × 複合語具体性、最新時刻・keyword_id順で同順位解消
 ```
 
-`success`：3か国がそれぞれ記事50件以上、keyword処理成功率80%以上、品質keyword 3～5件を満たす。
+`success`：3か国がそれぞれURLユニーク記事50件・独立story 30件以上、keyword処理成功率80%以上、品質keyword 3～5件を満たす。
 
 `partial_success`：1～2か国が上記配布基準を満たす。成功国は公開し、失敗国は記事数と理由を表示する。
 
@@ -240,7 +241,7 @@ keyword_score      = document_frequency × title意味凝集度補正、publishe
 
 すべての試行は日付結果と`calendar.json`・`status.json`へ公開可能な状態だけを保存する。成功国が一つ以上あればその日付を`latest.json`へ更新し、すべて失敗なら既存表示結果を維持する。
 
-記事数50件はsample量gateにすぎず、品質通過を意味しない。上記の頻度・媒体・一般語・重複イシュー基準を満たすkeywordを最低3件作れない場合は、その国だけを失敗とする。品質を下げて5件を強制補完しない。
+記事数50件と独立story 30件はsample量gateにすぎず、品質通過を意味しない。上記の頻度・媒体・一般語・重複イシュー基準を満たすkeywordを最低3件作れない場合は、その国だけを失敗とする。品質を下げて5件を強制補完しない。
 
 ---
 
@@ -920,7 +921,7 @@ v* tag → Pages URL検証 → GitHub Release。Android再開後のみAABとPlay
 
 初回全経路確認用の過去収集は既存`publish-keyword-live`のJST日付別24時間計算を使い、過去保持が不確実なRSSと長時間HTTP retryを手動option`--skip-rss --single-attempt`だけで除外する。このoptionは予約workflowへ適用しない。2026-08-02～08のGDELT・NAVER遡及確認は全日が3か国100件基準未満で、公開fileを生成せず既存Pagesを維持した。この結果は機能動作確認であり、7日連続予約運用証跡には数えない。
 
-順序5では無料source補完の前に、国・source別のraw受信件数、source別採用媒体分布、重複除去後件数、偏重制限後の最終件数を計測する。診断Schema 1.1には記事title・URL・ID・Secretを含めず集計値だけを記録する。NAVERの日300回・月9,000回と有料自動移行禁止を維持し、source・query変更は許可domainと利用条件を確認した項目だけ適用する。
+順序5では無料source補完の前に、国・source別のraw受信件数、source別採用媒体分布、URL重複除去後件数、独立story数、最終選択記事数、媒体weighted有効量を計測する。診断Schema 1.2には記事title・URL・ID・Secretを含めず集計値だけを記録する。NAVERの日300回・月9,000回と有料自動移行禁止を維持し、source・query変更は許可domainと利用条件を確認した項目だけ適用する。
 
 2026-08-08の限定実接続ではNAVER 5 queryの500件中、既存許可domain 42件を確認した。上位除外domainをlocal診断で検討し、出所が明確な総合・経済専門媒体だけを許可listへ追加した`2026-08-08.v3`で103件を確保した。診断用の別ledgerは25/300回で、有料呼出しは使用していない。同じ実行でGDELT 3か国requestは`FeedFetchError`となったため、GDELT安定化と米国・日本の24時間coverageは引き続きpartialとして管理する。
 
@@ -941,6 +942,8 @@ GDELTの最小1件公開requestでもHTTP 429を再現した。HTTP errorは本�
 2026-08-19の8月17～19日運用artifact分析で、全体公開gate、Ubuntu参照・Windows保存によるcache marker不一致、NewsData無料遅延に対する早過ぎる実行、mutable JSON cache、一般語・媒体名・政治家名候補を確認した。実行markerはUbuntu gateで確認し、`enableCrossOsArchive`でWindows buildと共有して、全検証後の外部呼出し直前に保存する。標準実行は13時、補完は14時・16時へ変更する。国別結果は1か国以上成功時に部分公開し、`calendar.json`・`status.json`で失敗日と記事数を表示する。keywordは国別3～5件だけを許可し、英語活用形、国別一般語・政治家禁止語、最終選択数基準の媒体偏重、記事title embedding凝集度順位を適用する。8月17～19日の保存管理者sampleは外部API再呼出しなしのlocal回帰に利用し、Gitには含めない。
 
 2026-08-19のkeyword言語切替はUI全体を日本語化する機能ではなく、米国英語・日本日本語keywordを韓国語補助名へ切り替える機能として確定する。原文`label`を分析基準として維持し、順位確定後に`label_ko`を付与する。韓国keywordは両modeで同じ表示とし、記事titleは原文を維持する。初回実装は外部key・呼出費用不要の`config/keyword-translations.yml`完全一致辞書を使い、未登録表現は原文へfallbackする。翻訳provider変更は別途費用・品質承認とADR変更後に行う。
+
+2026-08-20に収集量損失と再配信記事の過大集計を同時に解決するため、媒体20%/30件基準を記事削除から順位寄与weightへ変更する。URLが異なる記事は保存し、12時間以内の正規化title・URL path類似性でstory clusterを付与する。keyword頻度はstoryごとに1回だけ数え、関連linkは維持する。単独一般語と一般語同士の組合せは遮断するが、具体名詞と結合した複合語は保存し、診断Schema 1.2へ独立story数とweighted有効量を記録する。配布sampleはURLユニーク記事50件と独立story 30件の両方を要求する。
 
 2026-08-09の予約実行では重複・偏重除去後にUS 198件・JP 103件・KR 85件を確保したが、従来の100件gateにより全体配布が停止した。100件以上の推奨収集目標と150件の目標値は維持し、実配布下限だけを国別70件へ下げる。3か国すべてが70件以上で各国TOP 5を完成した場合のみ配布し、未達時は既存の正常Pagesを維持する。
 

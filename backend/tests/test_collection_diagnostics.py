@@ -30,6 +30,8 @@ def test_collection_diagnostics_contains_counts_without_article_content(tmp_path
             source_publisher_counts={"naver": {"Example": 3}},
             raw_article_count=3,
             deduplicated_article_count=2,
+            story_cluster_count=1,
+            diversity_weighted_article_count=0.75,
             collected_at=collected_at,
         )
     }
@@ -47,9 +49,11 @@ def test_collection_diagnostics_contains_counts_without_article_content(tmp_path
     payload = json.loads(raw)
     assert payload["countries"]["KR"] == {
         "deduplicated_article_count": 2,
+        "diversity_weighted_article_count": 0.75,
         "errors": ["naver:TimeoutError"],
         "raw_article_count": 3,
         "selected_article_count": 1,
+        "story_cluster_count": 1,
         "source_article_counts": {"naver": 3, "rss": 0},
         "source_filter_counts": {
             "naver": {"accepted": 3, "domain_rejected": 7, "response_items": 10}
@@ -58,6 +62,7 @@ def test_collection_diagnostics_contains_counts_without_article_content(tmp_path
         "source_publisher_counts": {"naver": {"Example": 3}},
         "used_fixture_fallback": False,
     }
+    assert payload["schema_version"] == "1.2"
     assert "민감한 원문 제목" not in raw
     assert "private-story" not in raw
     assert "secret-article-id" not in raw

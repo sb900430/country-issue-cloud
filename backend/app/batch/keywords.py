@@ -25,6 +25,8 @@ _MIN_DOCUMENT_RATIO = 0.02
 _MIN_DOCUMENT_FREQUENCY = 3
 _MIN_PUBLISHER_COUNT = 2
 _MIN_ARTICLE_COUNT = 50
+_MIN_STORY_COUNT = 30
+_MIN_SINGLE_TERM_COHESION = 0.5
 _MAX_RELATED_ARTICLE_JACCARD = 0.5
 _GENERAL_TERMS = {
     CountryCode.US: {
@@ -315,6 +317,77 @@ _GENERAL_TERMS[CountryCode.US].update(
 )
 _GENERAL_TERMS[CountryCode.JP].add("online")
 _GENERAL_TERMS[CountryCode.KR].update({"회견", "공원", "대표", "발동", "대책"})
+_GENERIC_SINGLE_TERMS = {
+    CountryCode.US: {
+        "bank",
+        "business",
+        "company",
+        "deadline",
+        "demand",
+        "economy",
+        "government",
+        "investment",
+        "issue",
+        "market",
+        "policy",
+        "price",
+        "problem",
+        "report",
+        "security",
+        "smart",
+        "stock",
+        "supply",
+        "support",
+    },
+    CountryCode.JP: {
+        "企業",
+        "供給",
+        "問題",
+        "市場",
+        "投資",
+        "政府",
+        "政策",
+        "支援",
+        "発行",
+        "経済",
+    },
+    CountryCode.KR: {
+        "경제",
+        "공급",
+        "국가",
+        "금융",
+        "기업",
+        "문제",
+        "발행",
+        "사업",
+        "수요",
+        "시장",
+        "정부",
+        "정책",
+        "지원",
+        "투자",
+    },
+}
+_COMPOUNDABLE_GENERAL_TERMS = {
+    CountryCode.US: {
+        "bank",
+        "business",
+        "company",
+        "demand",
+        "economy",
+        "government",
+        "investment",
+        "market",
+        "policy",
+        "price",
+        "security",
+        "stock",
+        "supply",
+        "support",
+    },
+    CountryCode.JP: set(_GENERIC_SINGLE_TERMS[CountryCode.JP]),
+    CountryCode.KR: set(_GENERIC_SINGLE_TERMS[CountryCode.KR]),
+}
 
 
 class KeywordCandidate(BaseModel):
@@ -363,8 +436,10 @@ class _TermUnit:
 class _RankedItem:
     quality_score: float
     frequency: int
+    weighted_frequency: float
     publisher_count: int
     specificity: int
+    label_length: int
     latest: datetime
     keyword_id: str
     key: str
@@ -389,16 +464,13 @@ class LanguageKeywordExtractor:
     def _english_segments(title: str) -> list[list[_TermUnit]]:
         segments: list[list[_TermUnit]] = []
         current: list[_TermUnit] = []
+        boundary_terms = _boundary_terms(CountryCode.US)
         for match in _LATIN_WORD.finditer(title):
             surface = match.group().casefold().strip("'")
             if surface.endswith("'s"):
                 surface = surface[:-2]
             label = _english_lemma(surface)
-            if (
-                surface in _GENERAL_TERMS[CountryCode.US]
-                or label in _GENERAL_TERMS[CountryCode.US]
-                or len(label) < 3
-            ):
+            if surface in boundary_terms or label in boundary_terms or len(label) < 3:
                 if current:
                     segments.append(current)
                     current = []
@@ -455,10 +527,16 @@ class LanguageKeywordExtractor:
         country: CountryCode, title: str, segments: list[list[_TermUnit]]
     ) -> tuple[KeywordCandidate, ...]:
         candidates: dict[str, KeywordCandidate] = {}
-        general_terms = _GENERAL_TERMS[country]
+        boundary_terms = _boundary_terms(country)
+        excluded_singles = _GENERAL_TERMS[country] | _GENERIC_SINGLE_TERMS[country]
         for segment in segments:
             for left, right in zip(segment, segment[1:], strict=False):
-                if left.label in general_terms or right.label in general_terms:
+                if left.label in boundary_terms or right.label in boundary_terms:
+                    continue
+                if (
+                    left.label in _GENERIC_SINGLE_TERMS[country]
+                    and right.label in _GENERIC_SINGLE_TERMS[country]
+                ):
                     continue
                 separator = " " if country is CountryCode.US else ""
                 label = f"{left.label}{separator}{right.label}"
@@ -470,11 +548,19 @@ class LanguageKeywordExtractor:
                 if len(evidence) < 2 or _is_invalid_candidate(country, label):
                     continue
                 normalized = _normalize(label)
+                term_count = (
+                    1
+                    if left.label in _GENERIC_SINGLE_TERMS[country]
+                    or right.label in _GENERIC_SINGLE_TERMS[country]
+                    else 2
+                )
                 candidates[normalized] = KeywordCandidate(
-                    label=label[:80], evidence_expression=evidence[:120], term_count=2
+                    label=label[:80],
+                    evidence_expression=evidence[:120],
+                    term_count=term_count,
                 )
             for unit in segment:
-                if unit.label in general_terms or len(unit.label) < 2:
+                if unit.label in excluded_singles or len(unit.label) < 2:
                     continue
                 label = unit.label[:80].strip()
                 evidence = title[unit.start : unit.end][:120].strip()
@@ -542,6 +628,9 @@ class KeywordRanker:
             raise ValueError(f"keyword analysis requires at least {_MIN_ARTICLE_COUNT} articles")
         if any(article.country is not country for article in articles):
             raise ValueError("keyword analysis cannot mix countries")
+        story_count = len({_story_id(article) for article in articles})
+        if story_count < _MIN_STORY_COUNT:
+            raise ValueError(f"keyword analysis requires at least {_MIN_STORY_COUNT} stories")
 
         grouped_articles: dict[str, dict[str, CollectedArticle]] = defaultdict(dict)
         grouped_labels: dict[str, set[str]] = defaultdict(set)
@@ -572,16 +661,19 @@ class KeywordRanker:
             eligible_keys = {
                 key
                 for key, indexed in grouped_articles.items()
-                if len(indexed) >= 2
-                and len(
-                    {canonical_publisher(article.publisher) for article in indexed.values()}
-                )
+                if _story_frequency(indexed, indexed) >= 2
+                and len({canonical_publisher(article.publisher) for article in indexed.values()})
                 >= 2
             }
             display_labels = {
                 key: self.resolver.display_label(
                     labels,
-                    {label: len(grouped_label_articles[key][label]) for label in labels},
+                    {
+                        label: _story_frequency(
+                            grouped_label_articles[key][label], grouped_articles[key]
+                        )
+                        for label in labels
+                    },
                     grouped_label_term_counts[key],
                 )
                 for key, labels in grouped_labels.items()
@@ -591,7 +683,10 @@ class KeywordRanker:
             assignments.update(
                 self.semantic_grouper.group(
                     display_labels,
-                    {key: len(indexed) for key, indexed in grouped_articles.items()},
+                    {
+                        key: _story_frequency(indexed, indexed)
+                        for key, indexed in grouped_articles.items()
+                    },
                 )
             )
             (
@@ -610,10 +705,11 @@ class KeywordRanker:
             )
 
         title_vectors = self._title_vectors(articles)
-        minimum_frequency = max(_MIN_DOCUMENT_FREQUENCY, ceil(len(articles) * _MIN_DOCUMENT_RATIO))
+        minimum_frequency = max(_MIN_DOCUMENT_FREQUENCY, ceil(story_count * _MIN_DOCUMENT_RATIO))
         ranked: list[_RankedItem] = []
         for key, indexed in grouped_articles.items():
-            frequency = len(indexed)
+            frequency = _story_frequency(indexed, indexed)
+            weighted_frequency = _weighted_story_frequency(indexed)
             publisher_count = len(
                 {canonical_publisher(article.publisher) for article in indexed.values()}
             )
@@ -621,16 +717,29 @@ class KeywordRanker:
                 continue
             label = self.resolver.display_label(
                 grouped_labels[key],
-                {value: len(grouped_label_articles[key][value]) for value in grouped_labels[key]},
+                {
+                    value: _story_frequency(
+                        grouped_label_articles[key][value], grouped_articles[key]
+                    )
+                    for value in grouped_labels[key]
+                },
                 grouped_label_term_counts[key],
             )
-            cohesion = _title_cohesion(indexed, title_vectors)
+            cohesion = _title_cohesion(_story_representatives(indexed), title_vectors)
+            specificity = grouped_label_term_counts[key][label]
+            if specificity == 1 and title_vectors and cohesion < _MIN_SINGLE_TERM_COHESION:
+                continue
+            publisher_diversity = min(1.0, publisher_count / frequency)
             ranked.append(
                 _RankedItem(
-                    quality_score=frequency * (0.5 + cohesion),
+                    quality_score=(
+                        weighted_frequency * (0.5 + cohesion) * (0.5 + 0.5 * publisher_diversity)
+                    ),
                     frequency=frequency,
+                    weighted_frequency=weighted_frequency,
                     publisher_count=publisher_count,
-                    specificity=grouped_label_term_counts[key][label],
+                    specificity=specificity,
+                    label_length=len(label),
                     latest=max(article.published_at for article in indexed.values()),
                     keyword_id=_keyword_id(country, label),
                     key=key,
@@ -642,6 +751,7 @@ class KeywordRanker:
                 -item.frequency,
                 -item.publisher_count,
                 -item.specificity,
+                item.label_length,
                 -item.latest.timestamp(),
                 item.keyword_id,
             )
@@ -651,7 +761,7 @@ class KeywordRanker:
         for ranked_item in ranked:
             key = ranked_item.key
             if any(
-                _related_article_jaccard(grouped_articles[key], grouped_articles[item.key])
+                _related_story_jaccard(grouped_articles[key], grouped_articles[item.key])
                 >= _MAX_RELATED_ARTICLE_JACCARD
                 for item in selected
             ):
@@ -665,7 +775,12 @@ class KeywordRanker:
             key = item.key
             label = self.resolver.display_label(
                 grouped_labels[key],
-                {value: len(grouped_label_articles[key][value]) for value in grouped_labels[key]},
+                {
+                    value: _story_frequency(
+                        grouped_label_articles[key][value], grouped_articles[key]
+                    )
+                    for value in grouped_labels[key]
+                },
                 grouped_label_term_counts[key],
             )
             related = _central_related_articles(grouped_articles[key], title_vectors)[:20]
@@ -676,7 +791,7 @@ class KeywordRanker:
                     label=label,
                     document_frequency=item.frequency,
                     publisher_count=item.publisher_count,
-                    article_ratio=item.frequency / len(articles),
+                    article_ratio=item.frequency / story_count,
                     evidence_expressions=tuple(sorted(grouped_evidence[key]))[:10],
                     related_article_ids=tuple(article.article_id for article in related),
                 )
@@ -689,9 +804,7 @@ class KeywordRanker:
             top_keywords=tuple(top_keywords),
         )
 
-    def _title_vectors(
-        self, articles: list[CollectedArticle]
-    ) -> dict[str, NDArray[np.float32]]:
+    def _title_vectors(self, articles: list[CollectedArticle]) -> dict[str, NDArray[np.float32]]:
         if self.semantic_grouper is None or not self.semantic_grouper.use_title_cohesion:
             return {}
         ordered = sorted(articles, key=lambda article: article.article_id)
@@ -753,9 +866,15 @@ def _normalize(value: str) -> str:
     return " ".join(unicodedata.normalize("NFKC", value).casefold().split())
 
 
+def _boundary_terms(country: CountryCode) -> set[str]:
+    return (_GENERAL_TERMS[country] | _GENERIC_SINGLE_TERMS[country]) - _COMPOUNDABLE_GENERAL_TERMS[
+        country
+    ]
+
+
 def _is_invalid_candidate(country: CountryCode, label: str) -> bool:
     normalized = _normalize(label)
-    if normalized in _GENERAL_TERMS[country]:
+    if normalized in _GENERAL_TERMS[country] | _GENERIC_SINGLE_TERMS[country]:
         return True
     if country is CountryCode.JP:
         if re.fullmatch(r"[\d.,]+", normalized):
@@ -810,11 +929,50 @@ def _central_related_articles(
     ]
 
 
-def _related_article_jaccard(
+def _story_id(article: CollectedArticle) -> str:
+    return article.story_cluster_id or article.article_id
+
+
+def _story_frequency(
+    article_ids: Mapping[str, object] | set[str],
+    articles: Mapping[str, CollectedArticle],
+) -> int:
+    return len({_story_id(articles[article_id]) for article_id in article_ids})
+
+
+def _weighted_story_frequency(articles: Mapping[str, CollectedArticle]) -> float:
+    weights: dict[str, float] = {}
+    for article in articles.values():
+        story_id = _story_id(article)
+        weights[story_id] = max(weights.get(story_id, 0.0), article.ranking_weight)
+    return sum(weights.values())
+
+
+def _story_representatives(
+    articles: Mapping[str, CollectedArticle],
+) -> dict[str, CollectedArticle]:
+    representatives: dict[str, CollectedArticle] = {}
+    for article in articles.values():
+        story_id = _story_id(article)
+        current = representatives.get(story_id)
+        if current is None or (
+            article.ranking_weight,
+            article.published_at.timestamp(),
+            article.article_id,
+        ) > (
+            current.ranking_weight,
+            current.published_at.timestamp(),
+            current.article_id,
+        ):
+            representatives[story_id] = article
+    return {article.article_id: article for article in representatives.values()}
+
+
+def _related_story_jaccard(
     left: dict[str, CollectedArticle], right: dict[str, CollectedArticle]
 ) -> float:
-    left_ids = set(left)
-    right_ids = set(right)
+    left_ids = {_story_id(article) for article in left.values()}
+    right_ids = {_story_id(article) for article in right.values()}
     union = left_ids | right_ids
     return len(left_ids & right_ids) / len(union) if union else 0.0
 

@@ -2,15 +2,17 @@
 
 | 項目 | 現在状態 |
 |---|---|
-| 現在目標 | 国tab別keyword言語切替補正と日付tab整列 |
-| 状態 | 実装・文書・全体検証・実公開履歴preserve検証・完了review PASS、公開承認待ち |
+| 現在目標 | 記事sample保存とstory単位keyword集計の安定化 |
+| 状態 | 実装・韓日文書・全体検証完了、運用sample観察待ち |
 | 基準branch | `main` |
-| 作業branch | `codex/keyword-language-tabs-fix` |
+| 作業branch | `codex/keyword-pipeline-reliability` |
 | 最終完了commit | `de16f08e` — keyword韓国語表示追加 |
-| 全体検証 | PASS — Python 159件・Web 14件、backend coverage 89%、Secret・仕様・実preserve artifact |
-| 次作業 | 利用者依頼時にbranch pushとDraft PR、merge後に`main`再検証 |
+| 全体検証 | PASS — Python 172件・Web 14件、backend coverage 90%、Ruff・mypy・Secret・仕様同期 |
+| 次作業 | 利用者承認時にcommit・push・Draft PR後、次回予約実行の国別記事・story数を観察 |
 
 ## v1.0公開準備の進行結果
+
+- 2026-08-20に媒体20%/30件制限が記事削除として適用され、媒体数が少ない日にsampleが過度に減り、異なるURLの再配信記事がkeyword頻度を膨らませる問題を修正した。同一URLだけを除去し、それ以外は12時間以内のtitle・URL pathに基づく独立storyへclusteringする。記事は国別上限まで維持し、媒体の順位寄与だけをweight付けして、keyword document frequency・Jaccard・article ratioはstory単位で計算する。単独一般語と一般語同士の組合せを遮断しながら具体名詞と結合した複合語は候補根拠として保存し、同じ根拠では短い具体語を優先する。URLユニーク記事50件・独立story 30件gateと診断Schema 1.2を追加した。
 
 - 2026-08-19に公開dataの旧Schema 2.0 JSONへ`label_ko`がなく、国tab移動後の言語切替が原文fallbackだけに見える原因を確認した。Pagesの`preserve`公開でも現在の翻訳辞書で復元履歴を補完し、外部news API再呼出しなしで既存日付の`label_ko`を生成する。米国・日本tab間では選択言語modeを維持し、韓国tabでは不要な切替入力を隠す。日付tabは左が過去・右が最新の順に整列し、選択日を横scroll領域へ表示する。実公開履歴4日を復元した一時artifactでUS 2件・JP 3件が韓国語へ切り替わり、全国家の`label_ko`欠落が0件であることを確認した。
 

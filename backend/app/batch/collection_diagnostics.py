@@ -14,7 +14,7 @@ def write_collection_diagnostics(
     collections: dict[CountryCode, CountryCollectionResult],
 ) -> Path:
     payload = {
-        "schema_version": "1.1",
+        "schema_version": "1.2",
         "target_date": target_date.isoformat(),
         "window_start": window_start.isoformat(),
         "window_end": window_end.isoformat(),
@@ -27,9 +27,7 @@ def write_collection_diagnostics(
                 },
                 "source_rejected_domain_counts": {
                     source_id: dict(sorted(counts.items()))
-                    for source_id, counts in sorted(
-                        result.source_rejected_domain_counts.items()
-                    )
+                    for source_id, counts in sorted(result.source_rejected_domain_counts.items())
                 },
                 "source_publisher_counts": {
                     source_id: dict(sorted(counts.items(), key=lambda item: (-item[1], item[0])))
@@ -37,7 +35,11 @@ def write_collection_diagnostics(
                 },
                 "raw_article_count": result.raw_article_count,
                 "deduplicated_article_count": result.deduplicated_article_count,
+                "story_cluster_count": result.story_cluster_count,
                 "selected_article_count": len(result.articles),
+                "diversity_weighted_article_count": round(
+                    result.diversity_weighted_article_count, 3
+                ),
                 "errors": list(result.errors),
                 "used_fixture_fallback": result.used_fixture_fallback,
             }
